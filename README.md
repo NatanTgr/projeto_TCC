@@ -2,8 +2,11 @@
 
 Identidade Visual do Projeto:
 
-![Uploading paed.png…]()
+![alt text](https://github.com/NatanTgr/projeto_TCC/blob/main/IDENTIDADADE%20VISUAL%20PAED.pdf)
 
+Redes sociais do projeto:
+
+Instagram: @paed.tcc
 
 Organização da Equipe:
 
