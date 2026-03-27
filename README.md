@@ -2,7 +2,8 @@
 
 Identidade Visual do Projeto:
 
-![alt text](https://github.com/NatanTgr/projeto_TCC/blob/main/IDENTIDADADE%20VISUAL%20PAED.pdf)
+<img width="722" height="1024" alt="1774642153623-4d5cb4d1-edfe-4845-85fa-022334b60d72_1" src="https://github.com/user-attachments/assets/0bdd2695-2710-4002-915b-b789f718a8cd" />
+
 
 Redes sociais do projeto:
 
