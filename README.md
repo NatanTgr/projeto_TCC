@@ -23,6 +23,16 @@ Apesar do aumento no acesso à escolarização, observa-se que a presença de es
 A partir da identificação das dificuldades relacionadas à organização da rotina escolar de estudantes com Transtorno do Espectro Autista (TEA), foi proposto o desenvolvimento do PAED.
 O aplicativo está sendo desenvolvido com React Native em conjunto com o Expo, utilizando JavaScript como base para a estruturação e implementação das funcionalidades. Para o armazenamento de dados está sendo utilizada a plataforma Supabase, enquanto GitHub é para o controle do código e o Visual Studio Code como ambiente de desenvolvimento.
 
+<p align="center">
+  <img height="80" src="https://cdn.simpleicons.org/react">
+  <img height="80" src="https://cdn.simpleicons.org/expo">
+  <img height="80" src="https://cdn.simpleicons.org/javascript">
+  <img height="80" src="https://cdn.simpleicons.org/supabase">
+  <img height="80" src="https://cdn.simpleicons.org/github">
+  <img height="80" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg">
+</p>
+
+
 ---
 ## 🎨 Identidade Visual do Projeto
 
