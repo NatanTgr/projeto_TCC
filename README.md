@@ -1,13 +1,25 @@
-# 📘 Identificação do Projeto — PAED
+---
+# 🧩 PAED - Plataforma de Apoio Educacional
+
+<img width="2001" height="667" alt="logo" src="https://github.com/user-attachments/assets/85dbd094-3840-4f9c-a4d9-a3a0c430da45" />
 
 ---
+## 📚 O que é PAED?
 
+
+---
+## ⚠️ Problema
+
+
+---
+## 🧑🏽‍💻 Desenvolvimento 
+
+
+---
 ## 🎨 Identidade Visual do Projeto
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/0bdd2695-2710-4002-915b-b789f718a8cd"
-       alt="Identidade Visual do Projeto PAED"
-       width="400">
+  <img width="700" height="1000" alt="IDENTIDADADE VISUAL PAED" src="https://github.com/user-attachments/assets/7a06bb33-acd2-499c-aa6a-a0de7228efbd" />
 </p>
 
 ---
