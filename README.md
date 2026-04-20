@@ -47,11 +47,11 @@ As principais etapas do método incluem:
 
 4. Desenvolvimento do protótipo navegável utilizando Figma e Quant UX
 
-5. Desenvolvimento do aplicativo
+5. Aplicação de formulários para coleta e organização de informações relevantes ao projeto
 
-6. Implementação do banco de dados com Supabase
+6. Desenvolvimento do aplicativo
 
-7. Aplicação de formulários para coleta e organização de informações relevantes ao projeto
+7. Implementação do banco de dados com Supabase
 
 8. Testes de usabilidade e acessibilidade com base em heurísticas de interface
 
