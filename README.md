@@ -40,14 +40,24 @@ O desenvolvimento do aplicativo PAED foi organizado em etapas estruturadas confo
 As principais etapas do método incluem:
 
 1. Pesquisa teórica sobre Transtorno do Espectro Autista (TEA) e Tecnologia Assistiva (TA)
+
 2. Análise de aplicativos semelhantes para identificação de funcionalidades e padrões de interface adequados
+
 3. Planejamento das funcionalidades e construção da identidade visual do aplicativo
+
 4. Desenvolvimento do protótipo navegável utilizando Figma e Quant UX
-5. Implementação do banco de dados com Supabase
-6. Aplicação de formulários para coleta e organização de informações relevantes ao projeto
-7. Testes de usabilidade e acessibilidade com base em heurísticas de interface
-8. Ajustes progressivos do sistema a partir das validações realizadas
-9. Elaboração da documentação técnica e preparação da apresentação final do projeto
+
+5. Desenvolvimento do aplicativo
+
+6. Implementação do banco de dados com Supabase
+
+7. Aplicação de formulários para coleta e organização de informações relevantes ao projeto
+
+8. Testes de usabilidade e acessibilidade com base em heurísticas de interface
+
+9. Ajustes progressivos do sistema a partir das validações realizadas
+
+10. Elaboração da documentação técnica e preparação da apresentação final do projeto
 
 ---
 ## 🎯 Objetivo
