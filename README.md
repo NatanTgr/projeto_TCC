@@ -32,6 +32,18 @@ O aplicativo está sendo desenvolvido com React Native em conjunto com o Expo, u
   <img height="80" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg">
 </p>
 
+---
+## 🧠 Método
+
+
+
+
+
+---
+## 🎯 Objetivo
+
+Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espectro Autista (TEA) na organização de tarefas escolares, no planejamento da rotina acadêmica e no acompanhamento de suas atividades educacionais, contribuindo para o aprimoramento da autonomia, da acessibilidade e da permanência desses estudantes no ambiente escolar por meio do uso de recursos de Tecnologia Assistiva.
+
 
 ---
 ## 🎨 Identidade Visual do Projeto
