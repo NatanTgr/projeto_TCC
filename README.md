@@ -42,7 +42,7 @@ O aplicativo está sendo desenvolvido com React Native em conjunto com o Expo, u
 ---
 ## 🎯 Objetivo
 
-Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espectro Autista (TEA) na organização de tarefas escolares, no planejamento da rotina acadêmica e no acompanhamento de suas atividades educacionais, contribuindo para o aprimoramento da autonomia, da acessibilidade e da permanência desses estudantes no ambiente escolar por meio do uso de recursos de Tecnologia Assistiva.
+Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espectro Autista (TEA) na organização de tarefas escolares, no planejamento da rotina acadêmica e no acompanhamento de suas atividades educacionais, contribuindo para o aprimoramento da autonomia, da acessibilidade e da permanência desses estudantes no ambiente escolar por meio do uso de recursos de Tecnologia Assistiva, com interface intuitiva, suporte visual à organização das atividades e recursos de comunicação que favoreçam a interação com professores e tutores.
 
 
 ---
