@@ -50,7 +50,7 @@ As principais etapas do método incluem:
 
 3. Planejamento das funcionalidades e construção da identidade visual do aplicativo
 
-4. Desenvolvimento do protótipo navegável utilizando Figma e Quant UX
+4. Desenvolvimento do protótipo navegável utilizando Figma 
 
 5. Aplicação de formulários para coleta e organização de informações relevantes ao projeto
 
