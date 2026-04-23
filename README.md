@@ -96,8 +96,3 @@ As principais etapas do método incluem:
 🗓️ **01/07/2025**
 
 ---
-
-<p align="center">
-  <sub>© 2025 Projeto PAED</sub>
-</p>
-
