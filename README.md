@@ -33,6 +33,11 @@ O aplicativo está sendo desenvolvido com React Native em conjunto com o Expo, u
 </p>
 
 ---
+## 🎯 Objetivo
+
+Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espectro Autista (TEA) na organização de tarefas escolares, no planejamento da rotina acadêmica e no acompanhamento de suas atividades educacionais, contribuindo para o aprimoramento da autonomia, da acessibilidade e da permanência desses estudantes no ambiente escolar por meio do uso de recursos de Tecnologia Assistiva, com interface intuitiva, suporte visual à organização das atividades e recursos de comunicação que favoreçam a interação com professores e tutores.
+
+---
 ## 🧠 Método
 
 O desenvolvimento do aplicativo PAED foi organizado em etapas estruturadas conforme o cronograma do projeto, contemplando pesquisa teórica, planejamento, implementação e validação da aplicação.
@@ -58,13 +63,7 @@ As principais etapas do método incluem:
 9. Ajustes progressivos do sistema a partir das validações realizadas
 
 10. Elaboração da documentação técnica e preparação da apresentação final do projeto
-
----
-## 🎯 Objetivo
-
-Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espectro Autista (TEA) na organização de tarefas escolares, no planejamento da rotina acadêmica e no acompanhamento de suas atividades educacionais, contribuindo para o aprimoramento da autonomia, da acessibilidade e da permanência desses estudantes no ambiente escolar por meio do uso de recursos de Tecnologia Assistiva, com interface intuitiva, suporte visual à organização das atividades e recursos de comunicação que favoreçam a interação com professores e tutores.
-
-
+11. 
 ---
 ## 🎨 Identidade Visual do Projeto
 
@@ -88,7 +87,8 @@ Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espec
 | **João Odimar Gonçalves Campos**  | Leituras base, Pesquisa de mercado, Organização do código, Criação do protótipo navegável, Organização do banco de dados                             |
 | **Maria Eduarda Miotti dos Reis** | Leituras base, Organização do cronograma, Organização da documentação, Pesquisa de artigos, Criação do protótipo navegável |
 | **Natan Rodrigues**               | Leituras base, Organização do código, Criação do protótipo navegável, Organização do banco de dados                            |
-
+| **Paula Cristina Stopa**               | Orientadora                           |
+| **Lauriana Paludo**               | Coorientadora                            |
 ---
 
 ## 📅 Data de Criação do Projeto
