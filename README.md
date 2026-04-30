@@ -18,21 +18,6 @@ O Transtorno do Espectro Autista (TEA) é caracterizado por alterações no dese
 Apesar do aumento no acesso à escolarização, observa-se que a presença de estudantes com TEA diminui progressivamente ao longo dos níveis de ensino. Esse cenário evidencia a existência de barreiras educacionais, especialmente relacionadas à falta de apoio adequado e adaptações institucionais que favoreçam sua permanência e desenvolvimento acadêmico (IBGE, 2022).
 
 ---
-## 🧑🏽‍💻 Desenvolvimento 
-
-A partir da identificação das dificuldades relacionadas à organização da rotina escolar de estudantes com Transtorno do Espectro Autista (TEA), foi proposto o desenvolvimento do PAED.
-O aplicativo está sendo desenvolvido com React Native em conjunto com o Expo, utilizando JavaScript como base para a estruturação e implementação das funcionalidades. Para o armazenamento de dados está sendo utilizada a plataforma Supabase, enquanto GitHub é para o controle do código e o Visual Studio Code como ambiente de desenvolvimento.
-
-<p align="center">
-  <img height="80" src="https://cdn.simpleicons.org/react">
-  <img height="80" src="https://cdn.simpleicons.org/expo">
-  <img height="80" src="https://cdn.simpleicons.org/javascript">
-  <img height="80" src="https://cdn.simpleicons.org/supabase">
-  <img height="80" src="https://cdn.simpleicons.org/github">
-  <img height="80" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg">
-</p>
-
----
 ## 🎯 Objetivo
 
 Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espectro Autista (TEA) na organização de tarefas escolares, no planejamento da rotina acadêmica e no acompanhamento de suas atividades educacionais, contribuindo para o aprimoramento da autonomia, da acessibilidade e da permanência desses estudantes no ambiente escolar por meio do uso de recursos de Tecnologia Assistiva, com interface intuitiva, suporte visual à organização das atividades e recursos de comunicação que favoreçam a interação com professores e tutores.
@@ -63,8 +48,24 @@ As principais etapas do método incluem:
 9. Ajustes progressivos do sistema a partir das validações realizadas
 
 10. Elaboração da documentação técnica e preparação da apresentação final do projeto
-    
+
 ---
+## 🧑🏽‍💻 Desenvolvimento 
+
+A partir da identificação das dificuldades relacionadas à organização da rotina escolar de estudantes com Transtorno do Espectro Autista (TEA), foi proposto o desenvolvimento do PAED.
+O aplicativo está sendo desenvolvido com React Native em conjunto com o Expo, utilizando JavaScript como base para a estruturação e implementação das funcionalidades. Para o armazenamento de dados está sendo utilizada a plataforma Supabase, enquanto GitHub é para o controle do código e o Visual Studio Code como ambiente de desenvolvimento.
+
+<p align="center">
+  <img height="80" src="https://cdn.simpleicons.org/react">
+  <img height="80" src="https://cdn.simpleicons.org/expo">
+  <img height="80" src="https://cdn.simpleicons.org/javascript">
+  <img height="80" src="https://cdn.simpleicons.org/supabase">
+  <img height="80" src="https://cdn.simpleicons.org/github">
+  <img height="80" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg">
+</p>
+
+---
+
 ## 🎨 Identidade Visual do Projeto
 
 <p align="center">
