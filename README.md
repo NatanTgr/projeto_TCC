@@ -73,7 +73,7 @@ As principais etapas do método incluem:
 
 ---
 
-## 📱 Redes Sociais do Projeto
+## 💬 Redes Sociais do Projeto
 
 📸 Instagram:
 👉 <a href="https://instagram.com/paed.tcc" target="_blank">@paed.tcc</a>
@@ -97,20 +97,21 @@ As principais etapas do método incluem:
 
 ---
 
-## Documento de Requisitos
+## 📝 Documento de Requisitos
 
 [Documento_de_Requisitos-PAED-TCC.pdf](https://github.com/user-attachments/files/27244492/Documento_de_Requisitos-PAED-TCC.pdf)
 
 ---
 
-## Protótipo - Figma
+## 📄 Pré-Projeto
+
+[Pré-Projeto v1.pdf](https://github.com/user-attachments/files/27244597/Pre-Projeto.v1.pdf)
+
+---
+
+## 📱 Protótipo - Figma
 
 https://www.figma.com/make/M1I0xoCKxs4kbvxICyjnvU/PAED?t=vQ2XqCE5sy3KD8uD-1
 
 ---
 
-## Pré-Projeto
-
-[Pré-Projeto v1.pdf](https://github.com/user-attachments/files/27244597/Pre-Projeto.v1.pdf)
-
----
