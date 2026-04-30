@@ -63,7 +63,7 @@ As principais etapas do método incluem:
 9. Ajustes progressivos do sistema a partir das validações realizadas
 
 10. Elaboração da documentação técnica e preparação da apresentação final do projeto
-11. 
+    
 ---
 ## 🎨 Identidade Visual do Projeto
 
@@ -94,5 +94,23 @@ As principais etapas do método incluem:
 ## 📅 Data de Criação do Projeto
 
 🗓️ **01/07/2025**
+
+---
+
+## Documento de Requisitos
+
+[Documento_de_Requisitos-PAED-TCC.pdf](https://github.com/user-attachments/files/27244492/Documento_de_Requisitos-PAED-TCC.pdf)
+
+---
+
+## Protótipo - Figma
+
+https://www.figma.com/make/M1I0xoCKxs4kbvxICyjnvU/PAED?t=vQ2XqCE5sy3KD8uD-1
+
+---
+
+## Pré-Projeto
+
+[Pré-Projeto v1.pdf](https://github.com/user-attachments/files/27244597/Pre-Projeto.v1.pdf)
 
 ---
