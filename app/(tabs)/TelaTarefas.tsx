@@ -25,20 +25,20 @@ type Task = {
 
 
 export default function ListaTarefas() {
-
   const { tema } = useTheme();
   const [tarefas, setTarefas] = useState<Task[]>([]);
-  const [descricaoTarefa, setDescricaoTarefa] = useState('');
+  const [descricaoTarefa, setDescricaoTarefa] = useState("");
+  const [editando, setEditando] = useState(false);
 
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [tipoSelecionado, setTipoSelecionado] = useState('');
+  const [tipoSelecionado, setTipoSelecionado] = useState("");
 
-  const [titulo, setTitulo] = useState('');
-  const [data, setData] = useState('');
-  const [disciplina, setDisciplina] = useState('');
-  const [professor, setProfessor] = useState('');
-  const [plataforma, setPlataforma] = useState('');
-  const [descricao, setDescricao] = useState('');
+  const [titulo, setTitulo] = useState("");
+  const [data, setData] = useState("");
+  const [disciplina, setDisciplina] = useState("");
+  const [professor, setProfessor] = useState("");
+  const [plataforma, setPlataforma] = useState("");
+  const [descricao, setDescricao] = useState("");
 
   //modal quando clica no card
   const [modalDetalhes, setModalDetalhes] = useState(false);
@@ -63,7 +63,7 @@ export default function ListaTarefas() {
       dataTeste.getDate() === dia
     );
   };
- 
+
   // Adicionar uma nova tarefa
   const adicionarTarefa = async () => {
     if (
@@ -142,8 +142,8 @@ export default function ListaTarefas() {
     console.log("Tarefa adicionada");
 
     return true;
-  };;
-  
+  };
+
   const getCorTipo = (tipo: string) => {
     switch (tipo) {
       case "Tarefa":
@@ -155,7 +155,7 @@ export default function ListaTarefas() {
     }
   };
 
-  //Formata a data 
+  //Formata a data
   const formatarData = (data: string) => {
     const [ano, mes, dia] = data.split("-");
     return `${dia}/${mes}/${ano}`;
@@ -167,14 +167,16 @@ export default function ListaTarefas() {
       return formatarData(tarefaSelecionada.data);
     }
 
-    return '';
+    return "";
   };
 
   // Renderizar cada item da lista
   const renderizarTarefas = ({ item }: { item: Task }) => (
-    <TouchableOpacity 
-      style={[Estilos.cardEvento,
-        { borderColor: getCorTipo(item.tipo)}, {backgroundColor: tema.card}
+    <TouchableOpacity
+      style={[
+        Estilos.cardEvento,
+        { borderColor: getCorTipo(item.tipo) },
+        { backgroundColor: tema.card },
       ]}
       onPress={() => {
         setTarefaSelecionada(item);
@@ -192,43 +194,36 @@ export default function ListaTarefas() {
             <Ionicons name="ellipse-outline" size={24} color="#ccc" />
           )}
         </TouchableOpacity>
-     
+
         <Text
           style={[
             Estilos.tituloEvento,
             item.completed && Estilos.completedTaskText,
-            {color: tema.text}
+            { color: tema.text },
           ]}
         >
           {item.title}
         </Text>
 
-        <View 
-          style={[Estilos.badgeTipo,
-            { backgroundColor: getCorTipo(item.tipo) }
+        <View
+          style={[
+            Estilos.badgeTipo,
+            { backgroundColor: getCorTipo(item.tipo) },
           ]}
         >
-          <Text style={Estilos.textoTipo}>
-            {item.tipo}
-          </Text>
+          <Text style={Estilos.textoTipo}>{item.tipo}</Text>
         </View>
       </View>
 
-      <Text style={[Estilos.textodataEvento,
-        {color: tema.text}
-      ]}>
-        📅 {formatarData(item.data)}   📚 {item.disciplina}
+      <Text style={[Estilos.textodataEvento, { color: tema.text }]}>
+        📅 {formatarData(item.data)} 📚 {item.disciplina}
       </Text>
 
-      <Text style={[Estilos.textodataEvento,
-        {color: tema.text}
-      ]}>
+      <Text style={[Estilos.textodataEvento, { color: tema.text }]}>
         👨‍🏫 Prof. {item.professor}
       </Text>
-      
     </TouchableOpacity>
   );
-
 
   // Alternar o status de conclusão de uma tarefa
   const alterarStatusTarefa = async (id: string) => {
@@ -252,7 +247,6 @@ export default function ListaTarefas() {
       console.log("Erro ao alterar status da tarefa:", error);
     }
   };
-
 
   // Remover uma tarefa
   const removerTarefa = (id: string) => {
@@ -304,22 +298,19 @@ export default function ListaTarefas() {
     );
   };
 
-
   // Contadores para estatísticas
   const totalTarefas = tarefas.length;
-  const tarefasCompletas = tarefas.filter(task => task.completed).length;
-
+  const tarefasCompletas = tarefas.filter((task) => task.completed).length;
 
   // Salva as tarefas na memória interna
   //const storeData = async (conteudo: any) => {
-    //try {
-      //const jsonValue = JSON.stringify(conteudo);
-      //await AsyncStorage.setItem('tarefas', jsonValue);
-    //} catch (e) {
-      //console.log(e);
-    //}
+  //try {
+  //const jsonValue = JSON.stringify(conteudo);
+  //await AsyncStorage.setItem('tarefas', jsonValue);
+  //} catch (e) {
+  //console.log(e);
+  //}
   //};
-
 
   // Recupera as informações salvas
   const getData = async () => {
@@ -342,11 +333,7 @@ export default function ListaTarefas() {
   const converterData = (data: string) => {
     const [ano, mes, dia] = data.split("-");
 
-    return new Date(
-      Number(ano),
-      Number(mes) - 1,
-      Number(dia)
-    );
+    return new Date(Number(ano), Number(mes) - 1, Number(dia));
   };
 
   //para o textInput da data funcionar
@@ -357,16 +344,9 @@ export default function ListaTarefas() {
 
     if (valor.length > 4) {
       valor =
-        valor.slice(0, 2) +
-        "/" +
-        valor.slice(2, 4) +
-        "/" +
-        valor.slice(4);
+        valor.slice(0, 2) + "/" + valor.slice(2, 4) + "/" + valor.slice(4);
     } else if (valor.length > 2) {
-      valor =
-        valor.slice(0, 2) +
-        "/" +
-        valor.slice(2);
+      valor = valor.slice(0, 2) + "/" + valor.slice(2);
     }
 
     setData(valor);
@@ -393,12 +373,11 @@ export default function ListaTarefas() {
 
   //separar as tarefas
   tarefas.forEach((tarefa) => {
-
-  // Se estiver concluída, vai direto para a lista de concluídas
-  if (tarefa.completed) {
-    concluidas.push(tarefa);
-    return;
-  }
+    // Se estiver concluída, vai direto para a lista de concluídas
+    if (tarefa.completed) {
+      concluidas.push(tarefa);
+      return;
+    }
     const data = converterData(tarefa.data);
 
     data.setHours(0, 0, 0, 0);
@@ -406,7 +385,7 @@ export default function ListaTarefas() {
     const diferencaDias =
       (data.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
 
-    console.log(tarefa.data)
+    console.log(tarefa.data);
 
     if (diferencaDias < 0) {
       atrasadas.push(tarefa);
@@ -418,6 +397,122 @@ export default function ListaTarefas() {
       proximas.push(tarefa);
     }
   });
+
+  // ========================================
+  // FUNÇÃO PARA ABRIR A EDIÇÃO
+  // ========================================
+
+  const abrirEdicao = () => {
+    if (!tarefaSelecionada) return;
+
+    setTitulo(tarefaSelecionada.title);
+    setData(formatarData(tarefaSelecionada.data));
+    setDataInterna(tarefaSelecionada.data);
+    setDisciplina(tarefaSelecionada.disciplina);
+    setProfessor(tarefaSelecionada.professor);
+    setTipoSelecionado(tarefaSelecionada.tipo);
+    setPlataforma(tarefaSelecionada.plataforma);
+    setDescricao(tarefaSelecionada.descricao);
+
+    setEditando(true);
+    setModalDetalhes(false);
+    setModalVisivel(true);
+  };
+
+  // ========================================
+  // FUNÇÃO PARA SALVAR A EDIÇÃO
+  // ========================================
+
+  const editarTarefa = async () => {
+    if (
+      !titulo.trim() ||
+      !dataInterna.trim() ||
+      !disciplina.trim() ||
+      !professor.trim() ||
+      !tipoSelecionado.trim() ||
+      !plataforma.trim() ||
+      !descricao.trim()
+    ) {
+      Alert.alert(
+        "Campos obrigatórios",
+        "Preencha todos os campos para editar o evento.",
+      );
+      return false;
+    }
+
+    if (!validarData(dataInterna)) {
+      Alert.alert(
+        "Data inválida",
+        "Digite uma data válida no formato dd/mm/aaaa.",
+      );
+      return false;
+    }
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const dataEvento = converterData(dataInterna);
+    dataEvento.setHours(0, 0, 0, 0);
+
+    if (dataEvento < hoje) {
+      Alert.alert(
+        "Data inválida",
+        "Não é possível colocar o evento em uma data que já passou.",
+      );
+      return false;
+    }
+
+    if (!tarefaSelecionada) return false;
+
+    try {
+      const json = await AsyncStorage.getItem("tarefas");
+
+      if (!json) return false;
+
+      const tarefasSalvas: Task[] = JSON.parse(json);
+
+      const novasTarefas = tarefasSalvas.map((task) =>
+        task.id === tarefaSelecionada.id
+          ? {
+              ...task,
+              title: titulo.trim(),
+              data: dataInterna,
+              disciplina: disciplina.trim(),
+              professor: professor.trim(),
+              tipo: tipoSelecionado,
+              plataforma: plataforma.trim(),
+              descricao: descricao.trim(),
+            }
+          : task,
+      );
+
+      await AsyncStorage.setItem("tarefas", JSON.stringify(novasTarefas));
+
+      setTarefas(novasTarefas);
+
+      const tarefaAtualizada = novasTarefas.find(
+        (task) => task.id === tarefaSelecionada.id,
+      );
+
+      setTarefaSelecionada(tarefaAtualizada || null);
+
+      setTitulo("");
+      setData("");
+      setDataInterna("");
+      setDisciplina("");
+      setProfessor("");
+      setPlataforma("");
+      setDescricao("");
+      setTipoSelecionado("");
+
+      setEditando(false);
+
+      return true;
+    } catch (error) {
+      console.log("Erro ao editar tarefa:", error);
+      return false;
+    }
+  };
 
   //funçao para  renderizar cada seção
   const renderizarSecao = (titulo: string, dados: Task[]) => {
@@ -437,41 +532,42 @@ export default function ListaTarefas() {
         </Text>
 
         {dados.map((item) => (
-          <View key={item.id}>
-            {renderizarTarefas({ item })}
-          </View>
+          <View key={item.id}>{renderizarTarefas({ item })}</View>
         ))}
       </View>
     );
   };
 
-    // Toda vez que o app for iniciado os dados salvos serão carregados
-    //useEffect(() => {
-      //getData();
-    //}, []);
+  let textoBotao = "Adicionar Evento";
 
-    useFocusEffect(
-      useCallback(() => {
-        getData();
-      }, []),
-    );
+  if (editando) {
+    textoBotao = "Salvar Alterações";
+  }
 
-   // Toda vez que lista de tarefas mudar, salvar localmente
-    //useEffect(() => {
-      //storeData(tarefas);
-    //}, [tarefas]);
+  // Toda vez que o app for iniciado os dados salvos serão carregados
+  //useEffect(() => {
+  //getData();
+  //}, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      getData();
+    }, []),
+  );
+
+  // Toda vez que lista de tarefas mudar, salvar localmente
+  //useEffect(() => {
+  //storeData(tarefas);
+  //}, [tarefas]);
 
   return (
-    <View style={[Estilos.container,
-      {backgroundColor: tema.background,},
-    ]}>
+    <View style={[Estilos.container, { backgroundColor: tema.background }]}>
       {/* Cabeçalho */}
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
-          <Text style={[Estilos.headerTitle,
-            {color: tema.text}
-          ]}>Minhas Tarefas</Text>
+          <Text style={[Estilos.headerTitle, { color: tema.text }]}>
+            Minhas Tarefas
+          </Text>
 
           <TouchableOpacity
             style={Estilos.addButton}
@@ -513,17 +609,15 @@ export default function ListaTarefas() {
 
       <Modal transparent={true} visible={modalVisivel} animationType="fade">
         <View style={Estilos.modalOverlay}>
-          <View style={[Estilos.cardModal,
-          {backgroundColor: tema.modal}
-          ]}>
+          <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={[Estilos.tituloModal,
-                {color: tema.text}
-              ]}>Novo Evento</Text>
+              <Text style={[Estilos.tituloModal, { color: tema.text }]}>
+                Novo Evento
+              </Text>
 
-              <Text style={[Estilos.textoTipoAdicionar,
-                {color: tema.text}
-              ]}>Tipo</Text>
+              <Text style={[Estilos.textoTipoAdicionar, { color: tema.text }]}>
+                Tipo
+              </Text>
 
               <View style={Estilos.opcoesRow}>
                 {/* Opção Tarefa */}
@@ -537,9 +631,9 @@ export default function ListaTarefas() {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao,
-                    {color: tema.text}
-                  ]}>Tarefa</Text>
+                  <Text style={[Estilos.textoOpcao, { color: tema.text }]}>
+                    Tarefa
+                  </Text>
                 </TouchableOpacity>
 
                 {/* Opção Reunião */}
@@ -553,17 +647,17 @@ export default function ListaTarefas() {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao,
-                    {color: tema.text}
-                  ]}>Reunião</Text>
+                  <Text style={[Estilos.textoOpcao, { color: tema.text }]}>
+                    Reunião
+                  </Text>
                 </TouchableOpacity>
               </View>
 
               {/*Colocar Textos*/}
               <View style={Estilos.infoTarefa}>
-                <Text style={[Estilos.titulosInfoTarefa,
-                  {color: tema.text}
-                ]}>Título</Text>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                  Título
+                </Text>
                 <TextInput
                   style={Estilos.textosInfo}
                   placeholder="Nome do evento"
@@ -571,9 +665,9 @@ export default function ListaTarefas() {
                   onChangeText={setTitulo}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa,
-                  {color: tema.text}
-                ]}>Data</Text>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                  Data
+                </Text>
                 <TextInput
                   style={Estilos.textosInfo}
                   placeholder="dd/mm/aaaa"
@@ -583,9 +677,9 @@ export default function ListaTarefas() {
                   maxLength={10}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa,
-                  {color: tema.text}
-                ]}>Disciplina</Text>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                  Disciplina
+                </Text>
                 <TextInput
                   style={Estilos.textosInfo}
                   placeholder="Ex: Matemática"
@@ -593,9 +687,9 @@ export default function ListaTarefas() {
                   onChangeText={setDisciplina}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa,
-                  {color: tema.text}
-                ]}>Professor</Text>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                  Professor
+                </Text>
                 <TextInput
                   style={Estilos.textosInfo}
                   placeholder="Nome do professor"
@@ -603,9 +697,7 @@ export default function ListaTarefas() {
                   onChangeText={setProfessor}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa,
-                  {color: tema.text}
-                ]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
                   Plataforma de Realização
                 </Text>
                 <TextInput
@@ -615,9 +707,9 @@ export default function ListaTarefas() {
                   onChangeText={setPlataforma}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa,
-                  {color: tema.text}
-                ]}>Descrição</Text>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                  Descrição
+                </Text>
                 <TextInput
                   style={Estilos.textosInfo}
                   placeholder="Detalhes do evento"
@@ -632,6 +724,15 @@ export default function ListaTarefas() {
                   style={Estilos.botaoCancelar}
                   onPress={() => {
                     setModalVisivel(false);
+                    setEditando(false);
+
+                    setTitulo("");
+                    setData("");
+                    setDataInterna("");
+                    setDisciplina("");
+                    setProfessor("");
+                    setPlataforma("");
+                    setDescricao("");
                     setTipoSelecionado("");
                   }}
                 >
@@ -641,14 +742,22 @@ export default function ListaTarefas() {
                 <TouchableOpacity
                   style={Estilos.botaoConfirmar}
                   onPress={async () => {
-                    const sucesso = await adicionarTarefa();
+                    if (editando) {
+                      const sucesso = await editarTarefa();
 
-                    if (sucesso) {
-                      setModalVisivel(false);
+                      if (sucesso) {
+                        setModalVisivel(false);
+                      }
+                    } else {
+                      const sucesso = await adicionarTarefa();
+
+                      if (sucesso) {
+                        setModalVisivel(false);
+                      }
                     }
                   }}
                 >
-                  <Text style={{ color: "#ffffff" }}>Adicionar Evento</Text>
+                  <Text style={{ color: "#ffffff" }}>{textoBotao}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -658,15 +767,15 @@ export default function ListaTarefas() {
 
       <Modal visible={modalDetalhes} transparent animationType="fade">
         <View style={Estilos.modalOverlay}>
-          <View style={[Estilos.cardModal,
-            {backgroundColor: tema.modal}
-          ]}>
-            <Text style={[Estilos.tituloModal,
-              {color: tema.text}
-            ]}>Detalhes do Evento</Text>
+          <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
+            <Text style={[Estilos.tituloModal, { color: tema.text }]}>
+              Detalhes do Evento
+            </Text>
 
             <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>Título</Text>{" "}
+              <Text style={{ fontWeight: "bold", color: tema.text }}>
+                Título
+              </Text>{" "}
               {tarefaSelecionada?.title}
             </Text>
 
@@ -676,12 +785,16 @@ export default function ListaTarefas() {
             </Text>
 
             <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>Disciplina</Text>{" "}
+              <Text style={{ fontWeight: "bold", color: tema.text }}>
+                Disciplina
+              </Text>{" "}
               {tarefaSelecionada?.disciplina}
             </Text>
 
             <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>Professor</Text>{" "}
+              <Text style={{ fontWeight: "bold", color: tema.text }}>
+                Professor
+              </Text>{" "}
               {tarefaSelecionada?.professor}
             </Text>
 
@@ -691,14 +804,29 @@ export default function ListaTarefas() {
             </Text>
 
             <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>Plataforma</Text>{" "}
+              <Text style={{ fontWeight: "bold", color: tema.text }}>
+                Plataforma
+              </Text>{" "}
               {tarefaSelecionada?.plataforma}
             </Text>
 
             <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>Descrição</Text>{" "}
+              <Text style={{ fontWeight: "bold", color: tema.text }}>
+                Descrição
+              </Text>{" "}
               {tarefaSelecionada?.descricao}
             </Text>
+
+            <TouchableOpacity
+              style={Estilos.botaoConfirmar}
+              onPress={abrirEdicao}
+            >
+              <Ionicons name="create-outline" size={20} color="#fff" />
+
+              <Text style={{ color: "#fff", marginLeft: 8 }}>
+                Editar Evento
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={Estilos.botaoConfirmar}
@@ -722,5 +850,6 @@ export default function ListaTarefas() {
         </View>
       </Modal>
     </View>
-  );}
+  );
+}
 
