@@ -61,14 +61,14 @@ export default function TelaCalendario() {
 
     const novaTarefa = {
       id: Date.now().toString(),
-      title: titulo.trim(),
+      titulo: titulo.trim(),
       data,
       disciplina: disciplina.trim(),
       professor: professor.trim(),
       tipo,
       plataforma: plataforma.trim(),
       descricao: descricao.trim(),
-      completed: false,
+      concluido: false,
     };
 
     const json = await AsyncStorage.getItem("tarefas");
@@ -205,7 +205,7 @@ export default function TelaCalendario() {
         let cor;
 
         // Se a tarefa estiver atrasada
-        if (tarefa.data < dataHoje && !tarefa.completed) {
+        if (tarefa.data < dataHoje && !tarefa.concluido) {
           cor = "#FFA64E"; // laranja - atrasada
         }
         // Se for tarefa normal
@@ -447,7 +447,7 @@ export default function TelaCalendario() {
                   }}
                 >
                   <Text style={[Estilos.tituloTarefa, { color: tema.text }]}>
-                    {tarefa.title}
+                    {tarefa.titulo}
                   </Text>
 
                   <Text style={[Estilos.tipoTarefa, { color: tema.text }]}>
@@ -482,7 +482,7 @@ export default function TelaCalendario() {
 
               <Text style={{ color: tema.text }}>
                 <Text style={{ fontWeight: "bold" }}>Título</Text>{" "}
-                {tarefaSelecionada?.title}
+                {tarefaSelecionada?.titulo}
               </Text>
 
               <Text style={{ color: tema.text }}>

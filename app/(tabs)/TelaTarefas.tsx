@@ -12,14 +12,14 @@ import Estilos from "../../Estilos/TelaTarefasEstilo";
 // Definindo o tipo para uma tarefa
 type Task = {
   id: string;
-  title: string;
+  titulo: string;
   data: string;
   disciplina: string;
   professor: string;
   tipo: string;
   plataforma: string;
   descricao: string;
-  completed: boolean;
+  concluido: boolean;
 
 };
 
@@ -112,14 +112,14 @@ export default function ListaTarefas() {
 
     const novaTarefa: Task = {
       id: Date.now().toString(),
-      title: titulo.trim(),
+      titulo: titulo.trim(),
       data: dataInterna,
       disciplina: disciplina.trim(),
       professor: professor.trim(),
       tipo: tipoSelecionado,
       plataforma: plataforma.trim(),
       descricao: descricao.trim(),
-      completed: false,
+      concluido: false,
     };
 
     const json = await AsyncStorage.getItem("tarefas");
@@ -188,7 +188,7 @@ export default function ListaTarefas() {
           style={Estilos.checkbox}
           onPress={() => alterarStatusTarefa(item.id)}
         >
-          {item.completed ? (
+          {item.concluido ? (
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
           ) : (
             <Ionicons name="ellipse-outline" size={24} color="#ccc" />
@@ -198,11 +198,11 @@ export default function ListaTarefas() {
         <Text
           style={[
             Estilos.tituloEvento,
-            item.completed && Estilos.completedTaskText,
+            item.concluido && Estilos.completedTaskText,
             { color: tema.text },
           ]}
         >
-          {item.title}
+          {item.titulo}
         </Text>
 
         <View
@@ -237,7 +237,7 @@ export default function ListaTarefas() {
       const tarefasSalvas: Task[] = JSON.parse(json);
 
       const novasTarefas = tarefasSalvas.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task,
+        task.id === id ? { ...task, concluido: !task.concluido } : task,
       );
 
       await AsyncStorage.setItem("tarefas", JSON.stringify(novasTarefas));
@@ -300,7 +300,7 @@ export default function ListaTarefas() {
 
   // Contadores para estatísticas
   const totalTarefas = tarefas.length;
-  const tarefasCompletas = tarefas.filter((task) => task.completed).length;
+  const tarefasCompletas = tarefas.filter((task) => task.concluido).length;
 
   // Salva as tarefas na memória interna
   //const storeData = async (conteudo: any) => {
@@ -374,7 +374,7 @@ export default function ListaTarefas() {
   //separar as tarefas
   tarefas.forEach((tarefa) => {
     // Se estiver concluída, vai direto para a lista de concluídas
-    if (tarefa.completed) {
+    if (tarefa.concluido) {
       concluidas.push(tarefa);
       return;
     }
@@ -405,7 +405,7 @@ export default function ListaTarefas() {
   const abrirEdicao = () => {
     if (!tarefaSelecionada) return;
 
-    setTitulo(tarefaSelecionada.title);
+    setTitulo(tarefaSelecionada.titulo);
     setData(formatarData(tarefaSelecionada.data));
     setDataInterna(tarefaSelecionada.data);
     setDisciplina(tarefaSelecionada.disciplina);
@@ -475,7 +475,7 @@ export default function ListaTarefas() {
         task.id === tarefaSelecionada.id
           ? {
               ...task,
-              title: titulo.trim(),
+              titulo: titulo.trim(),
               data: dataInterna,
               disciplina: disciplina.trim(),
               professor: professor.trim(),
@@ -776,7 +776,7 @@ export default function ListaTarefas() {
               <Text style={{ fontWeight: "bold", color: tema.text }}>
                 Título
               </Text>{" "}
-              {tarefaSelecionada?.title}
+              {tarefaSelecionada?.titulo}
             </Text>
 
             <Text>
