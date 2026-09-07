@@ -1,12 +1,13 @@
 import { Text, View, ScrollView, TextInput, Alert, TouchableOpacity, Modal, } from 'react-native';
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 //import { router, Link } from 'expo-router';
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from "../../context/ThemeContext";
 import { useFocusEffect } from '@react-navigation/native';
 import Estilos from "../../Estilos/TelaCalendarioEstilo";
+import { testarLogin } from "../../bd/testarAuth";
 
 import { ptBR } from "../../Utils/configCal"
 
@@ -16,6 +17,11 @@ LocaleConfig.defaultLocale = "pt-br"
 export default function TelaCalendario() {
 
   const { tema } = useTheme();
+
+  //teste do supabase
+  useEffect(() => {
+    testarLogin();
+  }, []);
 
   const [titulo, setTitulo] = useState('');
   const [data, setData] = useState('');

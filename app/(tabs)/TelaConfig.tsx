@@ -1,9 +1,16 @@
 import { View, Text, Switch, TouchableOpacity, ScrollView, Button} from "react-native";
 //import { router, Link } from 'expo-router';
+import { useEffect } from "react";
 import { useTheme } from "../../context/ThemeContext";
 import Estilos from "../../Estilos/TelaConfigEstilo";
+import { testarSupabase } from "../../bd/testeSupabase";
 
 export default function TelaConfig() {
+
+  useEffect(() => {
+    testarSupabase();
+  }, []);
+
   const { tipoTema, selecionarTema, tema } = useTheme();
 
   return (
