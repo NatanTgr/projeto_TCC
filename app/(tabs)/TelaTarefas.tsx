@@ -3,7 +3,7 @@ import { useState,  useCallback } from "react";
 import { View, ScrollView, Text, TextInput, 
   Modal, TouchableOpacity, Alert,} from 'react-native';
 import { useTheme } from "../../context/ThemeContext";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 //import { router, Link } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
