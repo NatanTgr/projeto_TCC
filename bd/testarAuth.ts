@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 export async function testarLogin() {
   const { data: login, error: erroLogin } =
     await supabase.auth.signInWithPassword({
-      email: "tutor@teste.com",
+      email: "teste@teste.com",
       password: "12345",
     });
 
@@ -15,7 +15,9 @@ export async function testarLogin() {
   }
 
   // TESTE 1 - Verifica a sessão atual
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
   console.log("SESSION:", session);
   console.log("USER:", session?.user);
@@ -61,4 +63,12 @@ export async function testarLogin() {
 
   console.log("TUTOR:", tutor);
   console.log("ERRO TUTOR:", erroTutor);
+
+  // TESTE - Tarefas
+  const { data: tarefas, error: erroTarefas } = await supabase
+    .from("tarefas")
+    .select("*");
+
+  console.log("TAREFAS:", tarefas);
+  console.log("ERRO TAREFAS:", erroTarefas);
 }
