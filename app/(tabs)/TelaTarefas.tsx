@@ -3,15 +3,15 @@ import { useState,  useCallback } from "react";
 import { View, ScrollView, Text, TextInput, 
   Modal, TouchableOpacity, Alert,} from 'react-native';
 import { useTheme } from "../../context/ThemeContext";
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 //import { router, Link } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Estilos from "../../Estilos/TelaTarefasEstilo";
+import { supabase } from "../../bd/supabase";
 
 // Definindo o tipo para uma tarefa
 type Task = {
-  id: string;
+  id: number;
   titulo: string;
   data: string;
   disciplina: string;
@@ -20,11 +20,17 @@ type Task = {
   plataforma: string;
   descricao: string;
   concluido: boolean;
-
+   aluno_id: string;
 };
 
-
 export default function ListaTarefas() {
+  
+  const { alunoId: alunoIdParametro } = useLocalSearchParams<{ alunoId?: string }>();
+
+  const alunoId = Array.isArray(alunoIdParametro)
+    ? alunoIdParametro[0]
+    : alunoIdParametro;
+
   const { tema } = useTheme();
   const [tarefas, setTarefas] = useState<Task[]>([]);
   const [descricaoTarefa, setDescricaoTarefa] = useState("");
@@ -110,8 +116,17 @@ export default function ListaTarefas() {
       return false;
     }
 
-    const novaTarefa: Task = {
-      id: Date.now().toString(),
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      Alert.alert("Erro", "Nenhum usuário está logado.");
+      return false;
+    }
+
+    const novaTarefa = {
+      id: Date.now(),
       titulo: titulo.trim(),
       data: dataInterna,
       disciplina: disciplina.trim(),
@@ -120,16 +135,22 @@ export default function ListaTarefas() {
       plataforma: plataforma.trim(),
       descricao: descricao.trim(),
       concluido: false,
+      aluno_id: alunoId || user.id,
     };
 
-    const json = await AsyncStorage.getItem("tarefas");
-    const tarefasExistentes = json ? JSON.parse(json) : [];
+    const { data: tarefaSalva, error } = await supabase
+      .from("tarefas")
+      .insert(novaTarefa)
+      .select()
+      .single();
 
-    tarefasExistentes.push(novaTarefa);
+    if (error) {
+      console.log("Erro ao adicionar tarefa:", error);
+      Alert.alert("Erro", "Não foi possível adicionar a tarefa.");
+      return false;
+    }
 
-    await AsyncStorage.setItem("tarefas", JSON.stringify(tarefasExistentes));
-
-    setTarefas([...tarefas, novaTarefa]);
+    setTarefas([...tarefas, tarefaSalva]);
 
     setTitulo("");
     setData("");
@@ -226,30 +247,45 @@ export default function ListaTarefas() {
   );
 
   // Alternar o status de conclusão de uma tarefa
-  const alterarStatusTarefa = async (id: string) => {
+  const alterarStatusTarefa = async (id: number) => {
     try {
-      const json = await AsyncStorage.getItem("tarefas");
+      // Encontra a tarefa que foi selecionada
+      const tarefa = tarefas.find((task) => task.id === id);
 
-      if (!json) {
+      if (!tarefa) {
         return;
       }
 
-      const tarefasSalvas: Task[] = JSON.parse(json);
+      // Inverte o status atual
+      const novoStatus = !tarefa.concluido;
 
-      const novasTarefas = tarefasSalvas.map((task) =>
-        task.id === id ? { ...task, concluido: !task.concluido } : task,
+      // Atualiza a tarefa no Supabase
+      const { error } = await supabase
+        .from("tarefas")
+        .update({
+          concluido: novoStatus,
+        })
+        .eq("id", id);
+
+      if (error) {
+        console.log("Erro ao alterar status da tarefa:", error);
+        Alert.alert("Erro", "Não foi possível alterar o status da tarefa.");
+        return;
+      }
+
+      // Atualiza a lista na tela
+      setTarefas(
+        tarefas.map((task) =>
+          task.id === id ? { ...task, concluido: novoStatus } : task,
+        ),
       );
-
-      await AsyncStorage.setItem("tarefas", JSON.stringify(novasTarefas));
-
-      setTarefas(novasTarefas);
     } catch (error) {
       console.log("Erro ao alterar status da tarefa:", error);
     }
   };
 
   // Remover uma tarefa
-  const removerTarefa = (id: string) => {
+  const removerTarefa = (id: number) => {
     Alert.alert(
       "Remover Tarefa",
       "Tem certeza que deseja remover esta tarefa?",
@@ -263,32 +299,25 @@ export default function ListaTarefas() {
           style: "destructive",
           onPress: async () => {
             try {
-              // Pega as tarefas salvas
-              const json = await AsyncStorage.getItem("tarefas");
+              // Remove a tarefa do Supabase
+              const { error } = await supabase
+                .from("tarefas")
+                .delete()
+                .eq("id", id);
 
-              if (!json) {
+              if (error) {
+                console.log("Erro ao remover tarefa:", error);
+                Alert.alert("Erro", "Não foi possível remover a tarefa.");
                 return;
               }
 
-              const tarefasSalvas: Task[] = JSON.parse(json);
-
-              // Remove a tarefa pelo ID
-              const novasTarefas = tarefasSalvas.filter(
-                (task) => task.id !== id,
-              );
-
-              // Salva novamente no AsyncStorage
-              await AsyncStorage.setItem(
-                "tarefas",
-                JSON.stringify(novasTarefas),
-              );
-
-              // Atualiza a lista da TelaTarefas
-              setTarefas(novasTarefas);
+              // Remove a tarefa da lista que está na tela
+              setTarefas(tarefas.filter((task) => task.id !== id));
 
               // Fecha o modal
               setModalDetalhes(false);
               setTarefaSelecionada(null);
+
             } catch (error) {
               console.log("Erro ao remover tarefa:", error);
             }
@@ -302,32 +331,43 @@ export default function ListaTarefas() {
   const totalTarefas = tarefas.length;
   const tarefasCompletas = tarefas.filter((task) => task.concluido).length;
 
-  // Salva as tarefas na memória interna
-  //const storeData = async (conteudo: any) => {
-  //try {
-  //const jsonValue = JSON.stringify(conteudo);
-  //await AsyncStorage.setItem('tarefas', jsonValue);
-  //} catch (e) {
-  //console.log(e);
-  //}
-  //};
+const getData = async () => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  // Recupera as informações salvas
-  const getData = async () => {
-    try {
-      const jsonValue = await AsyncStorage.getItem("tarefas");
-
-      if (jsonValue !== null) {
-        const tarefasSalvas: Task[] = JSON.parse(jsonValue);
-
-        setTarefas(tarefasSalvas);
-      } else {
-        setTarefas([]);
-      }
-    } catch (error) {
-      console.log("Erro ao carregar tarefas:", error);
+    if (!user && !alunoId) {
+      console.log("Nenhum usuário ou aluno selecionado.");
+      setTarefas([]);
+      return;
     }
-  };
+
+    // Se recebeu um alunoId, usa o aluno selecionado.
+    // Caso contrário, usa o próprio usuário logado.
+    const idAluno = alunoId || user?.id;
+
+    if (!idAluno) {
+      setTarefas([]);
+      return;
+    }
+
+    const { data: tarefasSalvas, error } = await supabase
+      .from("tarefas")
+      .select("*")
+      .eq("aluno_id", idAluno)
+      .order("data", { ascending: true });
+
+    if (error) {
+      console.log("Erro ao carregar tarefas:", error);
+      return;
+    }
+
+    setTarefas(tarefasSalvas || []);
+  } catch (error) {
+    console.log("Erro ao carregar tarefas:", error);
+  }
+};
 
   //converter data
   const converterData = (data: string) => {
@@ -465,37 +505,39 @@ export default function ListaTarefas() {
     if (!tarefaSelecionada) return false;
 
     try {
-      const json = await AsyncStorage.getItem("tarefas");
+      // Atualiza a tarefa no Supabase
+      const { data: tarefaAtualizada, error } = await supabase
+        .from("tarefas")
+        .update({
+          titulo: titulo.trim(),
+          data: dataInterna,
+          disciplina: disciplina.trim(),
+          professor: professor.trim(),
+          tipo: tipoSelecionado,
+          plataforma: plataforma.trim(),
+          descricao: descricao.trim(),
+        })
+        .eq("id", tarefaSelecionada.id)
+        .select()
+        .single();
 
-      if (!json) return false;
+      if (error) {
+        console.log("Erro ao editar tarefa:", error);
+        Alert.alert("Erro", "Não foi possível editar a tarefa.");
+        return false;
+      }
 
-      const tarefasSalvas: Task[] = JSON.parse(json);
-
-      const novasTarefas = tarefasSalvas.map((task) =>
-        task.id === tarefaSelecionada.id
-          ? {
-              ...task,
-              titulo: titulo.trim(),
-              data: dataInterna,
-              disciplina: disciplina.trim(),
-              professor: professor.trim(),
-              tipo: tipoSelecionado,
-              plataforma: plataforma.trim(),
-              descricao: descricao.trim(),
-            }
-          : task,
+      // Atualiza a tarefa na lista da tela
+      setTarefas(
+        tarefas.map((task) =>
+          task.id === tarefaSelecionada.id ? tarefaAtualizada : task,
+        ),
       );
 
-      await AsyncStorage.setItem("tarefas", JSON.stringify(novasTarefas));
+      // Atualiza a tarefa selecionada no modal
+      setTarefaSelecionada(tarefaAtualizada);
 
-      setTarefas(novasTarefas);
-
-      const tarefaAtualizada = novasTarefas.find(
-        (task) => task.id === tarefaSelecionada.id,
-      );
-
-      setTarefaSelecionada(tarefaAtualizada || null);
-
+      // Limpa os campos
       setTitulo("");
       setData("");
       setDataInterna("");
@@ -544,15 +586,10 @@ export default function ListaTarefas() {
     textoBotao = "Salvar Alterações";
   }
 
-  // Toda vez que o app for iniciado os dados salvos serão carregados
-  //useEffect(() => {
-  //getData();
-  //}, []);
-
   useFocusEffect(
     useCallback(() => {
       getData();
-    }, []),
+    }, [alunoId]),
   );
 
   // Toda vez que lista de tarefas mudar, salvar localmente
