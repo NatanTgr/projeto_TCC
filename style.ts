@@ -83,13 +83,6 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
-  signUpCardTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.heading,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
   inputGroup: { marginBottom: 16 },
   label: {
     fontSize: 14,
@@ -106,6 +99,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     backgroundColor: colors.white,
+    justifyContent: 'center',
   },
   button: {
     backgroundColor: colors.primary,
@@ -124,7 +118,6 @@ export const styles = StyleSheet.create({
     marginTop: 20,
   },
   cardFooterText: { fontSize: 14, color: colors.muted },
-  signUpLink: { fontSize: 14, fontWeight: '600', textDecorationLine: 'underline', color: colors.success },
 
   buttonRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
   backButton: {
@@ -280,5 +273,139 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+
+  // --- ESTILOS DE SIGNUP / CADASTRO ---
+  signUpContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  signUpScrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+  },
+  signUpCardTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.heading,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  signUpSubtitle: {
+    fontSize: 14,
+    color: colors.muted,
+    textAlign: 'center',
+    marginTop: -16,
+    marginBottom: 20,
+  },
+  signUpLink: {
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
+    color: colors.success,
+  },
+  signUpStepIndicator: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 20,
+  },
+  signUpStepDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.border,
+  },
+  signUpStepDotActive: {
+    backgroundColor: colors.primary,
+    width: 24,
+  },
+  signUpRoleSelector: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  signUpRoleOption: {
+    flex: 1,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: colors.white,
+  },
+  signUpRoleOptionSelected: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary + '15', // Transparência leve no fundo
+  },
+  signUpRoleOptionText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  signUpRoleOptionTextSelected: {
+    color: colors.primary,
+  },
+  signUpErrorContainer: {
+    backgroundColor: colors.dangerBackground,
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 16,
+  },
+  signUpErrorText: {
+    color: colors.danger,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+
+  // --- ESTILOS DOS MODAIS DE SELEÇÃO ---
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: colors.white,
+    borderRadius: 16,
+    padding: 20,
+    maxHeight: '80%',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingBottom: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.heading,
+  },
+  modalCloseText: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  modalItem: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  modalItemText: {
+    fontSize: 15,
+    color: colors.text,
   },
 });
