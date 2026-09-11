@@ -1,13 +1,13 @@
 import { Text, View, ScrollView, TextInput, Alert, TouchableOpacity, Modal, } from 'react-native';
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 import { useState, useCallback, useEffect } from 'react';
+import { testarLogin } from "../../bd/testarAuth";
 //import { router, Link } from 'expo-router';
-import { Feather } from "@expo/vector-icons";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { supabase } from "../../bd/supabase";
 import { useTheme } from "../../context/ThemeContext";
 import { useFocusEffect } from 'expo-router';
 import Estilos from "../../Estilos/TelaCalendarioEstilo";
-import { testarLogin } from "../../bd/testarAuth";
 
 import { ptBR } from "../../Utils/configCal"
 
@@ -15,79 +15,264 @@ LocaleConfig.locales["pt-br"] = ptBR
 LocaleConfig.defaultLocale = "pt-br"
 
 export default function TelaCalendario() {
-
   const { tema } = useTheme();
 
-  //teste do supabase
-  useEffect(() => {
-    testarLogin();
-  }, []);
+  const [editando, setEditando] = useState(false);
 
-  const [titulo, setTitulo] = useState('');
-  const [data, setData] = useState('');
-  const [disciplina, setDisciplina] = useState('');
-  const [professor, setProfessor] = useState('');
-  const [plataforma, setPlataforma] = useState('');
-  const [descricao, setDescricao] = useState('');
+  // ========================================
+  // FUNÇÃO PARA ABRIR A EDIÇÃO
+  // ========================================
 
-  const adicionarTarefa = async (tipo: string) => {
-    // Verifica se todos os campos foram preenchidos
+  const abrirEdicao = () => {
+    if (!tarefaSelecionada) return;
+
+    setTitulo(tarefaSelecionada.titulo);
+    setData(formatarData(tarefaSelecionada.data));
+    setDataInterna(tarefaSelecionada.data);
+    setDisciplina(tarefaSelecionada.disciplina);
+    setProfessor(tarefaSelecionada.professor);
+    setTipoSelecionado(tarefaSelecionada.tipo);
+    setPlataforma(tarefaSelecionada.plataforma);
+    setDescricao(tarefaSelecionada.descricao);
+
+    setEditando(true);
+    setModalDetalhes(false);
+    setModalVisible(true);
+  };
+
+  // ========================================
+  // FUNÇÃO PARA SALVAR A EDIÇÃO
+  // ========================================
+
+  const editarTarefa = async () => {
     if (
       !titulo.trim() ||
-      !data.trim() ||
+      !dataInterna.trim() ||
       !disciplina.trim() ||
       !professor.trim() ||
-      !tipo.trim() ||
+      !tipoSelecionado.trim() ||
       !plataforma.trim() ||
       !descricao.trim()
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha todos os campos para adicionar o evento.",
+        "Preencha todos os campos para editar o evento.",
       );
-      return;
+      return false;
     }
 
-    // Data de hoje no formato AAAA-MM-DD
-    const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-    const dia = String(hoje.getDate()).padStart(2, "0");
+    // Validar data
+    const validarData = (data: string) => {
+      const partes = data.split("-");
 
-    const dataHoje = `${ano}-${mes}-${dia}`;
+      if (partes.length !== 3) return false;
 
-    // Impede criar evento em data passada
-    if (data < dataHoje) {
+      const [ano, mes, dia] = partes;
+
+      if (ano.length !== 4 || mes.length !== 2 || dia.length !== 2) {
+        return false;
+      }
+
+      const dataTeste = new Date(Number(ano), Number(mes) - 1, Number(dia));
+
+      return (
+        dataTeste.getFullYear() === Number(ano) &&
+        dataTeste.getMonth() === Number(mes) - 1 &&
+        dataTeste.getDate() === Number(dia)
+      );
+    };
+
+    // Converter data
+    const converterData = (data: string) => {
+      const [ano, mes, dia] = data.split("-");
+
+      return new Date(Number(ano), Number(mes) - 1, Number(dia));
+    };
+
+    if (!validarData(dataInterna)) {
       Alert.alert(
         "Data inválida",
-        "Não é possível criar um evento em uma data que já passou.",
+        "Digite uma data válida no formato dd/mm/aaaa.",
       );
-      return;
+      return false;
     }
 
-    const novaTarefa = {
-      id: Date.now().toString(),
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const dataEvento = converterData(dataInterna);
+    dataEvento.setHours(0, 0, 0, 0);
+
+    if (dataEvento < hoje) {
+      Alert.alert(
+        "Data inválida",
+        "Não é possível colocar o evento em uma data que já passou.",
+      );
+      return false;
+    }
+
+    if (!tarefaSelecionada) return false;
+
+    try {
+      const { data: tarefaAtualizada, error } = await supabase
+        .from("tarefas")
+        .update({
+          titulo: titulo.trim(),
+          data: dataInterna,
+          disciplina: disciplina.trim(),
+          professor: professor.trim(),
+          tipo: tipoSelecionado,
+          plataforma: plataforma.trim(),
+          descricao: descricao.trim(),
+        })
+        .eq("id", tarefaSelecionada.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.log("Erro ao editar tarefa:", error);
+        Alert.alert("Erro", "Não foi possível editar a tarefa.");
+        return false;
+      }
+
+      // Atualiza a tarefa selecionada
+      setTarefaSelecionada(tarefaAtualizada);
+
+      // Atualiza os pontos do calendário
+      await carregarEventosCalendario();
+
+      // Limpa os campos
+      setTitulo("");
+      setData("");
+      setDataInterna("");
+      setDisciplina("");
+      setProfessor("");
+      setPlataforma("");
+      setDescricao("");
+      setTipoSelecionado("");
+
+      setEditando(false);
+
+      return true;
+    } catch (error) {
+      console.log("Erro ao editar tarefa:", error);
+      return false;
+    }
+  };;
+
+  const alterarData = (texto: string) => {
+    let valor = texto.replace(/\D/g, "");
+
+    if (valor.length > 8) valor = valor.slice(0, 8);
+
+    if (valor.length > 4) {
+      valor =
+        valor.slice(0, 2) + "/" + valor.slice(2, 4) + "/" + valor.slice(4);
+    } else if (valor.length > 2) {
+      valor = valor.slice(0, 2) + "/" + valor.slice(2);
+    }
+
+    setData(valor);
+
+    if (valor.length === 10) {
+      const [dia, mes, ano] = valor.split("/");
+      setDataInterna(`${ano}-${mes}-${dia}`);
+    }
+  };
+
+  useEffect(() => {
+    testarLogin();
+  }, []);
+
+  const [titulo, setTitulo] = useState("");
+  const [data, setData] = useState("");
+  const [dataInterna, setDataInterna] = useState("");
+  const [disciplina, setDisciplina] = useState("");
+  const [professor, setProfessor] = useState("");
+  const [plataforma, setPlataforma] = useState("");
+  const [descricao, setDescricao] = useState("");
+
+const adicionarTarefa = async (tipo: string) => {
+  // Verifica se todos os campos foram preenchidos
+  if (
+    !titulo.trim() ||
+    !dataInterna.trim() ||
+    !disciplina.trim() ||
+    !professor.trim() ||
+    !tipo.trim() ||
+    !plataforma.trim() ||
+    !descricao.trim()
+  ) {
+    Alert.alert(
+      "Campos obrigatórios",
+      "Preencha todos os campos para adicionar o evento.",
+    );
+    return false;
+  }
+
+  // Impede criar evento em data inválida
+  if (!validarData(dataInterna)) {
+    Alert.alert(
+      "Data inválida",
+      "Digite uma data válida.",
+    );
+    return false;
+  }
+
+  // Data de hoje
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+
+  const dataEvento = converterData(dataInterna);
+  dataEvento.setHours(0, 0, 0, 0);
+
+  // Impede criar evento em data passada
+  if (dataEvento < hoje) {
+    Alert.alert(
+      "Data inválida",
+      "Não é possível criar um evento em uma data que já passou.",
+    );
+    return false;
+  }
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      Alert.alert(
+        "Usuário não encontrado",
+        "Não foi possível identificar o usuário logado.",
+      );
+      return false;
+    }
+
+    const { error } = await supabase.from("tarefas").insert({
       titulo: titulo.trim(),
-      data,
+      data: dataInterna,
       disciplina: disciplina.trim(),
       professor: professor.trim(),
       tipo,
       plataforma: plataforma.trim(),
       descricao: descricao.trim(),
       concluido: false,
-    };
+      aluno_id: user.id,
+    });
 
-    const json = await AsyncStorage.getItem("tarefas");
+    if (error) {
+      console.log("Erro ao adicionar tarefa:", error);
 
-    const tarefasExistentes = json ? JSON.parse(json) : [];
+      Alert.alert("Erro", "Não foi possível adicionar o evento.");
 
-    tarefasExistentes.push(novaTarefa);
-
-    await AsyncStorage.setItem("tarefas", JSON.stringify(tarefasExistentes));
+      return false;
+    }
 
     await carregarEventosCalendario();
 
     setTitulo("");
+    setData("");
+    setDataInterna("");
     setDisciplina("");
     setProfessor("");
     setPlataforma("");
@@ -95,9 +280,33 @@ export default function TelaCalendario() {
     setTipoSelecionado("");
 
     return true;
+  } catch (error) {
+    console.log("Erro ao adicionar tarefa:", error);
+
+    Alert.alert("Erro", "Ocorreu um erro ao adicionar o evento.");
+
+    return false;
+  }
+};
+
+      await carregarEventosCalendario();
+
+      setTitulo("");
+      setDisciplina("");
+      setProfessor("");
+      setPlataforma("");
+      setDescricao("");
+      setTipoSelecionado("");
+
+      return true;
+    } catch (error) {
+      console.log("Erro ao adicionar tarefa:", error);
+
+      Alert.alert("Erro", "Ocorreu um erro ao adicionar o evento.");
+    }
   };
 
-  //selecionar dia 
+  //selecionar dia
   const [selectedDay, setSelectedDay] = useState("");
 
   //marcar data
@@ -110,7 +319,7 @@ export default function TelaCalendario() {
   const [modalVisible, setModalVisible] = useState(false);
 
   //escolher tipo de tarefa
-  const [tipoSelecionado, setTipoSelecionado] = useState('');
+  const [tipoSelecionado, setTipoSelecionado] = useState("");
 
   //modal escolha descrição ou adicionar
   const [modalEscolha, setModalEscolha] = useState(false);
@@ -127,18 +336,34 @@ export default function TelaCalendario() {
   //selecionar tarefa
   const [tarefaSelecionada, setTarefaSelecionada] = useState<any>(null);
 
-   // CLICA NO DIA
+  // CLICA NO DIA
   async function handleDayPress(day: DateData) {
     setSelectedDay(day.dateString);
-    setData(day.dateString);
-    
-    try {
-      const json = await AsyncStorage.getItem("tarefas");
-      const tarefas = json ? JSON.parse(json) : [];
+    setData(formatarData(day.dateString));
+    setDataInterna(day.dateString);
 
-      const tarefasDoDiaSelecionado = tarefas.filter(
-        (tarefa: any) => tarefa.data === day.dateString
-      );
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.log("Nenhum usuário logado.");
+        return;
+      }
+
+      const { data: tarefas, error } = await supabase
+        .from("tarefas")
+        .select("*")
+        .eq("aluno_id", user.id)
+        .eq("data", day.dateString);
+
+      if (error) {
+        console.log("Erro ao carregar tarefas do dia:", error);
+        return;
+      }
+
+      const tarefasDoDiaSelecionado = tarefas || [];
 
       setTarefasDoDia(tarefasDoDiaSelecionado);
 
@@ -157,19 +382,17 @@ export default function TelaCalendario() {
   }
 
   //remover Tarefa
-  const removerTarefa = async (id: string) => {
+  const removerTarefa = async (id: number) => {
     try {
-      const json = await AsyncStorage.getItem("tarefas");
+      const { error } = await supabase.from("tarefas").delete().eq("id", id);
 
-      if (!json) {
+      if (error) {
+        console.log("Erro ao remover tarefa:", error);
+
+        Alert.alert("Erro", "Não foi possível excluir o evento.");
+
         return;
       }
-
-      const tarefas = JSON.parse(json);
-
-      const novasTarefas = tarefas.filter((tarefa: any) => tarefa.id !== id);
-
-      await AsyncStorage.setItem("tarefas", JSON.stringify(novasTarefas));
 
       await carregarEventosCalendario();
 
@@ -183,14 +406,42 @@ export default function TelaCalendario() {
 
   const carregarEventosCalendario = async () => {
     try {
-      const json = await AsyncStorage.getItem("tarefas");
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (!json) {
+      if (!session?.user) {
+        console.log("Nenhuma sessão encontrada. Fazendo login de teste...");
+
+        await testarLogin();
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        console.log("Nenhum usuário logado.");
         setMarkedDates({});
         return;
       }
 
-      const tarefas = JSON.parse(json);
+      console.log("Usuário encontrado no calendário:", user.id);
+
+      const { data: tarefas, error } = await supabase
+        .from("tarefas")
+        .select("*")
+        .eq("aluno_id", user.id);
+
+      console.log("TAREFAS DO CALENDÁRIO:", tarefas);
+      console.log("ERRO DAS TAREFAS:", error);
+
+      if (error) {
+        console.log("Erro ao carregar tarefas do calendário:", error);
+        setMarkedDates({});
+        return;
+      }
+
       const datasMarcadas: any = {};
 
       // Data de hoje no formato AAAA-MM-DD
@@ -203,7 +454,7 @@ export default function TelaCalendario() {
 
       const dataHoje = `${ano}-${mes}-${dia}`;
 
-      tarefas.forEach((tarefa: any) => {
+      (tarefas || []).forEach((tarefa: any) => {
         if (!tarefa.data) {
           return;
         }
@@ -212,15 +463,17 @@ export default function TelaCalendario() {
 
         // Se a tarefa estiver atrasada
         if (tarefa.data < dataHoje && !tarefa.concluido) {
-          cor = "#FFA64E"; // laranja - atrasada
+          cor = "#FFA64E";
         }
+
         // Se for tarefa normal
         else if (tarefa.tipo === "Tarefa") {
-          cor = "#88C688"; // verde
+          cor = "#88C688";
         }
+
         // Se for reunião normal
         else if (tarefa.tipo === "Reunião") {
-          cor = "#94C0DF"; // azul
+          cor = "#94C0DF";
         }
 
         const data = tarefa.data;
@@ -249,13 +502,11 @@ export default function TelaCalendario() {
     return `${dia}/${mes}/${ano}`;
   };
 
-
-
   //salvar data da tarefa na tela Tarefa e fazer mostrar um DOT no calendário
   useFocusEffect(
     useCallback(() => {
       carregarEventosCalendario();
-    }, [])
+    }, []),
   );
 
   return (
@@ -445,6 +696,7 @@ export default function TelaCalendario() {
                       borderColor:
                         tarefa.tipo === "Reunião" ? "#94C0DF" : "#88C688",
                     },
+                    { backgroundColor: tema.card },
                   ]}
                   onPress={() => {
                     setTarefaSelecionada(tarefa);
@@ -522,6 +774,17 @@ export default function TelaCalendario() {
               </Text>
 
               <TouchableOpacity
+                style={Estilos.botaoConfirmar}
+                onPress={abrirEdicao}
+              >
+                <Ionicons name="create-outline" size={20} color="#fff" />
+
+                <Text style={{ color: "#fff", marginLeft: 8 }}>
+                  Editar Evento
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={Estilos.botaoConfirmarDetalhes}
                 onPress={() => setModalDetalhes(false)}
               >
@@ -558,7 +821,7 @@ export default function TelaCalendario() {
           <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={[Estilos.tituloModal, { color: tema.text }]}>
-                Novo Evento
+                {editando ? "Editar Evento" : "Novo Evento"}
               </Text>
 
               <Text style={[Estilos.tipoTexto, { color: tema.text }]}>
@@ -616,7 +879,7 @@ export default function TelaCalendario() {
                 </Text>
                 <TextInput
                   style={Estilos.textosInfo}
-                  value={formatarData(data)}
+                  value={data}
                   editable={false}
                 ></TextInput>
 
@@ -667,6 +930,15 @@ export default function TelaCalendario() {
                   style={Estilos.botaoCancelar}
                   onPress={() => {
                     setModalVisible(false);
+                    setEditando(false);
+
+                    setTitulo("");
+                    setData("");
+                    setDataInterna("");
+                    setDisciplina("");
+                    setProfessor("");
+                    setPlataforma("");
+                    setDescricao("");
                     setTipoSelecionado("");
                   }}
                 >
@@ -676,14 +948,24 @@ export default function TelaCalendario() {
                 <TouchableOpacity
                   style={Estilos.botaoConfirmar}
                   onPress={async () => {
-                    const sucesso = await adicionarTarefa(tipoSelecionado);
+                    if (editando) {
+                      const sucesso = await editarTarefa();
 
-                    if (sucesso) {
-                      setModalVisible(false);
+                      if (sucesso) {
+                        setModalVisible(false);
+                      }
+                    } else {
+                      const sucesso = await adicionarTarefa(tipoSelecionado);
+
+                      if (sucesso) {
+                        setModalVisible(false);
+                      }
                     }
                   }}
                 >
-                  <Text style={{ color: "#ffffff" }}>Adicionar Evento</Text>
+                  <Text style={{ color: "#ffffff" }}>
+                    {editando ? "Salvar Alterações" : "Adicionar Evento"}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
