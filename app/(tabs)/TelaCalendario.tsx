@@ -20,6 +20,52 @@ export default function TelaCalendario() {
   const [editando, setEditando] = useState(false);
 
   // ========================================
+// FUNÇÃO PARA VALIDAR DATA
+// ========================================
+
+const validarData = (data: string) => {
+  const partes = data.split("-");
+
+  if (partes.length !== 3) return false;
+
+  const [ano, mes, dia] = partes;
+
+  if (
+    ano.length !== 4 ||
+    mes.length !== 2 ||
+    dia.length !== 2
+  ) {
+    return false;
+  }
+
+  const dataTeste = new Date(
+    Number(ano),
+    Number(mes) - 1,
+    Number(dia)
+  );
+
+  return (
+    dataTeste.getFullYear() === Number(ano) &&
+    dataTeste.getMonth() === Number(mes) - 1 &&
+    dataTeste.getDate() === Number(dia)
+  );
+};
+
+// ========================================
+// FUNÇÃO PARA CONVERTER DATA
+// ========================================
+
+const converterData = (data: string) => {
+  const [ano, mes, dia] = data.split("-");
+
+  return new Date(
+    Number(ano),
+    Number(mes) - 1,
+    Number(dia)
+  );
+};
+
+  // ========================================
   // FUNÇÃO PARA ABRIR A EDIÇÃO
   // ========================================
 
@@ -60,34 +106,6 @@ export default function TelaCalendario() {
       );
       return false;
     }
-
-    // Validar data
-    const validarData = (data: string) => {
-      const partes = data.split("-");
-
-      if (partes.length !== 3) return false;
-
-      const [ano, mes, dia] = partes;
-
-      if (ano.length !== 4 || mes.length !== 2 || dia.length !== 2) {
-        return false;
-      }
-
-      const dataTeste = new Date(Number(ano), Number(mes) - 1, Number(dia));
-
-      return (
-        dataTeste.getFullYear() === Number(ano) &&
-        dataTeste.getMonth() === Number(mes) - 1 &&
-        dataTeste.getDate() === Number(dia)
-      );
-    };
-
-    // Converter data
-    const converterData = (data: string) => {
-      const [ano, mes, dia] = data.split("-");
-
-      return new Date(Number(ano), Number(mes) - 1, Number(dia));
-    };
 
     if (!validarData(dataInterna)) {
       Alert.alert(
@@ -212,10 +230,7 @@ const adicionarTarefa = async (tipo: string) => {
 
   // Impede criar evento em data inválida
   if (!validarData(dataInterna)) {
-    Alert.alert(
-      "Data inválida",
-      "Digite uma data válida.",
-    );
+    Alert.alert("Data inválida", "Digite uma data válida.");
     return false;
   }
 
@@ -271,8 +286,6 @@ const adicionarTarefa = async (tipo: string) => {
     await carregarEventosCalendario();
 
     setTitulo("");
-    setData("");
-    setDataInterna("");
     setDisciplina("");
     setProfessor("");
     setPlataforma("");
@@ -284,27 +297,8 @@ const adicionarTarefa = async (tipo: string) => {
     console.log("Erro ao adicionar tarefa:", error);
 
     Alert.alert("Erro", "Ocorreu um erro ao adicionar o evento.");
-
-    return false;
   }
 };
-
-      await carregarEventosCalendario();
-
-      setTitulo("");
-      setDisciplina("");
-      setProfessor("");
-      setPlataforma("");
-      setDescricao("");
-      setTipoSelecionado("");
-
-      return true;
-    } catch (error) {
-      console.log("Erro ao adicionar tarefa:", error);
-
-      Alert.alert("Erro", "Ocorreu um erro ao adicionar o evento.");
-    }
-  };
 
   //selecionar dia
   const [selectedDay, setSelectedDay] = useState("");
@@ -879,8 +873,11 @@ const adicionarTarefa = async (tipo: string) => {
                 </Text>
                 <TextInput
                   style={Estilos.textosInfo}
+                  placeholder="dd/mm/aaaa"
                   value={data}
-                  editable={false}
+                  onChangeText={alterarData}
+                  keyboardType="numeric"
+                  editable={editando}
                 ></TextInput>
 
                 <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
