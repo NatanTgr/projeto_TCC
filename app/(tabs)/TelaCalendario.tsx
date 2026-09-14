@@ -6,6 +6,7 @@ import { testarLogin } from "../../bd/testarAuth";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { supabase } from "../../bd/supabase";
 import { useTheme } from "../../context/ThemeContext";
+import { useFontSize } from "../../context/FontSizeContext";
 import { useFocusEffect } from 'expo-router';
 import Estilos from "../../Estilos/TelaCalendarioEstilo";
 
@@ -16,6 +17,7 @@ LocaleConfig.defaultLocale = "pt-br"
 
 export default function TelaCalendario() {
   const { tema } = useTheme();
+  const { escalaFonte } = useFontSize();
 
   const [editando, setEditando] = useState(false);
 
@@ -517,6 +519,7 @@ const adicionarTarefa = async (tipo: string) => {
           Estilos.titulo,
           {
             color: tema.text,
+            fontSize: 50 * escalaFonte,
           },
         ]}
       >
@@ -532,6 +535,7 @@ const adicionarTarefa = async (tipo: string) => {
               Estilos.legenda,
               {
                 color: tema.text,
+                fontSize: 15 * escalaFonte,
               },
             ]}
           >
@@ -547,6 +551,7 @@ const adicionarTarefa = async (tipo: string) => {
               Estilos.legenda,
               {
                 color: tema.text,
+                fontSize: 15 * escalaFonte,
               },
             ]}
           >
@@ -562,6 +567,7 @@ const adicionarTarefa = async (tipo: string) => {
               Estilos.legenda,
               {
                 color: tema.text,
+                fontSize: 15 * escalaFonte,
               },
             ]}
           >
@@ -632,7 +638,7 @@ const adicionarTarefa = async (tipo: string) => {
           <View
             style={[Estilos.cardModalEscolha, { backgroundColor: tema.modal }]}
           >
-            <Text style={[Estilos.tituloModal, { color: tema.text }]}>
+            <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 15 * escalaFonte }]}>
               O que você deseja fazer?
             </Text>
 
@@ -643,7 +649,11 @@ const adicionarTarefa = async (tipo: string) => {
                 setModalVisible(true);
               }}
             >
-              <Text style={Estilos.textoBotaoEscolha}>Adicionar Evento</Text>
+              <Text style={[Estilos.textoBotaoEscolha,
+              {
+                fontSize: 16 * escalaFonte,
+              }
+              ]}>Adicionar Evento</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -653,7 +663,11 @@ const adicionarTarefa = async (tipo: string) => {
                 setModalListaTarefas(true);
               }}
             >
-              <Text style={Estilos.textoBotaoEscolha}>Detalhes da Tarefa</Text>
+              <Text style={[Estilos.textoBotaoEscolha,
+                {
+                  fontSize: 16 * escalaFonte,
+                }
+              ]}>Detalhes da Tarefa</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -676,7 +690,7 @@ const adicionarTarefa = async (tipo: string) => {
           <View
             style={[Estilos.cardModalEscolha, { backgroundColor: tema.modal }]}
           >
-            <Text style={[Estilos.tituloModalLista, { color: tema.text }]}>
+            <Text style={[Estilos.tituloModalLista, { color: tema.text, fontSize: 20 * escalaFonte, }]}>
               Escolha uma tarefa
             </Text>
 
@@ -698,11 +712,11 @@ const adicionarTarefa = async (tipo: string) => {
                     setModalDetalhes(true);
                   }}
                 >
-                  <Text style={[Estilos.tituloTarefa, { color: tema.text }]}>
+                  <Text style={[Estilos.tituloTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                     {tarefa.titulo}
                   </Text>
 
-                  <Text style={[Estilos.tipoTarefa, { color: tema.text }]}>
+                  <Text style={[Estilos.tipoTarefa, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
                     {tarefa.tipo}
                   </Text>
                 </TouchableOpacity>
@@ -728,7 +742,7 @@ const adicionarTarefa = async (tipo: string) => {
         <View style={Estilos.modalOverlay}>
           <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={[Estilos.tituloModal, { color: tema.text }]}>
+              <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte, }]}>
                 Detalhes do Evento
               </Text>
 
@@ -814,11 +828,11 @@ const adicionarTarefa = async (tipo: string) => {
         <View style={Estilos.modalOverlay}>
           <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={[Estilos.tituloModal, { color: tema.text }]}>
+              <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte, }]}>
                 {editando ? "Editar Evento" : "Novo Evento"}
               </Text>
 
-              <Text style={[Estilos.tipoTexto, { color: tema.text }]}>
+              <Text style={[Estilos.tipoTexto, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                 Tipo
               </Text>
 
@@ -834,7 +848,7 @@ const adicionarTarefa = async (tipo: string) => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text }]}>
+                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                     Tarefa
                   </Text>
                 </TouchableOpacity>
