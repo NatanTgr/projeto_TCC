@@ -638,7 +638,7 @@ const adicionarTarefa = async (tipo: string) => {
           <View
             style={[Estilos.cardModalEscolha, { backgroundColor: tema.modal }]}
           >
-            <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 15 * escalaFonte }]}>
+            <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte }]}>
               O que você deseja fazer?
             </Text>
 
@@ -864,7 +864,7 @@ const adicionarTarefa = async (tipo: string) => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text }]}>
+                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                     Reunião
                   </Text>
                 </TouchableOpacity>
@@ -872,21 +872,25 @@ const adicionarTarefa = async (tipo: string) => {
 
               {/*Colocar Textos*/}
               <View style={Estilos.infoTarefa}>
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                   Título
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo,
+                    { fontSize: 16 * escalaFonte,}
+                  ]}
                   placeholder="Nome do evento"
                   value={titulo}
                   onChangeText={setTitulo}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                   Data Selecionada
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo,
+                    { fontSize: 16 * escalaFonte,}
+                  ]}
                   placeholder="dd/mm/aaaa"
                   value={data}
                   onChangeText={alterarData}
@@ -894,41 +898,41 @@ const adicionarTarefa = async (tipo: string) => {
                   editable={editando}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                   Disciplina
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
                   placeholder="Ex: Matemática"
                   value={disciplina}
                   onChangeText={setDisciplina}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                   Professor
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
                   placeholder="Nome do professor"
                   value={professor}
                   onChangeText={setProfessor}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                   Plataforma de Realização
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
                   placeholder="Ex: Google Classroom, Moodle"
                   value={plataforma}
                   onChangeText={setPlataforma}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
                   Descrição
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
                   placeholder="Detalhes do evento"
                   value={descricao}
                   onChangeText={setDescricao}
