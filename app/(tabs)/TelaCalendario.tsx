@@ -514,17 +514,37 @@ const adicionarTarefa = async (tipo: string) => {
         },
       ]}
     >
-      <Text
-        style={[
-          Estilos.titulo,
-          {
-            color: tema.text,
-            fontSize: 50 * escalaFonte,
-          },
-        ]}
-      >
-        Calendário
-      </Text>
+      <View style={Estilos.cabecalhoCalendario}>
+        <Text
+          style={[
+            Estilos.titulo,
+            {
+              color: tema.text,
+              fontSize: 50 * escalaFonte,
+            },
+          ]}
+        >
+          Calendário
+        </Text>
+
+        <TouchableOpacity
+          style={Estilos.botaoAlerta}
+          onPress={() => {
+            // Futuramente: enviar alerta para o tutor
+          }}
+        >
+          <Text
+            style={[
+              Estilos.textoAlerta,
+              {
+                fontSize: 14 * escalaFonte,
+              },
+            ]}
+          >
+            ALERTA
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={Estilos.legendaContainer}>
         <View style={Estilos.legendaItem}>
@@ -638,7 +658,12 @@ const adicionarTarefa = async (tipo: string) => {
           <View
             style={[Estilos.cardModalEscolha, { backgroundColor: tema.modal }]}
           >
-            <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte }]}>
+            <Text
+              style={[
+                Estilos.tituloModal,
+                { color: tema.text, fontSize: 20 * escalaFonte },
+              ]}
+            >
               O que você deseja fazer?
             </Text>
 
@@ -649,11 +674,16 @@ const adicionarTarefa = async (tipo: string) => {
                 setModalVisible(true);
               }}
             >
-              <Text style={[Estilos.textoBotaoEscolha,
-              {
-                fontSize: 16 * escalaFonte,
-              }
-              ]}>Adicionar Evento</Text>
+              <Text
+                style={[
+                  Estilos.textoBotaoEscolha,
+                  {
+                    fontSize: 16 * escalaFonte,
+                  },
+                ]}
+              >
+                Adicionar Evento
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -663,18 +693,30 @@ const adicionarTarefa = async (tipo: string) => {
                 setModalListaTarefas(true);
               }}
             >
-              <Text style={[Estilos.textoBotaoEscolha,
-                {
-                  fontSize: 16 * escalaFonte,
-                }
-              ]}>Detalhes da Tarefa</Text>
+              <Text
+                style={[
+                  Estilos.textoBotaoEscolha,
+                  {
+                    fontSize: 16 * escalaFonte,
+                  },
+                ]}
+              >
+                Detalhes da Tarefa
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={Estilos.botaoCancelarEscolha}
               onPress={() => setModalEscolha(false)}
             >
-              <Text style={{ color: "#fff" }}>Cancelar</Text>
+              <Text
+                style={[
+                  Estilos.textoBotao,
+                  { color: "#fff", fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Cancelar
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -690,7 +732,12 @@ const adicionarTarefa = async (tipo: string) => {
           <View
             style={[Estilos.cardModalEscolha, { backgroundColor: tema.modal }]}
           >
-            <Text style={[Estilos.tituloModalLista, { color: tema.text, fontSize: 20 * escalaFonte, }]}>
+            <Text
+              style={[
+                Estilos.tituloModalLista,
+                { color: tema.text, fontSize: 20 * escalaFonte },
+              ]}
+            >
               Escolha uma tarefa
             </Text>
 
@@ -712,11 +759,21 @@ const adicionarTarefa = async (tipo: string) => {
                     setModalDetalhes(true);
                   }}
                 >
-                  <Text style={[Estilos.tituloTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                  <Text
+                    style={[
+                      Estilos.tituloTarefa,
+                      { color: tema.text, fontSize: 16 * escalaFonte },
+                    ]}
+                  >
                     {tarefa.titulo}
                   </Text>
 
-                  <Text style={[Estilos.tipoTarefa, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
+                  <Text
+                    style={[
+                      Estilos.tipoTarefa,
+                      { color: tema.text, fontSize: 14 * escalaFonte },
+                    ]}
+                  >
                     {tarefa.tipo}
                   </Text>
                 </TouchableOpacity>
@@ -727,7 +784,14 @@ const adicionarTarefa = async (tipo: string) => {
               style={Estilos.botaoCancelarEscolha}
               onPress={() => setModalListaTarefas(false)}
             >
-              <Text style={{ color: "#fff" }}>Voltar</Text>
+              <Text
+                style={[
+                  Estilos.textoBotao,
+                  { color: "#fff", fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Voltar
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -742,43 +806,134 @@ const adicionarTarefa = async (tipo: string) => {
         <View style={Estilos.modalOverlay}>
           <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte, }]}>
+              <Text
+                style={[
+                  Estilos.tituloModal,
+                  { color: tema.text, fontSize: 27 * escalaFonte },
+                ]}
+              >
                 Detalhes do Evento
               </Text>
 
-              <Text style={{ color: tema.text }}>
-                <Text style={{ fontWeight: "bold" }}>Título</Text>{" "}
-                {tarefaSelecionada?.titulo}
+              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
+                <Text
+                  style={[
+                    Estilos.tituloDetalhe,
+                    {
+                      fontSize: 19 * escalaFonte,
+                    },
+                  ]}
+                >
+                  Título:
+                </Text>{" "}
+                <Text
+                  style={[
+                    Estilos.textoDetalhe,
+                    {
+                      fontSize: 16 * escalaFonte,
+                    },
+                  ]}
+                >
+                  {tarefaSelecionada?.titulo}
+                </Text>
               </Text>
 
-              <Text style={{ color: tema.text }}>
-                <Text style={{ fontWeight: "bold" }}>Data</Text>{" "}
-                {tarefaSelecionada ? formatarData(tarefaSelecionada.data) : ""}
+              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
+                <Text
+                  style={[
+                    Estilos.tituloDetalhe,
+                    { fontSize: 19 * escalaFonte },
+                  ]}
+                >
+                  Data:
+                </Text>{" "}
+                <Text
+                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
+                >
+                  {tarefaSelecionada
+                    ? formatarData(tarefaSelecionada.data)
+                    : ""}
+                </Text>
               </Text>
 
-              <Text style={{ color: tema.text }}>
-                <Text style={{ fontWeight: "bold" }}>Disciplina</Text>{" "}
-                {tarefaSelecionada?.disciplina}
+              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
+                <Text
+                  style={[
+                    Estilos.tituloDetalhe,
+                    { fontSize: 19 * escalaFonte },
+                  ]}
+                >
+                  Disciplina:
+                </Text>{" "}
+                <Text
+                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
+                >
+                  {tarefaSelecionada?.disciplina}
+                </Text>
               </Text>
 
-              <Text style={{ color: tema.text }}>
-                <Text style={{ fontWeight: "bold" }}>Professor</Text>{" "}
-                {tarefaSelecionada?.professor}
+              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
+                <Text
+                  style={[
+                    Estilos.tituloDetalhe,
+                    { fontSize: 19 * escalaFonte },
+                  ]}
+                >
+                  Professor:
+                </Text>{" "}
+                <Text
+                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
+                >
+                  {tarefaSelecionada?.professor}
+                </Text>
               </Text>
 
-              <Text style={{ color: tema.text }}>
-                <Text style={{ fontWeight: "bold" }}>Tipo</Text>{" "}
-                {tarefaSelecionada?.tipo}
+              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
+                <Text
+                  style={[
+                    Estilos.tituloDetalhe,
+                    { fontSize: 19 * escalaFonte },
+                  ]}
+                >
+                  Tipo:
+                </Text>{" "}
+                <Text
+                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
+                >
+                  {tarefaSelecionada?.tipo}
+                </Text>
               </Text>
 
-              <Text style={{ color: tema.text }}>
-                <Text style={{ fontWeight: "bold" }}>Plataforma</Text>{" "}
-                {tarefaSelecionada?.plataforma}
+              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
+                <Text
+                  style={[
+                    Estilos.tituloDetalhe,
+                    { fontSize: 19 * escalaFonte },
+                  ]}
+                >
+                  Plataforma:
+                </Text>{" "}
+                <Text
+                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
+                >
+                  {tarefaSelecionada?.plataforma}
+                </Text>
               </Text>
 
-              <Text style={{ color: tema.text }}>
-                <Text style={{ fontWeight: "bold" }}>Descrição</Text>{" "}
-                {tarefaSelecionada?.descricao}
+              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
+                <Text
+                  style={[
+                    Estilos.tituloDetalhe,
+                    { fontSize: 19 * escalaFonte },
+                  ]}
+                >
+                  Descrição:
+                </Text>{" "}
+                <Text
+                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
+                >
+                  {tarefaSelecionada?.descricao}
+                </Text>
               </Text>
 
               <TouchableOpacity
@@ -787,7 +942,15 @@ const adicionarTarefa = async (tipo: string) => {
               >
                 <Ionicons name="create-outline" size={20} color="#fff" />
 
-                <Text style={{ color: "#fff", marginLeft: 8 }}>
+                <Text
+                  style={[
+                    Estilos.textoBotao,
+                    {
+                      color: "#fff",
+                      fontSize: 16 * escalaFonte,
+                    },
+                  ]}
+                >
                   Editar Evento
                 </Text>
               </TouchableOpacity>
@@ -796,7 +959,14 @@ const adicionarTarefa = async (tipo: string) => {
                 style={Estilos.botaoConfirmarDetalhes}
                 onPress={() => setModalDetalhes(false)}
               >
-                <Text style={{ color: "#fff" }}>Fechar</Text>
+                <Text
+                  style={[
+                    Estilos.textoBotao,
+                    { color: "#fff", fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Fechar
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -828,11 +998,21 @@ const adicionarTarefa = async (tipo: string) => {
         <View style={Estilos.modalOverlay}>
           <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte, }]}>
+              <Text
+                style={[
+                  Estilos.tituloModal,
+                  { color: tema.text, fontSize: 20 * escalaFonte },
+                ]}
+              >
                 {editando ? "Editar Evento" : "Novo Evento"}
               </Text>
 
-              <Text style={[Estilos.tipoTexto, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+              <Text
+                style={[
+                  Estilos.tipoTexto,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
+              >
                 Tipo
               </Text>
 
@@ -848,7 +1028,12 @@ const adicionarTarefa = async (tipo: string) => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                  <Text
+                    style={[
+                      Estilos.textoOpcao,
+                      { color: tema.text, fontSize: 16 * escalaFonte },
+                    ]}
+                  >
                     Tarefa
                   </Text>
                 </TouchableOpacity>
@@ -864,7 +1049,12 @@ const adicionarTarefa = async (tipo: string) => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                  <Text
+                    style={[
+                      Estilos.textoOpcao,
+                      { color: tema.text, fontSize: 16 * escalaFonte },
+                    ]}
+                  >
                     Reunião
                   </Text>
                 </TouchableOpacity>
@@ -872,25 +1062,31 @@ const adicionarTarefa = async (tipo: string) => {
 
               {/*Colocar Textos*/}
               <View style={Estilos.infoTarefa}>
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
                   Título
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo,
-                    { fontSize: 16 * escalaFonte,}
-                  ]}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
                   placeholder="Nome do evento"
                   value={titulo}
                   onChangeText={setTitulo}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
                   Data Selecionada
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo,
-                    { fontSize: 16 * escalaFonte,}
-                  ]}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
                   placeholder="dd/mm/aaaa"
                   value={data}
                   onChangeText={alterarData}
@@ -898,41 +1094,61 @@ const adicionarTarefa = async (tipo: string) => {
                   editable={editando}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
                   Disciplina
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
                   placeholder="Ex: Matemática"
                   value={disciplina}
                   onChangeText={setDisciplina}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
                   Professor
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
                   placeholder="Nome do professor"
                   value={professor}
                   onChangeText={setProfessor}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
                   Plataforma de Realização
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
                   placeholder="Ex: Google Classroom, Moodle"
                   value={plataforma}
                   onChangeText={setPlataforma}
                 ></TextInput>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 16 * escalaFonte, }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
                   Descrição
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte, }]}
+                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
                   placeholder="Detalhes do evento"
                   value={descricao}
                   onChangeText={setDescricao}
@@ -957,7 +1173,14 @@ const adicionarTarefa = async (tipo: string) => {
                     setTipoSelecionado("");
                   }}
                 >
-                  <Text style={{ color: "#fff" }}>Cancelar</Text>
+                  <Text
+                    style={[
+                      Estilos.textoBotao,
+                      { color: "#fff", fontSize: 16 * escalaFonte },
+                    ]}
+                  >
+                    Cancelar
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -978,7 +1201,12 @@ const adicionarTarefa = async (tipo: string) => {
                     }
                   }}
                 >
-                  <Text style={{ color: "#ffffff" }}>
+                  <Text
+                    style={[
+                      Estilos.textoBotao,
+                      { color: "#fff", fontSize: 16 * escalaFonte },
+                    ]}
+                  >
                     {editando ? "Salvar Alterações" : "Adicionar Evento"}
                   </Text>
                 </TouchableOpacity>

@@ -606,12 +606,25 @@ const getData = async () => {
             Minhas Tarefas
           </Text>
 
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+    {/* Botão ALERTA */}
+    <TouchableOpacity
+      style={Estilos.botaoAlerta}
+      onPress={() => {
+        // Futuramente: enviar alerta para o tutor
+      }}
+    >
+      <Text style={Estilos.textoAlerta}>
+        ALERTA
+      </Text>
+    </TouchableOpacity>
           <TouchableOpacity
             style={Estilos.addButton}
             onPress={() => setModalVisivel(true)}
           >
             <Ionicons name="add" size={24} color="white" />
           </TouchableOpacity>
+          </View>
         </View>
         <Text style={Estilos.taskCount}>
           {tarefasCompletas} de {totalTarefas} concluídas
@@ -794,7 +807,7 @@ const getData = async () => {
                     }
                   }}
                 >
-                  <Text style={{ color: "#ffffff" }}>{textoBotao}</Text>
+                  <Text style={[Estilos.textoBotao]}>{textoBotao}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

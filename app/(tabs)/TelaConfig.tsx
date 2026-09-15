@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, ScrollView, Modal} from "react-native";
 //import { router, Link } from 'expo-router';
 import { useEffect, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
 import Estilos from "../../Estilos/TelaConfigEstilo";
 import { testarSupabase } from "../../bd/testeSupabase";
@@ -27,89 +28,256 @@ export default function TelaConfig() {
         },
       ]}
     >
-      <Text style={[Estilos.titulo, { color: tema.text }]}>Configurações</Text>
+      <View style={Estilos.cabecalhoConfig}>
+        <Text style={[Estilos.titulo, { color: tema.text }]}>
+          Configurações
+        </Text>
+
+        <TouchableOpacity
+          style={Estilos.botaoAlerta}
+          onPress={() => {
+            // Futuramente: enviar alerta para o tutor
+          }}
+        >
+          <Text
+            style={[
+              Estilos.textoAlerta,
+              {
+                fontSize: 14 * escalaFonte,
+              },
+            ]}
+          >
+            ALERTA
+          </Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={Estilos.tela}>
           <View style={[Estilos.cardPerfil, { backgroundColor: tema.modal }]}>
-            <Text>
-              Tamanho atual: {tamanhoFonte} - Escala: {escalaFonte}
-            </Text>
-            <Text style={[Estilos.texto, { color: tema.text }]}>
-              Perfil do Aluno
-            </Text>
-            <Text style={[Estilos.texto2, { color: tema.text }]}>
-              Tipo da conta: Estudante e etc...
-            </Text>
+            {/* Avatar + informações */}
+            <View style={Estilos.perfilTopo}>
+              {/* Avatar */}
+              <View style={Estilos.avatarContainer}>
+                <Text style={Estilos.avatarTexto}>👤</Text>
+              </View>
+
+              {/* Informações do usuário */}
+              <View style={Estilos.informacoesPerfil}>
+                <Text
+                  style={[
+                    Estilos.nomePerfil,
+                    {
+                      color: tema.text,
+                      fontSize: 21 * escalaFonte,
+                    },
+                  ]}
+                >
+                  Natan Rodrigues
+                </Text>
+
+                <Text
+                  style={[
+                    Estilos.tipoPerfil,
+                    {
+                      color: tema.text,
+                      fontSize: 16 * escalaFonte,
+                    },
+                  ]}
+                >
+                  Estudante
+                </Text>
+
+                <Text
+                  style={[
+                    Estilos.detalhesPerfil,
+                    {
+                      color: tema.text,
+                      fontSize: 14 * escalaFonte,
+                    },
+                  ]}
+                >
+                  Técnico em Informática • Manhã
+                </Text>
+
+                <Text
+                  style={[
+                    Estilos.detalhesPerfil,
+                    {
+                      color: tema.text,
+                      fontSize: 14 * escalaFonte,
+                    },
+                  ]}
+                >
+                  Turma: 4º ano
+                </Text>
+              </View>
+            </View>
+
+            {/* Botão para trocar avatar */}
+            <TouchableOpacity
+              style={[
+                Estilos.botaoAvatar,
+                {
+                  backgroundColor: tema.card,
+                  borderColor: tema.border,
+                },
+              ]}
+            >
+              <Feather name="edit-2" size={18} color={tema.text} />
+
+              <Text
+                style={[
+                  Estilos.textoBotaoAvatar,
+                  {
+                    color: tema.text,
+                    fontSize: 15 * escalaFonte,
+                  },
+                ]}
+              >
+                Alterar avatar
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={[Estilos.cardTutorial, { backgroundColor: tema.modal }]}>
-            <Text style={[Estilos.texto, { color: tema.text }]}>
-              Vídeo Tutorial
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={[Estilos.cardTutorial, { backgroundColor: tema.modal }]}
+          >
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <Feather name="play-circle" size={26} color="#4CAF50" />
+
+              <Text
+                style={[
+                  Estilos.texto,
+                  {
+                    color: tema.text,
+                    fontSize: 18 * escalaFonte,
+                  },
+                ]}
+              >
+                Vídeo Tutorial
+              </Text>
+            </View>
+          </TouchableOpacity>
 
           <View style={[Estilos.cardConfig, { backgroundColor: tema.modal }]}>
-            <Text style={[Estilos.textoConfiguracoes, { color: tema.text }]}>
-              {" "}
-              Configurações
-            </Text>
-
-            <View>
-              <Text style={{ color: tema.text }}>Tema do aplicativo</Text>
-
-              <TouchableOpacity
-                onPress={() => selecionarTema("claro")}
+            <View style={{ width: "100%" }}>
+              <Text
                 style={{
-                  backgroundColor: tipoTema === "claro" ? "#94C0DF" : tema.card,
-                  padding: 15,
-                  borderRadius: 10,
-                  marginTop: 10,
-                  borderWidth: 1,
-                  borderColor: tema.border,
+                  color: tema.text,
+                  fontSize: 20 * escalaFonte,
+                  marginBottom: 10,
+                  textAlign: "center",
                 }}
               >
-                <Text style={{ color: tema.text }}>☀️ Tema Claro</Text>
-              </TouchableOpacity>
+                Tema do aplicativo
+              </Text>
 
-              <TouchableOpacity
-                onPress={() => selecionarTema("escuro")}
-                style={{
-                  backgroundColor:
-                    tipoTema === "escuro" ? "#94C0DF" : tema.card,
-                  padding: 15,
-                  borderRadius: 10,
-                  marginTop: 10,
-                  borderWidth: 1,
-                  borderColor: tema.border,
-                }}
-              >
-                <Text style={{ color: tema.text }}>🌙 Tema Escuro</Text>
-              </TouchableOpacity>
+              <View style={Estilos.botoesTema}>
+                <TouchableOpacity
+                  onPress={() => selecionarTema("claro")}
+                  style={[
+                    Estilos.botaoTema,
+                    {
+                      backgroundColor:
+                        tipoTema === "claro" ? "#94C0DF" : tema.card,
+                      borderColor: tema.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 14 * escalaFonte,
+                    }}
+                  >
+                    ☀️ Claro
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => selecionarTema("forte")}
-                style={{
-                  backgroundColor: tipoTema === "forte" ? "#FF6B00" : tema.card,
-                  padding: 15,
-                  borderRadius: 10,
-                  marginTop: 10,
-                  borderWidth: 1,
-                  borderColor: tema.border,
-                }}
-              >
-                <Text style={{ color: tema.text }}>🌈 Tema Forte</Text>
-              </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => selecionarTema("escuro")}
+                  style={[
+                    Estilos.botaoTema,
+                    {
+                      backgroundColor:
+                        tipoTema === "escuro" ? "#94C0DF" : tema.card,
+                      borderColor: tema.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 14 * escalaFonte,
+                    }}
+                  >
+                    🌙 Escuro
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => selecionarTema("forte")}
+                  style={[
+                    Estilos.botaoTema,
+                    {
+                      backgroundColor:
+                        tipoTema === "forte" ? "#FF6B00" : tema.card,
+                      borderColor: tema.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 14 * escalaFonte,
+                    }}
+                  >
+                    🌈 Forte
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity
-              style={[Estilos.cardOpcoes, { backgroundColor: tema.card }]}
+              style={[
+                Estilos.cardOpcoes,
+                {
+                  backgroundColor: tema.card,
+                },
+              ]}
               onPress={() => setModalTamanhoFonte(true)}
             >
-              <Text style={[Estilos.texto, { color: tema.text }]}>
-                🔤 Tamanho da letra
-              </Text>
+              <View>
+                <Text
+                  style={[
+                    Estilos.texto,
+                    {
+                      color: tema.text,
+                      fontSize: 18 * escalaFonte,
+                    },
+                  ]}
+                >
+                  🔤 Tamanho da letra
+                </Text>
 
-              <Text style={{ color: tema.text }}>Atual: {tamanhoFonte}</Text>
+                <Text
+                  style={{
+                    color: tema.text,
+                    fontSize: 14 * escalaFonte,
+                    marginTop: 5,
+                  }}
+                >
+                  Atual: {tamanhoFonte}
+                </Text>
+              </View>
+
+              <Feather name="chevron-right" size={24} color={tema.text} />
             </TouchableOpacity>
 
             <View
