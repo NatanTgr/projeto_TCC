@@ -17,7 +17,7 @@ const ESCALAS = {
   pequeno: 0.85,
   normal: 1,
   grande: 1.2,
-  muitoGrande: 1.4,
+  muitoGrande: 4,
 };
 
 export function FontSizeProvider({

@@ -514,13 +514,14 @@ const adicionarTarefa = async (tipo: string) => {
         },
       ]}
     >
+      <View style={Estilos.header}>
       <View style={Estilos.cabecalhoCalendario}>
         <Text
           style={[
             Estilos.titulo,
             {
               color: tema.text,
-              fontSize: 50 * escalaFonte,
+              fontSize: 30 * escalaFonte,
             },
           ]}
         >
@@ -544,6 +545,7 @@ const adicionarTarefa = async (tipo: string) => {
             ALERTA
           </Text>
         </TouchableOpacity>
+      </View>
       </View>
 
       <View style={Estilos.legendaContainer}>

@@ -29,7 +29,7 @@ export default function TelaConfig() {
       ]}
     >
       <View style={Estilos.cabecalhoConfig}>
-        <Text style={[Estilos.titulo, { color: tema.text }]}>
+        <Text style={[Estilos.titulo, { color: tema.text, fontSize: 25 * escalaFonte }]}>
           Configurações
         </Text>
 
@@ -283,7 +283,7 @@ export default function TelaConfig() {
             <View
               style={[Estilos.cardNotiChat, { backgroundColor: tema.card }]}
             >
-              <Text style={[Estilos.texto, { color: tema.text }]}>
+              <Text style={[Estilos.texto, { color: tema.text, fontSize: 16 * escalaFonte }]}>
                 Notificações de Chat
               </Text>
             </View>
@@ -291,13 +291,15 @@ export default function TelaConfig() {
             <View
               style={[Estilos.cardLembrete, { backgroundColor: tema.card }]}
             >
-              <Text style={[Estilos.texto, { color: tema.text }]}>
+              <Text style={[Estilos.texto, { color: tema.text, fontSize: 16 * escalaFonte }]}>
                 Lembretes de Tarefas
               </Text>
             </View>
           </View>
           <TouchableOpacity style={Estilos.botaoSair}>
-            <Text style={Estilos.textoBotaoSair}>Sair da conta</Text>
+            <Text style={[Estilos.textoBotaoSair, { fontSize: 16 * escalaFonte }]}>
+              Sair da conta
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -1,287 +1,176 @@
 import { StyleSheet } from "react-native";
-
 const Estilos = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#FFFDD0",
-  },
-
-  header: {
-    padding: 12,
-    marginTop: 25,
-  },
-
+  container: { flex: 1, backgroundColor: "#FFFDD0" },
+  header: { paddingLeft: 15, paddingRight: 15, marginTop: 40 },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
   },
-
-  headerTitle: {
-    fontSize: 27,
-    fontWeight: "bold",
-    color: "#333",
-  },
-
-  taskCount: {
-    fontSize: 13,
-    color: "#666",
-  },
-
+  headerTitle: { fontSize: 30, fontWeight: "bold", color: "#333" },
+  taskCount: { fontSize: 14, color: "#666" },
   inputContainer: {
     flexDirection: "row",
-    padding: 10,
+    padding: 16,
     backgroundColor: "white",
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
-
   input: {
     flex: 1,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    marginRight: 8,
-    fontSize: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginRight: 12,
+    fontSize: 16,
   },
-
   addButton: {
     backgroundColor: "#94C0DF",
     borderRadius: 8,
-    width: 44,
-    height: 44,
+    width: 38,
+    height: 38,
     justifyContent: "center",
     alignItems: "center",
-    padding: 8,
+    padding: 5,
   },
-
   taskList: {
     flex: 1,
-    paddingLeft: 10,
-    paddingRight: 10,
+    paddingLeft: 15,
+    paddingRight: 15,
     paddingBottom: 0,
     paddingTop: 0,
   },
-
-  /* CARD DA TAREFA */
   cardEvento: {
     backgroundColor: "#fff",
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 2,
-    padding: 11,
-    marginBottom: 7,
-
+    padding: 15,
+    marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-
-  checkbox: {
-    marginRight: 8,
-  },
-
-  taskText: {
-    flex: 1,
-    fontSize: 15,
-    color: "#333",
-  },
-
-  completedTaskText: {
-    textDecorationLine: "line-through",
-    color: "#999",
-  },
-
-  deleteButton: {
-    padding: 5,
-  },
-
+  checkbox: { marginRight: 12 },
+  taskText: { flex: 1, fontSize: 16, color: "#333" },
+  completedTaskText: { textDecorationLine: "line-through", color: "#999" },
+  deleteButton: { padding: 8 },
   emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 25,
+    padding: 40,
   },
-
   emptyStateText: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: "500",
     color: "#999",
-    marginTop: 10,
+    marginTop: 16,
     textAlign: "center",
   },
-
   emptyStateSubtext: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#999",
-    marginTop: 5,
+    marginTop: 8,
     textAlign: "center",
   },
-
-  /* MODAL */
-
-  modalOverlay: {
+  /*Parte feita com IA até o BotaoConfirmar*/ modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
-
-  scrollModal: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
+  scrollModal: { flexGrow: 1, justifyContent: "center", alignItems: "center" },
   cardModal: {
     width: "85%",
     maxHeight: "85%",
     backgroundColor: "#ffffff",
     borderRadius: 15,
-    padding: 16,
+    padding: 20,
   },
-
-  tituloModal: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 15,
-  },
-
+  tituloModal: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
   opcaoContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 15,
+    marginRight: 20,
   },
-
-  opcoesRow: {
-    flexDirection: "row",
-    marginBottom: 12,
-  },
-
+  opcoesRow: { flexDirection: "row", marginBottom: 15 },
   radioExterno: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: "#4B6CB7",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 8,
+    marginRight: 10,
   },
-
   radioInterno: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: "#4B6CB7",
   },
-
-  textoOpcao: {
-    fontSize: 15,
-  },
-
+  textoOpcao: { fontSize: 16 },
   botoesModal: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 15,
+    marginTop: 20,
   },
-
   botaoCancelar: {
     backgroundColor: "#FFAA56",
-    padding: 10,
+    padding: 12,
     borderRadius: 10,
     width: "45%",
     alignItems: "center",
   },
-
   botaoConfirmar: {
     backgroundColor: "#94C0DF",
-    padding: 10,
+    padding: 12,
     borderRadius: 10,
     width: "50%",
     alignItems: "center",
   },
-
-  textoBotao: {
-    fontSize: 15,
-    textAlign: "center",
-  },
-
-  /* INFORMAÇÕES DA TAREFA */
-
-  infoTarefa: {
-    gap: 7,
-  },
-
-  textosInfo: {
-    borderWidth: 1,
-    borderColor: "#dbdbdb",
-    borderRadius: 8,
-  },
-
-  titulosInfoTarefa: {
-    marginTop: 12,
-  },
-
-  buttons: {
-    marginBottom: 25,
-    alignItems: "center",
-  },
-
-  /* TOPO DO CARD */
-
+  textoBotao: { fontSize: 16, textAlign: "center" },
+  infoTarefa: { gap: 10 },
+  textosInfo: { borderWidth: 1, borderColor: "#dbdbdb", borderRadius: 10 },
+  titulosInfoTarefa: { marginTop: 20 },
+  buttons: { marginBottom: 50, alignItems: "center" },
   topoCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: 10,
   },
-
-  tituloEvento: {
-    fontSize: 16,
-    fontWeight: "bold",
-    flex: 1,
-  },
+  tituloEvento: { fontSize: 18, fontWeight: "bold", flex: 1 },
 
   badgeTipo: {
     backgroundColor: "#94C0DF",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 15,
   },
 
-  textoTipo: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 12,
-  },
-
-  textoTipoAdicionar: {
-    paddingBottom: 10,
-  },
-
+  textoTipo: { color: "#fff", fontWeight: "bold" },
+  textoTipoAdicionar: { paddingBottom: 15 },
   textodataEvento: {},
 
   botaoAlerta: {
-  backgroundColor: "#FF8C42",
-  paddingHorizontal: 12,
-  paddingVertical: 9,
-  borderRadius: 8,
-  elevation: 3,
-},
+    backgroundColor: "#FF8C42",
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 8,
+    elevation: 3,
+  },
 
-textoAlerta: {
-  color: "#fff",
-  fontSize: 14,
-  fontWeight: "bold",
-},
+  textoAlerta: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
 });
-
 export default Estilos;

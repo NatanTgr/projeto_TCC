@@ -1,193 +1,131 @@
 import { StyleSheet } from "react-native";
-
 const Estilos = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-
-  tela: {
-    gap: 6,
-    padding: 8,
-  },
-
+  container: { flex: 1 },
+  tela: { gap: 20, padding: 15 },
   titulo: {
-    marginTop: 15,
-    marginBottom: 6,
-    fontSize: 25,
+    marginTop: 50,
+    marginBottom: 30,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "center",
   },
-
   cardPerfil: {
     backgroundColor: "#fff",
-    borderRadius: 11,
-    padding: 10,
+    borderRadius: 15,
+    padding: 20,
     flexDirection: "column",
-    elevation: 4,
+    elevation: 5,
   },
-
   cardTutorial: {
     backgroundColor: "#fff",
-    borderRadius: 11,
-    padding: 10,
+    borderRadius: 15,
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 4,
+    elevation: 5,
   },
-
   cardConfig: {
     backgroundColor: "#fff",
-    borderRadius: 11,
-    padding: 10,
-    gap: 5,
+    borderRadius: 15,
+    padding: 20,
+    gap: 10,
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 4,
+    elevation: 5,
   },
-
   cardTema: {
     backgroundColor: "#FFFDD0",
-    borderRadius: 11,
-    padding: 10,
+    borderRadius: 15,
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 4,
+    elevation: 5,
   },
-
   cardOpcoes: {
     backgroundColor: "#FFFDD0",
-    borderRadius: 11,
-    padding: 10,
+    borderRadius: 15,
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 4,
+    elevation: 5,
   },
-
   cardNotiChat: {
     backgroundColor: "#FFFDD0",
-    borderRadius: 11,
-    padding: 10,
+    borderRadius: 15,
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 4,
+    elevation: 5,
   },
-
   cardLembrete: {
     backgroundColor: "#FFFDD0",
-    borderRadius: 11,
-    padding: 10,
+    borderRadius: 15,
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 4,
+    elevation: 5,
   },
-
   botaoSair: {
     backgroundColor: "#fe0505",
-    borderRadius: 11,
-    padding: 10,
+    borderRadius: 15,
+    padding: 20,
     justifyContent: "space-between",
     alignItems: "center",
-    elevation: 4,
+    elevation: 5,
   },
-
-  textoBotaoSair: {
-    color: "#fff",
-    fontSize: 16,
-  },
-
-  texto: {
-    fontSize: 16,
-  },
-
-  texto2: {
-    fontSize: 16,
-  },
-
+  textoBotaoSair: { color: "#fff", fontSize: 18 },
+  texto: { fontSize: 18 },
+  texto2: { fontSize: 18 },
   textoConfiguracoes: {},
-
-  navbar: {
-    marginBottom: 15,
-    alignItems: "center",
-  },
-
-  perfilTopo: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
+  navbar: { marginBottom: 50, alignItems: "center" },
+  perfilTopo: { flexDirection: "row", alignItems: "center" },
   avatarContainer: {
-    width: 65,
-    height: 65,
-    borderRadius: 33,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: "#94C0DF",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 10,
+    marginRight: 18,
   },
-
-  avatarTexto: {
-    fontSize: 30,
-  },
-
-  informacoesPerfil: {
-    flex: 1,
-    gap: 1,
-  },
-
-  nomePerfil: {
-    fontWeight: "bold",
-  },
-
-  tipoPerfil: {
-    fontWeight: "600",
-  },
-
-  detalhesPerfil: {
-    marginTop: 0,
-  },
-
+  avatarTexto: { fontSize: 42 },
+  informacoesPerfil: { flex: 1, gap: 4 },
+  nomePerfil: { fontWeight: "bold" },
+  tipoPerfil: { fontWeight: "600" },
+  detalhesPerfil: { marginTop: 2 },
   botaoAvatar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    gap: 8,
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 7,
-    marginTop: 7,
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 18,
   },
-
-  textoBotaoAvatar: {
-    fontWeight: "600",
-  },
-
-  botoesTema: {
-    flexDirection: "row",
-    gap: 5,
-    width: "100%",
-  },
-
+  textoBotaoAvatar: { fontWeight: "600" },
+  botoesTema: { flexDirection: "row", gap: 8, width: "100%" },
   botaoTema: {
     flex: 1,
-    padding: 7,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
 
-  cabecalhoConfig: {
+    cabecalhoConfig: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 10,
-    marginTop: 25,
+    marginTop: 0,
   },
 
   botaoAlerta: {
@@ -203,5 +141,4 @@ const Estilos = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
 export default Estilos;

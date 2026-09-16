@@ -5,13 +5,19 @@ const Estilos = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFDD0",
     alignItems: "center",
-    padding: 24,
+  },
+
+  header: { 
+    paddingLeft: 15, 
+    paddingRight: 15, 
+    marginTop: 40,
+    width: "100%",
   },
 
   calendarContainer: {
     backgroundColor: "#ffffff",
     borderRadius: 24,
-    marginTop: 30,
+    marginTop: 10,
     elevation: 10,
     shadowColor: "#000",
     shadowOffset: {
@@ -29,8 +35,7 @@ const Estilos = StyleSheet.create({
   },
 
   titulo: {
-    marginBottom: 10,
-    fontSize: 50,
+    fontSize: 30,
     fontWeight: "bold",
     textAlign: "left",
   },
@@ -53,8 +58,11 @@ const Estilos = StyleSheet.create({
 
   legendaContainer: {
     flexDirection: "row",
-    gap: 40,
-    marginTop: 90,
+    justifyContent: "space-between",
+    width: "90%",
+    paddingLeft: 15,
+    paddingRight: 15,
+    marginTop: 20,
   },
 
   buttons: {
@@ -253,8 +261,6 @@ const Estilos = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
-    marginTop: 10,
   },
 
   botaoAlerta: {

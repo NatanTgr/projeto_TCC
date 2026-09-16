@@ -3,6 +3,7 @@ import { useState,  useCallback } from "react";
 import { View, ScrollView, Text, TextInput, 
   Modal, TouchableOpacity, Alert,} from 'react-native';
 import { useTheme } from "../../context/ThemeContext";
+import { useFontSize } from "../../context/FontSizeContext";
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 //import { router, Link } from 'expo-router';
@@ -32,6 +33,7 @@ export default function ListaTarefas() {
     : alunoIdParametro;
 
   const { tema } = useTheme();
+  const { escalaFonte } = useFontSize();
   const [tarefas, setTarefas] = useState<Task[]>([]);
   const [descricaoTarefa, setDescricaoTarefa] = useState("");
   const [editando, setEditando] = useState(false);
@@ -602,28 +604,35 @@ const getData = async () => {
       {/* Cabeçalho */}
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
-          <Text style={[Estilos.headerTitle, { color: tema.text }]}>
+          <Text
+            style={[
+              Estilos.headerTitle,
+              { color: tema.text, fontSize: 30 * escalaFonte },
+            ]}
+          >
             Minhas Tarefas
           </Text>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-    {/* Botão ALERTA */}
-    <TouchableOpacity
-      style={Estilos.botaoAlerta}
-      onPress={() => {
-        // Futuramente: enviar alerta para o tutor
-      }}
-    >
-      <Text style={Estilos.textoAlerta}>
-        ALERTA
-      </Text>
-    </TouchableOpacity>
-          <TouchableOpacity
-            style={Estilos.addButton}
-            onPress={() => setModalVisivel(true)}
-          >
-            <Ionicons name="add" size={24} color="white" />
-          </TouchableOpacity>
+            {/* Botão ALERTA */}
+            <TouchableOpacity
+              style={Estilos.botaoAlerta}
+              onPress={() => {
+                // Futuramente: enviar alerta para o tutor
+              }}
+            >
+              <Text
+                style={[Estilos.textoAlerta, { fontSize: 14 * escalaFonte }]}
+              >
+                ALERTA
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={Estilos.addButton}
+              onPress={() => setModalVisivel(true)}
+            >
+              <Ionicons name="add" size={24} color="white" />
+            </TouchableOpacity>
           </View>
         </View>
         <Text style={Estilos.taskCount}>
