@@ -68,7 +68,32 @@ export default function LoginScreen() {
 
     const role = data.user.user_metadata?.role?.toLowerCase();
 
-    router.replace('/(tabs)/TelaTarefas');
+    const {
+      data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        Alert.alert('Erro', 'Usuário não encontrado.');
+      return;
+      }
+
+    const { data: usuario, error: usuarioError } = await supabase
+      .from('usuarios')
+      .select('tipo')
+      .eq('id', user.id)
+      .single();
+
+    if (usuarioError) {
+      console.log('Erro ao buscar tipo do usuário:', usuarioError);
+      Alert.alert('Erro', 'Não foi possível identificar o tipo de usuário.');
+      return;
+    }
+
+    if (usuario?.tipo === 'tutor') {
+      router.replace('/(tabs)/TelaTarefasTutor');
+    } else {
+      router.replace('/(tabs)/TelaTarefas');
+    }
 
   };
 
