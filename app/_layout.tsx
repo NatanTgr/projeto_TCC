@@ -2,8 +2,12 @@ import { useEffect, useState } from 'react';
 import { View, Image, StatusBar, StyleSheet } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
+
 import { supabase } from '../lib/supabase';
 import { styles as globalStyles, colors } from '../style';
+
+import { ThemeProvider } from '../context/ThemeContext';
+import { FontSizeProvider } from '../context/FontSizeContext';
 
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);
@@ -11,23 +15,25 @@ export default function RootLayout() {
   useEffect(() => {
     let currentSession: Session | null = null;
 
-    // 1. Inicia o timer fixo de 3 segundos
+    // Inicia o timer
     const timer = setTimeout(() => {
       handleNavigation(currentSession);
       setLoading(false);
     }, 1100);
 
-    // 2. Busca a sessão atual no Supabase
+    // Busca a sessão atual no Supabase
     supabase.auth.getSession().then(({ data }) => {
       currentSession = data.session;
     });
 
-    // 3. Ouve alterações de autenticação
+    // Ouve alterações de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_, session: Session | null) => {
-      currentSession = session;
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_, session: Session | null) => {
+        currentSession = session;
+      }
+    );
 
     return () => {
       clearTimeout(timer);
@@ -43,11 +49,16 @@ export default function RootLayout() {
     }
   };
 
-  // Exibe a SplashScreen ocupando 100% da tela enquanto carrega
+  // Exibe a SplashScreen enquanto carrega
   if (loading) {
     return (
       <View style={localStyles.splashContainer}>
-        <StatusBar barStyle="dark-content" backgroundColor={colors.background} translucent />
+        <StatusBar
+          barStyle="dark-content"
+          backgroundColor={colors.background}
+          translucent
+        />
+
         <Image
           source={require('../assets/images/logo_PAED.png')}
           style={globalStyles.logoImage}
@@ -58,20 +69,28 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
-      }}
-    />
+    <ThemeProvider>
+      <FontSizeProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              backgroundColor: colors.background,
+            },
+          }}
+        >
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </FontSizeProvider>
+    </ThemeProvider>
   );
 }
 
 const localStyles = StyleSheet.create({
   splashContainer: {
     flex: 1,
-    backgroundColor: colors.background, // Fundo #FFFDD0 preenchendo a tela toda
-    justifyContent: 'center',            // Centraliza no meio vertical
-    alignItems: 'center',                // Centraliza no meio horizontal
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

@@ -1,15 +1,7 @@
 import { StyleSheet } from "react-native";
-
 const Estilos = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-
-  tela: {
-    gap: 20,
-    padding: 15,
-  },
-
+  container: { flex: 1 },
+  tela: { gap: 20, padding: 15 },
   titulo: {
     marginTop: 50,
     marginBottom: 30,
@@ -17,7 +9,6 @@ const Estilos = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
-
   cardPerfil: {
     backgroundColor: "#fff",
     borderRadius: 15,
@@ -25,7 +16,6 @@ const Estilos = StyleSheet.create({
     flexDirection: "column",
     elevation: 5,
   },
-
   cardTutorial: {
     backgroundColor: "#fff",
     borderRadius: 15,
@@ -35,7 +25,6 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-
   cardConfig: {
     backgroundColor: "#fff",
     borderRadius: 15,
@@ -46,7 +35,6 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-
   cardTema: {
     backgroundColor: "#FFFDD0",
     borderRadius: 15,
@@ -56,7 +44,6 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-
   cardOpcoes: {
     backgroundColor: "#FFFDD0",
     borderRadius: 15,
@@ -66,7 +53,6 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-
   cardNotiChat: {
     backgroundColor: "#FFFDD0",
     borderRadius: 15,
@@ -76,7 +62,6 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
-
   cardLembrete: {
     backgroundColor: "#FFFDD0",
     borderRadius: 15,
@@ -84,10 +69,8 @@ const Estilos = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-
     elevation: 5,
   },
-
   botaoSair: {
     backgroundColor: "#fe0505",
     borderRadius: 15,
@@ -96,28 +79,66 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     elevation: 5,
   },
+  textoBotaoSair: { color: "#fff", fontSize: 18 },
+  texto: { fontSize: 18 },
+  texto2: { fontSize: 18 },
+  textoConfiguracoes: {},
+  navbar: { marginBottom: 50, alignItems: "center" },
+  perfilTopo: { flexDirection: "row", alignItems: "center" },
+  avatarContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: "#94C0DF",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 18,
+  },
+  avatarTexto: { fontSize: 42 },
+  informacoesPerfil: { flex: 1, gap: 4 },
+  nomePerfil: { fontWeight: "bold" },
+  tipoPerfil: { fontWeight: "600" },
+  detalhesPerfil: { marginTop: 2 },
+  botaoAvatar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 18,
+  },
+  textoBotaoAvatar: { fontWeight: "600" },
+  botoesTema: { flexDirection: "row", gap: 8, width: "100%" },
+  botaoTema: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-  textoBotaoSair: {
+    cabecalhoConfig: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    marginTop: 0,
+  },
+
+  botaoAlerta: {
+    backgroundColor: "#FF8C42",
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+    elevation: 3,
+  },
+
+  textoAlerta: {
     color: "#fff",
-    fontSize: 18,
-  },
-
-  texto: {
-    fontSize: 18,
-  },
-
-  texto2: {
-    fontSize: 18,
-  },
-
-  textoConfiguracoes: {
-    
-  },
-
-  navbar: {
-    marginBottom: 50,
-    alignItems: "center",   
+    fontWeight: "bold",
   },
 });
-
 export default Estilos;

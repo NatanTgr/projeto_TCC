@@ -5,14 +5,19 @@ const Estilos = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFDD0",
     alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
+  },
+
+  header: { 
+    paddingLeft: 15, 
+    paddingRight: 15, 
+    marginTop: 40,
+    width: "100%",
   },
 
   calendarContainer: {
     backgroundColor: "#ffffff",
     borderRadius: 24,
-    marginTop: 2,
+    marginTop: 10,
     elevation: 10,
     shadowColor: "#000",
     shadowOffset: {
@@ -30,11 +35,9 @@ const Estilos = StyleSheet.create({
   },
 
   titulo: {
-    marginTop: 0,
-    marginBottom: 30,
-    fontSize: 50,
+    fontSize: 30,
     fontWeight: "bold",
-    textAlign: "center",
+    textAlign: "left",
   },
 
   legenda: {
@@ -55,7 +58,11 @@ const Estilos = StyleSheet.create({
 
   legendaContainer: {
     flexDirection: "row",
-    gap: 40,
+    justifyContent: "space-between",
+    width: "90%",
+    paddingLeft: 15,
+    paddingRight: 15,
+    marginTop: 20,
   },
 
   buttons: {
@@ -105,6 +112,20 @@ const Estilos = StyleSheet.create({
     marginTop: 10,
   },
 
+  tituloDetalhe: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+
+  textoDetalhe: {
+    fontSize: 16,
+  },
+
+  textoBotao: {
+    fontSize: 16,
+    textAlign: "center",
+  },
+
   itemTarefa: {
     borderWidth: 2,
     borderRadius: 10,
@@ -123,11 +144,11 @@ const Estilos = StyleSheet.create({
   },
 
   botaoConfirmarDetalhes: {
-    backgroundColor: '#94C0DF',
+    backgroundColor: "#94C0DF",
     padding: 12,
     borderRadius: 10,
-    width: '50%',
-    alignItems: 'center',
+    width: "50%",
+    alignItems: "center",
   },
 
   deleteButton: {
@@ -206,6 +227,7 @@ const Estilos = StyleSheet.create({
     borderRadius: 10,
     width: "45%",
     alignItems: "center",
+    justifyContent: "center",
   },
 
   botaoConfirmar: {
@@ -233,6 +255,25 @@ const Estilos = StyleSheet.create({
   modalDate: {
     fontSize: 18,
     marginBottom: 20,
+  },
+  cabecalhoCalendario: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  botaoAlerta: {
+    backgroundColor: "#FF8C42",
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+    elevation: 3,
+  },
+
+  textoAlerta: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
 

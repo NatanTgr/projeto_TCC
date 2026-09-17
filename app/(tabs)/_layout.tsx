@@ -1,29 +1,93 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../../context/ThemeContext';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../bd/supabase';
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { tipoTema, tema } = useTheme();
+
+  const [carregandoTipoUsuario, setCarregandoTipoUsuario] = useState(true);
+  const [tipoUsuario, setTipoUsuario] = useState<string | null>(null);
+
+  useEffect(() => {
+    const carregarTipoUsuario = async (userId: string) => {
+      console.log('Buscando tipo do usuário:', userId);
+
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('tipo')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.log('Erro ao buscar tipo do usuário:', error);
+        setCarregandoTipoUsuario(false);
+        return;
+      }
+
+      console.log('Tipo do usuário:', data.tipo);
+
+      setTipoUsuario(data.tipo);
+      setCarregandoTipoUsuario(false);
+    };
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        carregarTipoUsuario(session.user.id);
+      } else {
+        setTipoUsuario(null);
+        setCarregandoTipoUsuario(false);
+      }
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        carregarTipoUsuario(session.user.id);
+      } else {
+        setTipoUsuario(null);
+        setCarregandoTipoUsuario(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (carregandoTipoUsuario) {
+    return null;
+  }
 
   return (
     <Tabs
+      initialRouteName={
+        tipoUsuario === 'tutor'
+          ? 'TelaTarefasTutor'
+          : 'TelaCalendario'
+      }
       screenOptions={{
         headerShown: false,
 
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E8E2D5',
+          backgroundColor: tema.card,
+          borderTopColor: tema.border,
 
           // Altura normal + área dos botões/gestos do sistema
           height: 50 + insets.bottom,
 
-          // Mantém os ícones/textos acima da navegação do Android
+          // Mantém os ícones acima da navegação do Android
           paddingBottom: 8 + insets.bottom,
           paddingTop: 8,
         },
 
-        tabBarActiveTintColor: '#94C0DF',
-        tabBarInactiveTintColor: '#A0A0A0',
+        tabBarActiveTintColor: tema.primary,
+        tabBarInactiveTintColor:
+          tipoTema === 'escuro' ? '#888' : '#999',
 
         tabBarLabelStyle: {
           fontSize: 12,
@@ -31,48 +95,98 @@ export default function TabLayout() {
         },
       }}
     >
+      {/* CHAT PRINCIPAL */}
       <Tabs.Screen
-        name="chat"
+        name="TelaChat"
         options={{
           title: 'Chat',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="chatbubble-outline"
-              size={size}
               color={color}
+              size={size}
             />
           ),
         }}
       />
 
+      {/* CALENDÁRIO DO AMIGO */}
       <Tabs.Screen
-        name="calendario"
+        name="TelaCalendario"
         options={{
           title: 'Calendário',
+          href:
+            tipoUsuario === 'tutor'
+              ? null
+              : '/TelaCalendario',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="calendar-outline"
-              size={size}
               color={color}
+              size={size}
             />
           ),
         }}
       />
 
+      {/* TAREFAS DO SEU PROJETO */}
       <Tabs.Screen
         name="estudante"
         options={{
           title: 'Tarefas',
+          href:
+            tipoUsuario === 'tutor'
+              ? null
+              : undefined,
           tabBarIcon: ({ color, size }) => (
             <Ionicons
-              name="list"
-              size={size}
+              name="list-outline"
               color={color}
+              size={size}
             />
           ),
         }}
       />
 
+      {/* TAREFAS DA MAIN */}
+      <Tabs.Screen
+        name="TelaTarefas"
+        options={{
+          title: 'Tarefas',
+          href:
+            tipoUsuario === 'tutor'
+              ? null
+              : '/TelaTarefas',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="list-outline"
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      />
+
+      {/* TAREFAS ESPECÍFICAS DO TUTOR */}
+      <Tabs.Screen
+        name="TelaTarefasTutor"
+        options={{
+          title: 'Tarefas',
+          href:
+            tipoUsuario === 'tutor'
+              ? '/TelaTarefasTutor'
+              : null,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="list-outline"
+              color={color}
+              size={size}
+            />
+          ),
+        }}
+      />
+
+      {/* DASHBOARD PROFESSOR */}
       <Tabs.Screen
         name="professor"
         options={{
@@ -80,15 +194,31 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="settings-outline"
-              size={size}
               color={color}
+              size={size}
             />
           ),
         }}
       />
 
+      {/* DASHBOARD TUTOR */}
       <Tabs.Screen
         name="tutor"
+        options={{
+          href: null,
+        }}
+      />
+
+      {/* ROTAS ANTIGAS / INTERNAS */}
+      <Tabs.Screen
+        name="chat"
+        options={{
+          href: null,
+        }}
+      />
+
+      <Tabs.Screen
+        name="calendario"
         options={{
           href: null,
         }}

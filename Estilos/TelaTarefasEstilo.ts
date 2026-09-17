@@ -1,71 +1,48 @@
 import { StyleSheet } from "react-native";
-
 const Estilos = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFDD0',
-  },
-
-  header: {
-    padding: 20,
-    marginTop: 40,
-  },
-
+  container: { flex: 1, backgroundColor: "#FFFDD0" },
+  header: { paddingLeft: 15, paddingRight: 15, marginTop: 40 },
   topRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  width: '100%',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
   },
-
-  headerTitle: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-
-  taskCount: {
-    fontSize: 14,
-    color: '#666',
-  },
-
+  headerTitle: { fontSize: 30, fontWeight: "bold", color: "#333" },
+  taskCount: { fontSize: 14, color: "#666" },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
-
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginRight: 12,
     fontSize: 16,
   },
-
   addButton: {
-    backgroundColor: '#94C0DF',
+    backgroundColor: "#94C0DF",
     borderRadius: 8,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 10,
+    width: 38,
+    height: 38,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 5,
   },
-
   taskList: {
     flex: 1,
-    paddingLeft: 16,
-    paddingRight: 16,
+    paddingLeft: 15,
+    paddingRight: 15,
     paddingBottom: 0,
     paddingTop: 0,
   },
-
   cardEvento: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -73,173 +50,103 @@ const Estilos = StyleSheet.create({
     padding: 15,
     marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-
-  checkbox: {
-    marginRight: 12,
-  },
-
-  taskText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-
-  completedTaskText: {
-    textDecorationLine: 'line-through',
-    color: '#999',
-  },
-
-  deleteButton: {
-    padding: 8,
-  },
-
+  checkbox: { marginRight: 12 },
+  taskText: { flex: 1, fontSize: 16, color: "#333" },
+  completedTaskText: { textDecorationLine: "line-through", color: "#999" },
+  deleteButton: { padding: 8 },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 40,
   },
-
   emptyStateText: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#999',
+    fontWeight: "500",
+    color: "#999",
     marginTop: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
-
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#999',
+    color: "#999",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
-
-
-  /*Parte feita com IA até o BotaoConfirmar*/
-  modalOverlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0,0,0,0.5)',
-  justifyContent: 'center',
-  alignItems: 'center',
+  /*Parte feita com IA até o BotaoConfirmar*/ modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-
-  scrollModal: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
+  scrollModal: { flexGrow: 1, justifyContent: "center", alignItems: "center" },
   cardModal: {
-    width: '85%',
-    maxHeight: '85%',
-    backgroundColor: '#ffffff',
+    width: "85%",
+    maxHeight: "85%",
+    backgroundColor: "#ffffff",
     borderRadius: 15,
     padding: 20,
   },
-
-  tituloModal: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-
+  tituloModal: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
   opcaoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: 20,
-    },
-
-  opcoesRow: {
-    flexDirection: 'row',
-    marginBottom: 15,
   },
-
+  opcoesRow: { flexDirection: "row", marginBottom: 15 },
   radioExterno: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#4B6CB7',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderColor: "#4B6CB7",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 10,
   },
-
   radioInterno: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#4B6CB7',
+    backgroundColor: "#4B6CB7",
   },
-
-  textoOpcao: {
-    fontSize: 16,
-  },
-
+  textoOpcao: { fontSize: 16 },
   botoesModal: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 20,
   },
-
   botaoCancelar: {
-    backgroundColor: '#FFAA56',
+    backgroundColor: "#FFAA56",
     padding: 12,
     borderRadius: 10,
-    width: '45%',
-    alignItems: 'center',
+    width: "45%",
+    alignItems: "center",
   },
-
   botaoConfirmar: {
-    backgroundColor: '#94C0DF',
+    backgroundColor: "#94C0DF",
     padding: 12,
     borderRadius: 10,
-    width: '50%',
-    alignItems: 'center',
+    width: "50%",
+    alignItems: "center",
   },
-
-
-  infoTarefa: {
-    gap: 10,
-  },
-
-  textosInfo: {
-    borderWidth: 1,
-    borderColor: "#dbdbdb",
-    borderRadius: 10,
-
-  },
-
-  titulosInfoTarefa: {
-    marginTop: 20,
-  },
-
-  buttons: {
-    marginBottom: 50,
-    alignItems: "center",   
-  },
-
+  textoBotao: { fontSize: 16, textAlign: "center" },
+  infoTarefa: { gap: 10 },
+  textosInfo: { borderWidth: 1, borderColor: "#dbdbdb", borderRadius: 10 },
+  titulosInfoTarefa: { marginTop: 20 },
+  buttons: { marginBottom: 50, alignItems: "center" },
   topoCard: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10,
   },
-
-  tituloEvento: {
-    fontSize: 18,
-    fontWeight: "bold",
-    flex: 1,
-  },
+  tituloEvento: { fontSize: 18, fontWeight: "bold", flex: 1 },
 
   badgeTipo: {
     backgroundColor: "#94C0DF",
@@ -248,18 +155,22 @@ const Estilos = StyleSheet.create({
     borderRadius: 15,
   },
 
-  textoTipo: {
+  textoTipo: { color: "#fff", fontWeight: "bold" },
+  textoTipoAdicionar: { paddingBottom: 15 },
+  textodataEvento: {},
+
+  botaoAlerta: {
+    backgroundColor: "#FF8C42",
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 8,
+    elevation: 3,
+  },
+
+  textoAlerta: {
     color: "#fff",
+    fontSize: 14,
     fontWeight: "bold",
   },
-
-  textoTipoAdicionar: {
-    paddingBottom: 15,
-  },
-
-  textodataEvento: {
-    
-  },
 });
-
 export default Estilos;
