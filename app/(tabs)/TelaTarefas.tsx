@@ -4,11 +4,11 @@ import { View, ScrollView, Text, TextInput,
   Modal, TouchableOpacity, Alert,} from 'react-native';
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 //import { router, Link } from 'expo-router';
 import Estilos from "../../Estilos/TelaTarefasEstilo";
-import { supabase } from "../../bd/supabase";
+import { supabase } from "../../lib/supabase";
 
 // Definindo o tipo para uma tarefa
 type Task = {
@@ -26,12 +26,6 @@ type Task = {
 
 export default function ListaTarefas() {
   
-  const { alunoId: alunoIdParametro } = useLocalSearchParams<{ alunoId?: string }>();
-
-  const alunoId = Array.isArray(alunoIdParametro)
-    ? alunoIdParametro[0]
-    : alunoIdParametro;
-
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
   const [tarefas, setTarefas] = useState<Task[]>([]);
@@ -137,7 +131,7 @@ export default function ListaTarefas() {
       plataforma: plataforma.trim(),
       descricao: descricao.trim(),
       concluido: false,
-      aluno_id: alunoId || user.id,
+      aluno_id: user.id,
     };
 
     const { data: tarefaSalva, error } = await supabase
@@ -337,27 +331,27 @@ const getData = async () => {
   try {
     const {
       data: { user },
+      error: authError,
     } = await supabase.auth.getUser();
 
-    if (!user && !alunoId) {
-      console.log("Nenhum usuário ou aluno selecionado.");
+    if (authError) {
+      console.log("Erro ao obter usuário logado:", authError);
       setTarefas([]);
       return;
     }
 
-    // Se recebeu um alunoId, usa o aluno selecionado.
-    // Caso contrário, usa o próprio usuário logado.
-    const idAluno = alunoId || user?.id;
-
-    if (!idAluno) {
+    if (!user) {
+      console.log("Nenhum usuário está logado.");
       setTarefas([]);
       return;
     }
+
+    console.log("Carregando tarefas do usuário:", user.id);
 
     const { data: tarefasSalvas, error } = await supabase
       .from("tarefas")
       .select("*")
-      .eq("aluno_id", idAluno)
+      .eq("aluno_id", user.id)
       .order("data", { ascending: true });
 
     if (error) {
@@ -589,10 +583,10 @@ const getData = async () => {
   }
 
   useFocusEffect(
-    useCallback(() => {
-      getData();
-    }, [alunoId]),
-  );
+  useCallback(() => {
+    getData();
+  }, []),
+);
 
   // Toda vez que lista de tarefas mudar, salvar localmente
   //useEffect(() => {

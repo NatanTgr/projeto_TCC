@@ -1,10 +1,9 @@
 import { Text, View, ScrollView, TextInput, Alert, TouchableOpacity, Modal, } from 'react-native';
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
-import { useState, useCallback, useEffect } from 'react';
-import { testarLogin } from "../../bd/testarAuth";
+import { useState, useCallback } from 'react';import { testarLogin } from "../../bd/testarAuth";
 //import { router, Link } from 'expo-router';
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { supabase } from "../../bd/supabase";
+import { supabase } from "../../lib/supabase";
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
 import { useFocusEffect } from 'expo-router';
@@ -200,9 +199,6 @@ const converterData = (data: string) => {
     }
   };
 
-  useEffect(() => {
-    testarLogin();
-  }, []);
 
   const [titulo, setTitulo] = useState("");
   const [data, setData] = useState("");
@@ -401,33 +397,23 @@ const adicionarTarefa = async (tipo: string) => {
   };
 
   const carregarEventosCalendario = async () => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-      if (!session?.user) {
-        console.log("Nenhuma sessão encontrada. Fazendo login de teste...");
+    if (!user) {
+      console.log("Nenhum usuário logado.");
+      setMarkedDates({});
+      return;
+    }
 
-        await testarLogin();
-      }
+    console.log("Usuário encontrado no calendário:", user.id);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        console.log("Nenhum usuário logado.");
-        setMarkedDates({});
-        return;
-      }
-
-      console.log("Usuário encontrado no calendário:", user.id);
-
-      const { data: tarefas, error } = await supabase
-        .from("tarefas")
-        .select("*")
-        .eq("aluno_id", user.id);
+    const { data: tarefas, error } = await supabase
+      .from("tarefas")
+      .select("*")
+      .eq("aluno_id", user.id);
 
       console.log("TAREFAS DO CALENDÁRIO:", tarefas);
       console.log("ERRO DAS TAREFAS:", error);

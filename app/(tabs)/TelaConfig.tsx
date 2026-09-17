@@ -1,18 +1,70 @@
 import { View, Text, TouchableOpacity, ScrollView, Modal} from "react-native";
-//import { router, Link } from 'expo-router';
+import { router } from 'expo-router';
 import { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
 import Estilos from "../../Estilos/TelaConfigEstilo";
-import { testarSupabase } from "../../bd/testeSupabase";
+//import { testarSupabase } from "../../bd/testeSupabase";
 import { useFontSize } from "../../context/FontSizeContext";
+import { supabase } from "../../lib/supabase";
 
 export default function TelaConfig() {
 
   const [modalTamanhoFonte, setModalTamanhoFonte] = useState(false);
 
+  const [nomeUsuario, setNomeUsuario] = useState("");
+  const [emailUsuario, setEmailUsuario] = useState("");
+  const [campusUsuario, setCampusUsuario] = useState("");
+  const [tipoUsuario, setTipoUsuario] = useState("");
+
+  const sairDaConta = async () => {
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    console.log("Erro ao sair da conta:", error);
+    return;
+  }
+
+    router.replace("/login");
+  };
+
+  const carregarUsuario = async () => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      console.log("Nenhum usuário logado.");
+      return;
+    }
+
+    console.log("Usuário encontrado no Config:", user.id);
+
+    const { data, error } = await supabase
+      .from("usuarios")
+      .select("nome, email, campus, tipo")
+      .eq("id", user.id)
+      .single();
+
+    if (error) {
+      console.log("Erro ao carregar usuário:", error);
+      return;
+    }
+
+    console.log("Dados do usuário:", data);
+
+    setNomeUsuario(data.nome || "");
+    setEmailUsuario(data.email || user.email || "");
+    setCampusUsuario(data.campus || "");
+    setTipoUsuario(data.tipo || "");
+  } catch (error) {
+    console.log("Erro ao buscar usuário:", error);
+  }
+};
+
   useEffect(() => {
-    testarSupabase();
+    carregarUsuario();
   }, []);
 
   const { tipoTema, selecionarTema, tema } = useTheme();
@@ -296,11 +348,14 @@ export default function TelaConfig() {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={Estilos.botaoSair}>
-            <Text style={[Estilos.textoBotaoSair, { fontSize: 16 * escalaFonte }]}>
-              Sair da conta
-            </Text>
-          </TouchableOpacity>
+          <TouchableOpacity
+            style={Estilos.botaoSair}
+            onPress={sairDaConta}
+          >
+          <Text style={[Estilos.textoBotaoSair, { fontSize: 16 * escalaFonte }]}>
+            Sair da conta
+          </Text>
+        </TouchableOpacity>
         </View>
       </ScrollView>
       <Modal

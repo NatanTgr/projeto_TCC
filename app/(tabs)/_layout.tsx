@@ -65,11 +65,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
-      initialRouteName={
-        tipoUsuario === 'tutor'
-          ? 'TelaTarefasTutor'
-          : 'TelaCalendario'
-      }
+      initialRouteName="TelaTarefas"
       screenOptions={{
         headerShown: false,
 
@@ -77,10 +73,8 @@ export default function TabLayout() {
           backgroundColor: tema.card,
           borderTopColor: tema.border,
 
-          // Altura normal + área dos botões/gestos do sistema
           height: 50 + insets.bottom,
 
-          // Mantém os ícones acima da navegação do Android
           paddingBottom: 8 + insets.bottom,
           paddingTop: 8,
         },
@@ -95,7 +89,7 @@ export default function TabLayout() {
         },
       }}
     >
-      {/* CHAT PRINCIPAL */}
+      {/* CHAT */}
       <Tabs.Screen
         name="TelaChat"
         options={{
@@ -110,15 +104,11 @@ export default function TabLayout() {
         }}
       />
 
-      {/* CALENDÁRIO DO AMIGO */}
+      {/* CALENDÁRIO */}
       <Tabs.Screen
         name="TelaCalendario"
         options={{
           title: 'Calendário',
-          href:
-            tipoUsuario === 'tutor'
-              ? null
-              : '/TelaCalendario',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="calendar-outline"
@@ -129,34 +119,11 @@ export default function TabLayout() {
         }}
       />
 
-      {/* TAREFAS DO SEU PROJETO */}
-      <Tabs.Screen
-        name="estudante"
-        options={{
-          title: 'Tarefas',
-          href:
-            tipoUsuario === 'tutor'
-              ? null
-              : undefined,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="list-outline"
-              color={color}
-              size={size}
-            />
-          ),
-        }}
-      />
-
-      {/* TAREFAS DA MAIN */}
+      {/* TAREFAS */}
       <Tabs.Screen
         name="TelaTarefas"
         options={{
           title: 'Tarefas',
-          href:
-            tipoUsuario === 'tutor'
-              ? null
-              : '/TelaTarefas',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="list-outline"
@@ -167,30 +134,11 @@ export default function TabLayout() {
         }}
       />
 
-      {/* TAREFAS ESPECÍFICAS DO TUTOR */}
+      {/* CONFIGURAÇÕES */}
       <Tabs.Screen
-        name="TelaTarefasTutor"
+        name="TelaConfig"
         options={{
-          title: 'Tarefas',
-          href:
-            tipoUsuario === 'tutor'
-              ? '/TelaTarefasTutor'
-              : null,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="list-outline"
-              color={color}
-              size={size}
-            />
-          ),
-        }}
-      />
-
-      {/* DASHBOARD PROFESSOR */}
-      <Tabs.Screen
-        name="professor"
-        options={{
-          title: 'Config',
+          title: 'Configurações',
           tabBarIcon: ({ color, size }) => (
             <Ionicons
               name="settings-outline"
@@ -201,24 +149,10 @@ export default function TabLayout() {
         }}
       />
 
-      {/* DASHBOARD TUTOR */}
-      <Tabs.Screen
-        name="tutor"
-        options={{
-          href: null,
-        }}
-      />
-
-      {/* ROTAS ANTIGAS / INTERNAS */}
-      <Tabs.Screen
-        name="chat"
-        options={{
-          href: null,
-        }}
-      />
+      {/* TELAS INTERNAS - NÃO APARECEM NA TAB BAR */}
 
       <Tabs.Screen
-        name="calendario"
+        name="TelaTarefasTutor"
         options={{
           href: null,
         }}

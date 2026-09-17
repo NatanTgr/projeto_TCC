@@ -73,7 +73,7 @@ export default function LoginScreen() {
     } else if (role === 'tutor') {
       router.replace('/(tabs)/tutor');
     } else {
-      router.replace('/(tabs)/estudante');
+      router.replace('/(tabs)/TelaTarefas');
     }
   };
 

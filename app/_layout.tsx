@@ -43,7 +43,7 @@ export default function RootLayout() {
 
   const handleNavigation = (session: Session | null) => {
     if (session) {
-      router.replace('/(tabs)/estudante');
+      router.replace('/(tabs)/TelaTarefas');
     } else {
       router.replace('/welcome');
     }
