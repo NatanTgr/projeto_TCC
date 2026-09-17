@@ -68,13 +68,8 @@ export default function LoginScreen() {
 
     const role = data.user.user_metadata?.role?.toLowerCase();
 
-    if (role === 'professor') {
-      router.replace('/(tabs)/professor');
-    } else if (role === 'tutor') {
-      router.replace('/(tabs)/tutor');
-    } else {
-      router.replace('/(tabs)/TelaTarefas');
-    }
+    router.replace('/(tabs)/TelaTarefas');
+
   };
 
   return (

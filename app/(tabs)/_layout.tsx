@@ -159,7 +159,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="conversa"
+        name="TelaConversa"
         options={{
           href: null,
           headerShown: false,

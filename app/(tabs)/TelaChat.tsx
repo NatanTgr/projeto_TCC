@@ -134,7 +134,7 @@ export default function Chat() {
 
   const abrirConversa = (usuario: Usuario) => {
     router.push({
-      pathname: '/conversa' as any,
+      pathname: '/(tabs)/TelaConversa' as any,
       params: {
         usuarioId: usuario.id,
         usuarioNome: usuario.nome,
