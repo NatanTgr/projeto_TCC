@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { View, Text, Pressable, StatusBar } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  StatusBar,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+
 import { supabase } from '../../lib/supabase';
 import { styles, colors } from '../../style';
 
@@ -23,6 +29,10 @@ export default function DashboardTutor() {
     router.replace('/login');
   };
 
+  const abrirChat = () => {
+    router.push('/chat' as any);
+  };
+
   return (
     <SafeAreaView style={styles.dashboardContainer}>
       <StatusBar
@@ -37,7 +47,11 @@ export default function DashboardTutor() {
             { backgroundColor: colors.tutor },
           ]}
         >
-          <Ionicons name="people" size={32} color={colors.white} />
+          <Ionicons
+            name="people"
+            size={32}
+            color={colors.white}
+          />
         </View>
 
         <Text style={styles.welcomeText}>
@@ -65,6 +79,38 @@ export default function DashboardTutor() {
             Acompanhe e apoie os alunos.
           </Text>
         </View>
+
+        <Pressable
+          style={({ pressed }) => [
+            styles.chatDashboardButton,
+            pressed && styles.chatDashboardButtonPressed,
+          ]}
+          onPress={abrirChat}
+        >
+          <View style={styles.chatDashboardIcon}>
+            <Ionicons
+              name="chatbubbles-outline"
+              size={25}
+              color={colors.white}
+            />
+          </View>
+
+          <View style={styles.chatDashboardInfo}>
+            <Text style={styles.chatDashboardTitle}>
+              Mensagens
+            </Text>
+
+            <Text style={styles.chatDashboardSubtitle}>
+              Converse com outros usuários
+            </Text>
+          </View>
+
+          <Ionicons
+            name="chevron-forward"
+            size={22}
+            color={colors.placeholder}
+          />
+        </Pressable>
       </View>
 
       <Pressable

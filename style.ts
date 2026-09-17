@@ -408,4 +408,373 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
+    // --- ESTILOS DO CHAT ---
+
+  chatContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+
+  chatHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.white,
+  },
+
+  chatBackButton: {
+    width: 42,
+    height: 42,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+
+  chatHeaderTitleContainer: {
+    flex: 1,
+  },
+
+  chatHeaderTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.heading,
+  },
+
+  chatHeaderSubtitle: {
+    fontSize: 13,
+    color: colors.muted,
+    marginTop: 2,
+  },
+
+  chatUsersList: {
+    padding: 16,
+    paddingBottom: 30,
+  },
+
+  chatUserItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 10,
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
+  },
+
+  chatUserItemPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
+  },
+
+  chatUserAvatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+
+  chatUserInfo: {
+    flex: 1,
+    marginRight: 8,
+  },
+
+  chatUserName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.heading,
+    marginBottom: 3,
+  },
+
+  chatUserType: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 2,
+  },
+
+  chatUserEmail: {
+    fontSize: 12,
+    color: colors.placeholder,
+  },
+
+  chatLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 30,
+  },
+
+  chatLoadingText: {
+    fontSize: 14,
+    color: colors.muted,
+    marginTop: 12,
+  },
+
+  chatEmptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+
+  chatEmptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.heading,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+
+  chatEmptyText: {
+    fontSize: 14,
+    color: colors.muted,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 21,
+  },
+
+  // --- CONVERSA ---
+
+  conversationContainer: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+  },
+
+  conversationKeyboard: {
+    flex: 1,
+  },
+
+  conversationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    elevation: 2,
+  },
+
+  conversationBackButton: {
+    width: 42,
+    height: 42,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  conversationAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 8,
+  },
+
+  conversationHeaderInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+
+  conversationHeaderName: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.heading,
+  },
+
+  conversationHeaderStatus: {
+    fontSize: 12,
+    color: colors.muted,
+    marginTop: 2,
+  },
+
+  conversationMessagesList: {
+    paddingHorizontal: 12,
+    paddingVertical: 14,
+    flexGrow: 1,
+  },
+
+  conversationEmptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+
+  conversationEmptyTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.heading,
+    marginTop: 14,
+  },
+
+  conversationEmptyText: {
+    fontSize: 14,
+    color: colors.muted,
+    textAlign: 'center',
+    marginTop: 6,
+    lineHeight: 20,
+  },
+
+  chatMessageContainer: {
+    width: '100%',
+    marginBottom: 8,
+    flexDirection: 'row',
+  },
+
+  chatMessageContainerMine: {
+    justifyContent: 'flex-end',
+  },
+
+  chatMessageContainerOther: {
+    justifyContent: 'flex-start',
+  },
+
+  chatBubble: {
+    maxWidth: '78%',
+    paddingHorizontal: 13,
+    paddingTop: 9,
+    paddingBottom: 6,
+    borderRadius: 16,
+  },
+
+  chatBubbleMine: {
+    backgroundColor: '#DCF8C6',
+    borderBottomRightRadius: 4,
+  },
+
+  chatBubbleOther: {
+    backgroundColor: colors.white,
+    borderBottomLeftRadius: 4,
+  },
+
+  chatMessageText: {
+    fontSize: 15,
+    lineHeight: 20,
+  },
+
+  chatMessageTextMine: {
+    color: '#36502B',
+  },
+
+  chatMessageTextOther: {
+    color: colors.text,
+  },
+
+  chatMessageTime: {
+    fontSize: 10,
+    alignSelf: 'flex-end',
+    marginTop: 3,
+  },
+
+  chatMessageTimeMine: {
+    color: '#78936B',
+  },
+
+  chatMessageTimeOther: {
+    color: colors.placeholder,
+  },
+
+  messageInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: colors.white,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+
+  messageInput: {
+    flex: 1,
+    minHeight: 44,
+    maxHeight: 110,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 22,
+    paddingHorizontal: 17,
+    paddingTop: 11,
+    paddingBottom: 10,
+    fontSize: 15,
+    color: colors.text,
+    marginRight: 8,
+  },
+
+  sendMessageButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  sendMessageButtonDisabled: {
+    backgroundColor: colors.border,
+  },
+
+  sendMessageButtonPressed: {
+    opacity: 0.8,
+    transform: [{ scale: 0.95 }],
+  },
+  chatDashboardButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: colors.white,
+  borderRadius: 18,
+  padding: 14,
+  marginTop: 16,
+  elevation: 2,
+  shadowColor: '#000000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.05,
+  shadowRadius: 5,
+},
+
+chatDashboardButtonPressed: {
+  opacity: 0.85,
+  transform: [{ scale: 0.99 }],
+},
+
+chatDashboardIcon: {
+  width: 50,
+  height: 50,
+  borderRadius: 25,
+  backgroundColor: colors.primary,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginRight: 14,
+},
+
+chatDashboardInfo: {
+  flex: 1,
+},
+
+chatDashboardTitle: {
+  fontSize: 16,
+  fontWeight: '700',
+  color: colors.heading,
+  marginBottom: 3,
+},
+
+chatDashboardSubtitle: {
+  fontSize: 13,
+  color: colors.muted,
+},
+
+
 });
