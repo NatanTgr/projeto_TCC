@@ -514,38 +514,39 @@ const adicionarTarefa = async (tipo: string) => {
         },
       ]}
     >
+      {/* Cabeçalho */}
       <View style={Estilos.header}>
-      <View style={Estilos.cabecalhoCalendario}>
-        <Text
-          style={[
-            Estilos.titulo,
-            {
-              color: tema.text,
-              fontSize: 30 * escalaFonte,
-            },
-          ]}
-        >
-          Calendário
-        </Text>
-
-        <TouchableOpacity
-          style={Estilos.botaoAlerta}
-          onPress={() => {
-            // Futuramente: enviar alerta para o tutor
-          }}
-        >
+        <View style={Estilos.topRow}>
           <Text
             style={[
-              Estilos.textoAlerta,
+              Estilos.headerTitle,
               {
-                fontSize: 14 * escalaFonte,
+                color: tema.text,
+                fontSize: 30 * escalaFonte,
               },
             ]}
           >
-            ALERTA
+            Calendário
           </Text>
-        </TouchableOpacity>
-      </View>
+
+          <TouchableOpacity
+            style={Estilos.botaoAlerta}
+            onPress={() => {
+              // Futuramente: enviar alerta para o tutor
+            }}
+          >
+            <Text
+              style={[
+                Estilos.textoAlerta,
+                {
+                  fontSize: 14 * escalaFonte,
+                },
+              ]}
+            >
+              ALERTA
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={Estilos.legendaContainer}>

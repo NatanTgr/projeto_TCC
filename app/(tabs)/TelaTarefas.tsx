@@ -565,12 +565,7 @@ const getData = async () => {
     return (
       <View style={{ marginBottom: 20 }}>
         <Text
-          style={{
-            fontSize: 22,
-            fontWeight: "bold",
-            marginBottom: 10,
-            marginLeft: 5,
-          }}
+          style={[Estilos.tituloSecao, { color: tema.text, fontSize: 22 * escalaFonte }]}
         >
           {titulo}
         </Text>
@@ -911,4 +906,3 @@ const getData = async () => {
     </View>
   );
 }
-

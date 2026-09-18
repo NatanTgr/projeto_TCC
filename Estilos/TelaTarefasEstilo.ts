@@ -172,5 +172,12 @@ const Estilos = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+
+  tituloSecao: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 10,
+    marginLeft: 5,
+  },
 });
 export default Estilos;

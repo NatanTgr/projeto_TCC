@@ -55,7 +55,7 @@ export function ThemeProvider({
         : {
             background: "#FFFDD0",
             card: "#FFFFFF",
-            text: "#000000",
+            text: "#836F68",
             secondaryText: "#666666",
             input: "#FFFFFF",
             border: "#DDDDDD",

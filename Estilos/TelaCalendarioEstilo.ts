@@ -7,11 +7,24 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
   },
 
-  header: { 
-    paddingLeft: 15, 
-    paddingRight: 15, 
+  header: {
+    paddingLeft: 15,
+    paddingRight: 15,
     marginTop: 40,
     width: "100%",
+  },
+
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+  },
+
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#333",
   },
 
   calendarContainer: {
@@ -265,14 +278,15 @@ const Estilos = StyleSheet.create({
 
   botaoAlerta: {
     backgroundColor: "#FF8C42",
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 9,
-    borderRadius: 10,
+    borderRadius: 8,
     elevation: 3,
   },
 
   textoAlerta: {
     color: "#fff",
+    fontSize: 14,
     fontWeight: "bold",
   },
 });

@@ -4,7 +4,7 @@ export async function testarLogin() {
   const { data: login, error: erroLogin } =
     await supabase.auth.signInWithPassword({
       email: "teste@teste.com",
-      password: "12345",
+      password: "123456",
     });
 
   console.log("ERRO LOGIN:", erroLogin);
