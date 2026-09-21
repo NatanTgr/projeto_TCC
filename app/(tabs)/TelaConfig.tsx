@@ -7,6 +7,9 @@ import Estilos from "../../Estilos/TelaConfigEstilo";
 import { testarSupabase } from "../../bd/testeSupabase";
 import { useFontSize } from "../../context/FontSizeContext";
 import { supabase } from "../../bd/supabase";
+import AvatarImagem from "../../components/AvatarImagem";
+import SeletorAvatar from "../../components/SeletorAvatar";
+import { AVATARES, buscarAvatar, } from "../../components/avatares";
 
 export default function TelaConfig() {
 
@@ -58,6 +61,49 @@ export default function TelaConfig() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
   const [alterandoSenha, setAlterandoSenha] = useState(false);
+
+  const [modalAvatar, setModalAvatar] = useState(false);
+
+  const avatarPerfil = buscarAvatar(usuario?.avatar);
+
+  async function salvarAvatar(url: string) {
+    if (!usuario || !AVATARES.some((avatar) => avatar.url === url)) {
+      throw new Error("Avatar ou perfil inválido.");
+    }
+
+    const {
+      data: { user },
+      error: erroAuth,
+    } = await supabase.auth.getUser();
+
+    if (erroAuth || !user || user.id !== usuario.id) {
+      throw new Error("Sessão inválida. Entre novamente.");
+    }
+
+    const { data, error } = await supabase
+      .from("usuarios")
+      .update({
+        avatar: url,
+      })
+      .eq("id", user.id)
+      .select("id, avatar")
+      .single();
+
+    if (error || !data || data.id !== user.id || data.avatar !== url) {
+      console.log("Erro ao salvar avatar:", error);
+
+      throw error ?? new Error("O banco não confirmou a alteração.");
+    }
+
+    setUsuario((usuarioAtual) =>
+      usuarioAtual?.id === user.id
+        ? {
+            ...usuarioAtual,
+            avatar: data.avatar,
+          }
+        : usuarioAtual,
+    );
+  }
 
   async function carregarPerfil() {
     try {
@@ -246,9 +292,11 @@ export default function TelaConfig() {
             <View style={Estilos.perfilTopo}>
               {/* Avatar */}
               <View style={Estilos.avatarContainer}>
-                <Text style={Estilos.avatarTexto}>
-                  {usuario?.avatar || "👤"}
-                </Text>
+                {avatarPerfil ? (
+                  <AvatarImagem uri={avatarPerfil.url} tamanho={90} />
+                ) : (
+                  <Text style={Estilos.avatarTexto}>👤</Text>
+                )}
               </View>
 
               {/* Informações do usuário */}
@@ -343,11 +391,18 @@ export default function TelaConfig() {
 
             {/* Botão para trocar avatar */}
             <TouchableOpacity
+              onPress={() => setModalAvatar(true)}
+              disabled={carregandoPerfil || !usuario}
+              accessibilityRole="button"
+              accessibilityState={{
+                disabled: carregandoPerfil || !usuario,
+              }}
               style={[
                 Estilos.botaoAvatar,
                 {
                   backgroundColor: tema.card,
                   borderColor: tema.border,
+                  opacity: carregandoPerfil || !usuario ? 0.5 : 1,
                 },
               ]}
             >
@@ -648,6 +703,14 @@ export default function TelaConfig() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      {usuario && (
+        <SeletorAvatar
+          visivel={modalAvatar}
+          avatarAtual={usuario.avatar}
+          aoFechar={() => setModalAvatar(false)}
+          aoSalvar={salvarAvatar}
+        />
+      )}
       <Modal
         visible={modalTamanhoFonte}
         transparent

@@ -39,3 +39,27 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Firebase
+google-services.json
+*firebase-adminsdk*.json
+
+# Supabase
+supabase/.temp/
+supabase/functions/.env
+supabase/functions/**/.env
+
+# Credenciais Android
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Arquivos locais
+node_modules/
+.expo/

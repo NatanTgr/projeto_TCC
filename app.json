@@ -11,6 +11,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.natanrodrigues.paed",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -24,6 +26,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-notifications",
       "expo-font",
       "expo-status-bar",
       [
@@ -36,6 +39,13 @@
         }
       ],
       "expo-sharing"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "8ec8aed4-0668-4bda-bea4-18823907c73c"
+      }
+    },
+    "owner": "natanrodrigues"
   }
 }

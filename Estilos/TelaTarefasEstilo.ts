@@ -7,9 +7,10 @@ const Estilos = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
+    marginBottom: 0,
   },
   headerTitle: { fontSize: 30, fontWeight: "bold", color: "#333" },
-  taskCount: { fontSize: 14, color: "#666" },
+  taskCount: { fontSize: 14, color: "#666", marginBottom: 10, },
   inputContainer: {
     flexDirection: "row",
     padding: 16,

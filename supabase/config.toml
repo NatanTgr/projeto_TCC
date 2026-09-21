@@ -1,0 +1,33 @@
+
+[functions.notificar-tarefa-tutor]
+enabled = true
+verify_jwt = false
+import_map = "./functions/notificar-tarefa-tutor/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/notificar-tarefa-tutor/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/notificar-tarefa-tutor/*.html" ]
+
+[functions.enviar-lembretes-tarefas]
+enabled = true
+verify_jwt = false
+import_map = "./functions/enviar-lembretes-tarefas/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/enviar-lembretes-tarefas/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/enviar-lembretes-tarefas/*.html" ]
+
+[functions.enviar-resumo-semanal]
+enabled = true
+verify_jwt = false
+import_map = "./functions/enviar-resumo-semanal/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/enviar-resumo-semanal/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/enviar-resumo-semanal/*.html" ]

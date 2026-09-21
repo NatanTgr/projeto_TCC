@@ -21,7 +21,8 @@ type Task = {
   plataforma: string;
   descricao: string;
   concluido: boolean;
-   aluno_id: string;
+  aluno_id: string;
+  criado_por : string | null;
 };
 
 export default function ListaTarefas() {
@@ -138,6 +139,7 @@ export default function ListaTarefas() {
       descricao: descricao.trim(),
       concluido: false,
       aluno_id: alunoId || user.id,
+      criado_por: user.id,
     };
 
     const { data: tarefaSalva, error } = await supabase
@@ -152,7 +154,7 @@ export default function ListaTarefas() {
       return false;
     }
 
-    setTarefas([...tarefas, tarefaSalva]);
+    setTarefas((tarefasAtuais) => [...tarefasAtuais, tarefaSalva]);
 
     setTitulo("");
     setData("");
@@ -588,11 +590,6 @@ const getData = async () => {
       getData();
     }, [alunoId]),
   );
-
-  // Toda vez que lista de tarefas mudar, salvar localmente
-  //useEffect(() => {
-  //storeData(tarefas);
-  //}, [tarefas]);
 
   return (
     <View style={[Estilos.container, { backgroundColor: tema.background }]}>
