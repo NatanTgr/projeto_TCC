@@ -10,6 +10,7 @@ import { supabase } from "../../bd/supabase";
 import AvatarImagem from "../../components/AvatarImagem";
 import SeletorAvatar from "../../components/SeletorAvatar";
 import { AVATARES, buscarAvatar, } from "../../components/avatares";
+import BotaoAlerta from "../../components/BotaoAlerta";
 
 export default function TelaConfig() {
 
@@ -266,23 +267,9 @@ export default function TelaConfig() {
             Configurações
           </Text>
 
-          <TouchableOpacity
-            style={Estilos.botaoAlerta}
-            onPress={() => {
-              // Futuramente: enviar alerta para o tutor
-            }}
-          >
-            <Text
-              style={[
-                Estilos.textoAlerta,
-                {
-                  fontSize: 14 * escalaFonte,
-                },
-              ]}
-            >
-              ALERTA
-            </Text>
-          </TouchableOpacity>
+          {usuario?.tipo === "estudante" && (
+            <BotaoAlerta />
+          )}
         </View>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>

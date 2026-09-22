@@ -2,13 +2,13 @@ import { Text, View, ScrollView, TextInput, Alert, TouchableOpacity, Modal, } fr
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 import { useState, useCallback, useEffect } from 'react';
 import { testarLogin } from "../../bd/testarAuth";
-//import { router, Link } from 'expo-router';
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { supabase } from "../../bd/supabase";
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
 import { useFocusEffect } from 'expo-router';
 import Estilos from "../../Estilos/TelaCalendarioEstilo";
+import BotaoAlerta from "../../components/BotaoAlerta";
 
 import { ptBR } from "../../Utils/configCal"
 
@@ -529,23 +529,7 @@ const adicionarTarefa = async (tipo: string) => {
             Calendário
           </Text>
 
-          <TouchableOpacity
-            style={Estilos.botaoAlerta}
-            onPress={() => {
-              // Futuramente: enviar alerta para o tutor
-            }}
-          >
-            <Text
-              style={[
-                Estilos.textoAlerta,
-                {
-                  fontSize: 14 * escalaFonte,
-                },
-              ]}
-            >
-              ALERTA
-            </Text>
-          </TouchableOpacity>
+          <BotaoAlerta />
         </View>
       </View>
 

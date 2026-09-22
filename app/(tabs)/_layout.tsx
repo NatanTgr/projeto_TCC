@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import * as Notifications from "expo-notifications";
 import { supabase } from "../../bd/supabase";
 import { registrarNotificacoes } from "../../services/notificacoes";
+import AlertaTutorGlobal from "../../components/AlertaTutorGlobal";
 
 export default function TabLayout() {
   const { tipoTema, tema } = useTheme();
@@ -136,6 +137,7 @@ if (carregandoTipoUsuario) {
 }
 
   return (
+    <>
     <Tabs
       initialRouteName={
         tipoUsuario === "tutor" ? "TelaTarefasTutor" : "TelaCalendario"
@@ -212,5 +214,7 @@ if (carregandoTipoUsuario) {
         }}
       />
     </Tabs>
+    <AlertaTutorGlobal />
+    </>
   );
 }

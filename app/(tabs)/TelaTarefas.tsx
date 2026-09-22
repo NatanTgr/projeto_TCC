@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 //import { router, Link } from 'expo-router';
 import Estilos from "../../Estilos/TelaTarefasEstilo";
 import { supabase } from "../../bd/supabase";
+import BotaoAlerta from "../../components/BotaoAlerta";
 
 // Definindo o tipo para uma tarefa
 type Task = {
@@ -607,18 +608,7 @@ const getData = async () => {
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             {/* Botão ALERTA */}
-            <TouchableOpacity
-              style={Estilos.botaoAlerta}
-              onPress={() => {
-                // Futuramente: enviar alerta para o tutor
-              }}
-            >
-              <Text
-                style={[Estilos.textoAlerta, { fontSize: 14 * escalaFonte }]}
-              >
-                ALERTA
-              </Text>
-            </TouchableOpacity>
+            <BotaoAlerta />
             <TouchableOpacity
               style={Estilos.addButton}
               onPress={() => setModalVisivel(true)}
