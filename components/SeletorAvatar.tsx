@@ -119,7 +119,7 @@ export default function SeletorAvatar({
                 fontSize: 14 * escalaFonte,
               }}
             >
-              Escolha uma das 30 opções geradas pelo DiceBear.
+              Escolha uma das 36 opções geradas pelo DiceBear.
             </Text>
 
             {escolhido && (

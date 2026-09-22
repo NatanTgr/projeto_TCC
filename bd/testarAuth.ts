@@ -3,8 +3,8 @@ import { supabase } from "./supabase";
 export async function testarLogin() {
   const { data: login, error: erroLogin } =
     await supabase.auth.signInWithPassword({
-      email: "tutor@teste.com",
-      password: "12345",
+      email: "teste@teste.com",
+      password: "123456",
     });
 
   console.log("ERRO LOGIN:", erroLogin);
