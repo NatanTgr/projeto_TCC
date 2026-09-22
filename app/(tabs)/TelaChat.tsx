@@ -51,6 +51,19 @@ export default function Chat() {
         router.replace('/login');
         return;
       }
+  // Buscar os usuários fixados pelo usuário logado
+  const { data: fixados, error: fixadosError } = await supabase
+    .from('usuarios_fixados')
+    .select('usuario_fixado_id')
+    .eq('usuario_id', user.id);
+
+    if (fixadosError) {
+      console.error('Erro ao carregar usuários fixados:', fixadosError);
+    }
+
+    const idsFixados = new Set(
+      (fixados || []).map(item => item.usuario_fixado_id)
+    );
 
       // Buscar dados do usuário logado para descobrir o campus e o tipo dele
       const { data: dadosUsuarioLogado } = await supabase
@@ -91,9 +104,13 @@ export default function Chat() {
         return;
       }
 
-      const listaUsuarios = (data || []) as Usuario[];
-      setUsuarios(listaUsuarios);
-      setIdsSelecionados(listaUsuarios.map(u => u.id));
+      const listaUsuarios = (data || []).map(usuario => ({
+  ...usuario,
+  fixado: idsFixados.has(usuario.id),
+})) as Usuario[];
+
+setUsuarios(listaUsuarios);
+setIdsSelecionados(listaUsuarios.map(u => u.id));
     } catch (error) {
       console.error('Erro inesperado:', error);
     } finally {
@@ -134,7 +151,7 @@ export default function Chat() {
 
   const abrirConversa = (usuario: Usuario) => {
     router.push({
-      pathname: '/(tabs)/TelaConversa' as any,
+      pathname: '/TelaConversa' as any,
       params: {
         usuarioId: usuario.id,
         usuarioNome: usuario.nome,
@@ -143,12 +160,80 @@ export default function Chat() {
     });
   };
 
-  const toggleFixar = (id: string, event: any) => {
-    event.stopPropagation();
-    setUsuarios(prev =>
-      prev.map(u => (u.id === id ? { ...u, fixado: !u.fixado } : u))
-    );
-  };
+  const toggleFixar = async (id: string, event: any) => {
+  event.stopPropagation();
+
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      router.replace('/login');
+      return;
+    }
+
+    const usuario = usuarios.find(u => u.id === id);
+
+    if (!usuario) {
+      return;
+    }
+
+    if (usuario.fixado) {
+      // ==============================
+      // DESFIXAR USUÁRIO
+      // ==============================
+
+      const { error } = await supabase
+        .from('usuarios_fixados')
+        .delete()
+        .eq('usuario_id', user.id)
+        .eq('usuario_fixado_id', id);
+
+      if (error) {
+        console.error('Erro ao remover usuário dos fixados:', error);
+        return;
+      }
+
+      setUsuarios(prev =>
+        prev.map(u =>
+          u.id === id
+            ? { ...u, fixado: false }
+            : u
+        )
+      );
+
+    } else {
+      // ==============================
+      // FIXAR USUÁRIO
+      // ==============================
+
+      const { error } = await supabase
+        .from('usuarios_fixados')
+        .insert({
+          usuario_id: user.id,
+          usuario_fixado_id: id,
+        });
+
+      if (error) {
+        console.error('Erro ao adicionar usuário aos fixados:', error);
+        return;
+      }
+
+      setUsuarios(prev =>
+        prev.map(u =>
+          u.id === id
+            ? { ...u, fixado: true }
+            : u
+        )
+      );
+    }
+
+  } catch (error) {
+    console.error('Erro ao alterar usuário fixado:', error);
+  }
+};
 
   const toggleSelecionFiltro = (id: string) => {
     setIdsSelecionados(prev =>
@@ -222,7 +307,8 @@ export default function Chat() {
 
   return (
     <SafeAreaView
-  edges={['top', 'left', 'right', 'bottom']}
+  
+  edges={['left', 'right', 'bottom']}
   style={[
     styles.chatContainer,
     {
@@ -271,7 +357,7 @@ export default function Chat() {
       </View>
 
       {/* Abas Superiores Dinâmicas baseadas no tipo de quem logou */}
-      <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingTop: 16, gap: 12, backgroundColor: colors.background }}>
+      <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingTop: 2, gap: 12, backgroundColor: colors.background }}>
         {abasPermitidas.map((aba) => (
           <Pressable
             key={aba.key}

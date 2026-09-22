@@ -161,14 +161,28 @@ export default function LoginScreen() {
             </Pressable>
 
             <View style={styles.cardFooter}>
-              <Text style={styles.cardFooterText}>
-                Não tem uma conta?
-              </Text>
+  <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+    <Text style={styles.cardFooterText}>
+      Não tem uma conta?
+    </Text>
 
-              <Pressable onPress={() => router.push('/welcome')}>
-                <Text style={styles.signUpLink}> Criar conta</Text>
-              </Pressable>
-            </View>
+    <Pressable onPress={() => router.push('/welcome')}>
+      <Text style={styles.signUpLink}> Criar conta</Text>
+    </Pressable>
+  </View>
+
+  <View style={{ marginTop: 10 }}>
+    <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
+      <Text style={styles.cardFooterText}>
+        Esqueceu a senha?
+      </Text>
+
+      <Pressable onPress={() => router.push('/esqueciSenha')}>
+        <Text style={styles.signUpLink}> Redefinir senha</Text>
+      </Pressable>
+    </View>
+  </View>
+</View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

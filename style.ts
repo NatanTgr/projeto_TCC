@@ -112,7 +112,6 @@ export const styles = StyleSheet.create({
   buttonPressed: { opacity: 0.9 },
   buttonText: { color: colors.white, fontSize: 16, fontWeight: '600' },
   cardFooter: {
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,

@@ -1,26 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { decode } from 'base64-arraybuffer';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as ImagePicker from 'expo-image-picker';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Text,
   TextInput,
   View,
 } from 'react-native';
-
-import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { supabase } from '../../lib/supabase';
-import { styles, colors } from '../../style';
+import { colors, styles } from '../../style';
 
 type Mensagem = {
   id: number;
@@ -93,6 +95,9 @@ export default function Conversa() {
   const [editandoId, setEditandoId] = useState<number | null>(null);
 
   const [textoEditado, setTextoEditado] = useState('');
+
+  const [imagemSelecionada, setImagemSelecionada] =
+  useState<string | null>(null);
 
   const flatListRef = useRef<FlatList<ItemLista>>(null);
 
@@ -180,30 +185,30 @@ export default function Conversa() {
   // =========================================================
 
   const carregarUrlsDasImagens = async (
-    lista: Mensagem[]
-  ): Promise<Mensagem[]> => {
-    const resultado = await Promise.all(
-      lista.map(async (mensagem) => {
-        if (
-          mensagem.tipo !== 'imagem' ||
-          !mensagem.arquivo_url
-        ) {
-          return mensagem;
-        }
+  lista: Mensagem[]
+): Promise<Mensagem[]> => {
+  const resultado = await Promise.all(
+    lista.map(async (mensagem) => {
+      if (
+        mensagem.tipo !== 'imagem' ||
+        !mensagem.arquivo_url
+      ) {
+        return mensagem;
+      }
 
-        const { data } = supabase.storage
-          .from('chat-imagens')
-          .getPublicUrl(mensagem.arquivo_url);
+      const { data } = supabase.storage
+        .from('chat-imagens')
+        .getPublicUrl(mensagem.arquivo_url);
 
-        return {
-          ...mensagem,
-          imagem_url: data.publicUrl,
-        };
-      })
-    );
+      return {
+        ...mensagem,
+        imagem_url: data.publicUrl,
+      };
+    })
+  );
 
-    return resultado;
-  };
+  return resultado;
+    };
 
   // =========================================================
   // REALTIME
@@ -540,7 +545,7 @@ export default function Conversa() {
       if (!imagem?.uri) {
         return;
       }
-
+      
       await enviarImagem(
         imagem.uri,
         imagem.mimeType || 'image/jpeg',
@@ -551,6 +556,7 @@ export default function Conversa() {
         'Erro ao escolher imagem:',
         error
       );
+      
 
       Alert.alert(
         'Erro',
@@ -657,31 +663,29 @@ export default function Conversa() {
     try {
       setEnviando(true);
 
-      const extensao =
-        mimeType.split('/')[1] ||
-        fileName.split('.').pop() ||
-        'jpg';
-
       const nomeArquivo =
         `${usuarioLogadoId}/` +
         `${Date.now()}-${Math.random()
           .toString(36)
-          .substring(2)}.${extensao}`;
+          .substring(2)}.jpg`;
 
       // Converte a URI do aparelho para ArrayBuffer.
       // Essa abordagem é adequada para upload no React Native.
-      const resposta = await fetch(uri);
-      const arrayBuffer =
-        await resposta.arrayBuffer();
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const arrayBuffer = decode(base64);
+
 
       const { error: uploadError } =
-        await supabase.storage
-          .from('chat-imagens')
-          .upload(nomeArquivo, arrayBuffer, {
-            contentType: mimeType,
-            cacheControl: '3600',
-            upsert: false,
-          });
+      await supabase.storage
+        .from('chat-imagens')
+        .upload(nomeArquivo, arrayBuffer, {
+      contentType: 'image/jpeg',
+      cacheControl: '3600',
+      upsert: false,
+    });
 
       if (uploadError) {
         console.error(
@@ -1075,19 +1079,23 @@ export default function Conversa() {
 
           {mensagem.tipo === 'imagem' &&
           mensagem.imagem_url ? (
-            <Image
-              source={{
-                uri: mensagem.imagem_url,
-              }}
-              style={{
-                width: 230,
-                height: 230,
-                borderRadius: 12,
-                backgroundColor:
-                  colors.border,
-              }}
-              resizeMode="cover"
-            />
+            <Pressable
+              onPress={() =>
+              setImagemSelecionada(mensagem.imagem_url!)
+              }
+            >
+              <Image
+                source={{ uri: mensagem.imagem_url }}
+                  style={{
+                    width: 230,
+                    height: 230,
+                    borderRadius: 12,
+                    backgroundColor: colors.border,
+                }}
+                resizeMode="cover"
+              />
+            </Pressable>
+
           ) : (
             /* ---------------------------------
                TEXTO
@@ -1157,16 +1165,74 @@ export default function Conversa() {
           backgroundColor: colors.background,
         },
       ]}
+      edges={['left', 'right', 'bottom']}
     >
       {/* Oculta qualquer dashboard ou header herdado da rota pai */}
       <Stack.Screen options={{ headerShown: false }} />
 
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.background}
-      />
+<StatusBar
+  barStyle="dark-content"
+  backgroundColor={colors.background}
+/>
 
-      <KeyboardAvoidingView
+<Modal
+  visible={imagemSelecionada !== null}
+  transparent
+  animationType="fade"
+  onRequestClose={() =>
+    setImagemSelecionada(null)
+  }
+>
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.95)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    {/* Botão fechar */}
+    <Pressable
+      onPress={() =>
+        setImagemSelecionada(null)
+      }
+      style={{
+        position: 'absolute',
+        top: Platform.OS === 'android'
+          ? (StatusBar.currentHeight || 24) + 10
+          : 45,
+        right: 20,
+        zIndex: 10,
+        width: 45,
+        height: 45,
+        borderRadius: 25,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
+      <Ionicons
+        name="close"
+        size={32}
+        color="#FFFFFF"
+      />
+    </Pressable>
+
+    {imagemSelecionada && (
+      <Image
+        source={{
+          uri: imagemSelecionada,
+        }}
+        style={{
+          width: '100%',
+          height: '80%',
+        }}
+        resizeMode="contain"
+      />
+    )}
+          </View>
+        </Modal>
+
+        <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={
           Platform.OS === 'ios'
