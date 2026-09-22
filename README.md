@@ -1,118 +1,50 @@
----
-# 🧩 PAED - Plataforma de Apoio Educacional
+# Welcome to your Expo app 👋
 
-<img width="2001" height="667" alt="logo" src="https://github.com/user-attachments/assets/85dbd094-3840-4f9c-a4d9-a3a0c430da45" />
+This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
----
-## 📚 O que é PAED?
+## Get started
 
-A plataforma é uma aplicação móvel, que visa apoiar os discentes com Transtorno do Espectro Autista (TEA) na organização de tarefas e na comunicação com professores e tutores. O aplicativo é direcionado especialmente aos discentes do Instituto Federal do Paraná — Campus Pinhais, considerando demandas na organização da rotina escolar e no suporte pedagógico.
+1. Install dependencies
 
-A plataforma insere-se no campo da Tecnologia Assistiva (TA), na categoria de recursos digitais de apoio ao uso de computadores e dispositivos móveis, oferecendo um ambiente simples, acessível e estruturado.
+   ```bash
+   npm install
+   ```
 
----
-## ⚠️ Problema
+2. Start the app
 
-O Transtorno do Espectro Autista (TEA) é caracterizado por alterações no desenvolvimento neurológico que impactam a comunicação, a interação social e o comportamento. Segundo a Organização Mundial da Saúde (OMS), estima-se que uma em cada 100 crianças no mundo esteja dentro do espectro. No Brasil, a Lei nº 12.764/2012 garante às pessoas com TEA o direito ao acesso a serviços e ações que promovam sua inclusão social e educacional.
+   ```bash
+   npx expo start
+   ```
 
-Apesar do aumento no acesso à escolarização, observa-se que a presença de estudantes com TEA diminui progressivamente ao longo dos níveis de ensino. Esse cenário evidencia a existência de barreiras educacionais, especialmente relacionadas à falta de apoio adequado e adaptações institucionais que favoreçam sua permanência e desenvolvimento acadêmico (IBGE, 2022).
+In the output, you'll find options to open the app in a
 
----
-## 🎯 Objetivo
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-Desenvolver um aplicativo voltado ao apoio de estudantes com Transtorno do Espectro Autista (TEA) na organização de tarefas escolares, no planejamento da rotina acadêmica e no acompanhamento de suas atividades educacionais, contribuindo para o aprimoramento da autonomia, da acessibilidade e da permanência desses estudantes no ambiente escolar por meio do uso de recursos de Tecnologia Assistiva, com interface intuitiva, suporte visual à organização das atividades e recursos de comunicação que favoreçam a interação com professores e tutores.
+You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
----
-## 🧠 Método
+## Get a fresh project
 
-O desenvolvimento do aplicativo PAED foi organizado em etapas estruturadas conforme o cronograma do projeto, contemplando pesquisa teórica, planejamento, implementação e validação da aplicação.
+When you're ready, run:
 
-As principais etapas do método incluem:
+```bash
+npm run reset-project
+```
 
-1. Pesquisa teórica sobre Transtorno do Espectro Autista (TEA) e Tecnologia Assistiva (TA)
+This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
 
-2. Análise de aplicativos semelhantes para identificação de funcionalidades e padrões de interface adequados
+## Learn more
 
-3. Planejamento das funcionalidades e construção da identidade visual do aplicativo
+To learn more about developing your project with Expo, look at the following resources:
 
-4. Desenvolvimento do protótipo navegável utilizando Figma 
+- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
+- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
 
-5. Aplicação de formulários para coleta e organização de informações relevantes ao projeto
+## Join the community
 
-6. Desenvolvimento do aplicativo
+Join our community of developers creating universal apps.
 
-7. Implementação do banco de dados com Supabase
-
-8. Testes de usabilidade e acessibilidade com base em heurísticas de interface
-
-9. Ajustes progressivos do sistema a partir das validações realizadas
-
-10. Elaboração da documentação técnica e preparação da apresentação final do projeto
-
----
-## 🧑🏽‍💻 Desenvolvimento 
-
-A partir da identificação das dificuldades relacionadas à organização da rotina escolar de estudantes com Transtorno do Espectro Autista (TEA), foi proposto o desenvolvimento do PAED.
-O aplicativo está sendo desenvolvido com React Native em conjunto com o Expo, utilizando JavaScript como base para a estruturação e implementação das funcionalidades. Para o armazenamento de dados está sendo utilizada a plataforma Supabase, enquanto GitHub é para o controle do código e o Visual Studio Code como ambiente de desenvolvimento.
-
-<p align="center">
-  <img height="80" src="https://cdn.simpleicons.org/react">
-  <img height="80" src="https://cdn.simpleicons.org/expo">
-  <img height="80" src="https://cdn.simpleicons.org/javascript">
-  <img height="80" src="https://cdn.simpleicons.org/supabase">
-  <img height="80" src="https://cdn.simpleicons.org/github">
-  <img height="80" src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg">
-</p>
-
----
-
-## 🎨 Identidade Visual do Projeto
-
-<p align="center">
-  <img width="700" height="1000" alt="IDENTIDADADE VISUAL PAED" src="https://github.com/user-attachments/assets/7a06bb33-acd2-499c-aa6a-a0de7228efbd" />
-</p>
-
----
-
-## 💬 Redes Sociais do Projeto
-
-📸 Instagram:
-👉 <a href="https://instagram.com/paed.tcc" target="_blank">@paed.tcc</a>
-
----
-
-## 👥 Organização da Equipe
-
-| Integrante                        | Responsabilidades                                                                          |
-| --------------------------------- | ------------------------------------------------------------------------------------------ |
-| **João Odimar Gonçalves Campos**  | Leituras base, Pesquisa de mercado, Organização do código, Criação do protótipo navegável, Organização do banco de dados                             |
-| **Maria Eduarda Miotti dos Reis** | Leituras base, Organização do cronograma, Organização da documentação, Pesquisa de artigos, Criação do protótipo navegável |
-| **Natan Rodrigues**               | Leituras base, Organização do código, Criação do protótipo navegável, Organização do banco de dados                            |
-| **Paula Cristina Stopa**               | Orientadora                           |
-| **Lauriana Paludo**               | Coorientadora                            |
----
-
-## 📅 Data de Criação do Projeto
-
-🗓️ **01/07/2025**
-
----
-
-## 📝 Documento de Requisitos
-
-[Documento_de_Requisitos-PAED-TCC.pdf](https://github.com/user-attachments/files/27244492/Documento_de_Requisitos-PAED-TCC.pdf)
-
----
-
-## 📄 Pré-Projeto
-
-[Pré-Projeto v1.pdf](https://github.com/user-attachments/files/27244597/Pre-Projeto.v1.pdf)
-
----
-
-## 📱 Protótipo - Figma
-
-https://www.figma.com/make/M1I0xoCKxs4kbvxICyjnvU/PAED?t=vQ2XqCE5sy3KD8uD-1
-
----
-
+- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
+- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.

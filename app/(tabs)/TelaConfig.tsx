@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert} from "react-native";
-//import { router, Link } from 'expo-router';
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
@@ -51,6 +51,15 @@ export default function TelaConfig() {
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
   const [modalTamanhoFonte, setModalTamanhoFonte] = useState(false);
+  const sairDaConta = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      Alert.alert("Erro", "Não foi possível sair da conta.");
+      return;
+    }
+    router.replace("/login");
+  };
+
 
   const { tipoTema, selecionarTema, tema } = useTheme();
 
@@ -681,13 +690,14 @@ export default function TelaConfig() {
               </Text>
             </View>
           </View>
-          <TouchableOpacity style={Estilos.botaoSair}>
-            <Text
-              style={[Estilos.textoBotaoSair, { fontSize: 16 * escalaFonte }]}
-            >
-              Sair da conta
-            </Text>
-          </TouchableOpacity>
+          <TouchableOpacity
+            style={Estilos.botaoSair}
+            onPress={sairDaConta}
+          >
+          <Text style={[Estilos.textoBotaoSair, { fontSize: 16 * escalaFonte }]}>
+            Sair da conta
+          </Text>
+        </TouchableOpacity>
         </View>
       </ScrollView>
       {usuario && (

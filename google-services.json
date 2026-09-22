@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "248707450456",
+    "project_id": "paed-e2fe0",
+    "storage_bucket": "paed-e2fe0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:248707450456:android:8eaa70a0c70de0921eec2d",
+        "android_client_info": {
+          "package_name": "com.natanrodrigues.paed"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIJ3g6eVOAF3Aidr4ZONR3_jLBMHQJYoI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

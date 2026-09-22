@@ -10,7 +10,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../../context/ThemeContext";
-import { supabase } from "../../bd/supabase";
+import { supabase } from "../../lib/supabase";
 import Estilos from "../../Estilos/TelaTarefasTutorEstilo";
 
 type Aluno = {
