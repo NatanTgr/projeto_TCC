@@ -75,7 +75,8 @@ const Estilos = StyleSheet.create({
     width: "90%",
     paddingLeft: 15,
     paddingRight: 15,
-    marginTop: 20,
+    marginTop: 70,
+    marginBottom: 10,
   },
 
   buttons: {

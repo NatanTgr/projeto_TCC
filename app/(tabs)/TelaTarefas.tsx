@@ -225,7 +225,7 @@ export default function ListaTarefas() {
           style={[
             Estilos.tituloEvento,
             item.concluido && Estilos.completedTaskText,
-            { color: tema.text },
+            { color: tema.text, fontSize: 18 * escalaFonte },
           ]}
         >
           {item.titulo}
@@ -237,15 +237,17 @@ export default function ListaTarefas() {
             { backgroundColor: getCorTipo(item.tipo) },
           ]}
         >
-          <Text style={Estilos.textoTipo}>{item.tipo}</Text>
+          <Text style={[Estilos.textoTipo, { fontSize: 14 * escalaFonte }]}>
+            {item.tipo}
+          </Text>
         </View>
       </View>
 
-      <Text style={[Estilos.textodataEvento, { color: tema.text }]}>
+      <Text style={[Estilos.textodataEvento, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
         📅 {formatarData(item.data)} 📚 {item.disciplina}
       </Text>
 
-      <Text style={[Estilos.textodataEvento, { color: tema.text }]}>
+      <Text style={[Estilos.textodataEvento, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
         👨‍🏫 Prof. {item.professor}
       </Text>
     </TouchableOpacity>
@@ -617,7 +619,15 @@ const getData = async () => {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={Estilos.taskCount}>
+        <Text
+          style={[
+            Estilos.taskCount,
+            {
+              color: tema.text,
+              fontSize: 14 * escalaFonte,
+            },
+          ]}
+        >
           {tarefasCompletas} de {totalTarefas} concluídas
         </Text>
       </View>
@@ -651,12 +661,16 @@ const getData = async () => {
       <Modal transparent={true} visible={modalVisivel} animationType="fade">
         <View style={Estilos.modalOverlay}>
           <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text style={[Estilos.tituloModal, { color: tema.text }]}>
-                Novo Evento
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={Estilos.modalContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte,  }]}>
+                {editando ? "Editar Evento" : "Novo Evento"}
               </Text>
 
-              <Text style={[Estilos.textoTipoAdicionar, { color: tema.text }]}>
+              <Text style={[Estilos.textoTipoAdicionar, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
                 Tipo
               </Text>
 

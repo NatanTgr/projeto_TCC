@@ -139,7 +139,7 @@ const Estilos = StyleSheet.create({
   textoBotao: { fontSize: 16, textAlign: "center" },
   infoTarefa: { gap: 10 },
   textosInfo: { borderWidth: 1, borderColor: "#dbdbdb", borderRadius: 10 },
-  titulosInfoTarefa: { marginTop: 20 },
+  titulosInfoTarefa: { marginTop: 20,},
   buttons: { marginBottom: 50, alignItems: "center" },
   topoCard: {
     flexDirection: "row",
@@ -179,6 +179,8 @@ const Estilos = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
     marginLeft: 5,
+  },
+  modalContent: {
   },
 });
 export default Estilos;
