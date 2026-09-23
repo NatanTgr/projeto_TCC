@@ -4,8 +4,8 @@ const Estilos = StyleSheet.create({
   tela: { gap: 20, padding: 15 },
 
   header: {
-    paddingLeft: 15,
-    paddingRight: 15,
+    width: "100%",
+    paddingHorizontal: 15,
     marginTop: 40,
   },
 
@@ -14,10 +14,13 @@ const Estilos = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
+    gap: 8,
     marginBottom: 15,
   },
 
   headerTitle: {
+    flex: 1,
+    minWidth: 0,
     fontSize: 30,
     fontWeight: "bold",
     color: "#333",
@@ -134,9 +137,10 @@ const Estilos = StyleSheet.create({
     marginTop: 18,
   },
   textoBotaoAvatar: { fontWeight: "600" },
-  botoesTema: { flexDirection: "row", gap: 8, width: "100%" },
+  botoesTema: { flexDirection: "row", gap: 8, width: "100%", flexWrap: "wrap" },
   botaoTema: {
-    flex: 1,
+    minWidth: "45%",
+    flexGrow: 1,
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,

@@ -9,6 +9,7 @@ import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AvatarImagem from '../../components/AvatarImagem';
 import { buscarAvatar } from '../../components/avatares';
+import BotaoAlerta from '../../components/BotaoAlerta';
 
 import { supabase } from '../../lib/supabase';
 import { colors, styles } from '../../style';
@@ -87,6 +88,8 @@ export default function Conversa() {
 
   const [textoEditado, setTextoEditado] = useState('');
 
+  const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(null);
+
   const [imagemSelecionada, setImagemSelecionada] =
   useState<string | null>(null);
 
@@ -125,6 +128,18 @@ export default function Conversa() {
     }
 
     setUsuarioLogadoId(user.id);
+
+    const { data: perfil, error: perfilError } = await supabase
+      .from("usuarios")
+      .select("tipo")
+      .eq("id", user.id)
+      .single();
+
+    if (perfilError) {
+      console.error("Erro ao carregar tipo do usuário:", perfilError);
+    }
+
+    setTipoUsuarioLogado(perfil?.tipo ?? null);
 
     const { data: usuarioDestino, error: avatarError } = await supabase
       .from("usuarios")
@@ -1262,7 +1277,6 @@ export default function Conversa() {
               styles.conversationAvatar,
               {
                 backgroundColor: corTema,
-                
               },
             ]}
           >
@@ -1291,6 +1305,7 @@ export default function Conversa() {
             <View
               style={{
                 flex: 1,
+                minWidth: 0,
                 marginRight: 8,
               }}
             >
@@ -1303,28 +1318,11 @@ export default function Conversa() {
               </Text>
             </View>
 
-            <Pressable
-              style={{
-                backgroundColor: "#FFAA56",
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-                borderRadius: 6,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-              onPress={() => {}}
-            >
-              <Text
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: 11,
-                  fontWeight: "bold",
-                  letterSpacing: 0.5,
-                }}
-              >
-                ALERTA
-              </Text>
-            </Pressable>
+            {tipoUsuarioLogado === "estudante" && (
+              <View style={{ flexShrink: 0 }}>
+                <BotaoAlerta />
+              </View>
+            )}
           </View>
         </View>
 

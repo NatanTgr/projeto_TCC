@@ -4,7 +4,7 @@ const Estilos = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFDD0",
-    alignItems: "center",
+   
   },
 
   header: {
@@ -29,6 +29,9 @@ const Estilos = StyleSheet.create({
 
   calendarContainer: {
     backgroundColor: "#ffffff",
+    width: "100%",
+    maxWidth: 350,
+    alignSelf: "center",
     borderRadius: 24,
     marginTop: 10,
     elevation: 10,
@@ -43,7 +46,7 @@ const Estilos = StyleSheet.create({
 
   calendar: {
     borderRadius: 24,
-    width: 350,
+    width: "100%",
     padding: 15,
   },
 
@@ -70,13 +73,15 @@ const Estilos = StyleSheet.create({
   },
 
   legendaContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "90%",
-    paddingLeft: 15,
-    paddingRight: 15,
-    marginTop: 70,
-    marginBottom: 10,
+  flexDirection: "row",
+  flexWrap: "wrap",
+  justifyContent: "center",
+  gap: 12,
+  alignSelf: "center",
+  width: "100%",
+  paddingHorizontal: 15,
+  marginTop: 20, // substitui 70
+  marginBottom: 10,
   },
 
   buttons: {

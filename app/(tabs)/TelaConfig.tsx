@@ -11,12 +11,7 @@ import AvatarImagem from "../../components/AvatarImagem";
 import SeletorAvatar from "../../components/SeletorAvatar";
 import { AVATARES, buscarAvatar, } from "../../components/avatares";
 import BotaoAlerta from "../../components/BotaoAlerta";
-import { registrarPushChat ,removerPushChatDesteAparelho } from "../../components/notificacoesChat";
-import {
-  notificacaoAtiva,
-  salvarPreferenciaNotificacao,
-  TipoNotificacao,
-} from "../../components/preferenciasNotificacoes";
+import { removerPushChatDesteAparelho } from "../../components/notificacoesChat";
 
 export default function TelaConfig() {
 

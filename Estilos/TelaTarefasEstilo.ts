@@ -8,8 +8,9 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     marginBottom: 0,
+    gap: 8,
   },
-  headerTitle: { fontSize: 30, fontWeight: "bold", color: "#333" },
+  headerTitle: { flexShrink: 1, fontSize: 30, fontWeight: "bold", color: "#333" },
   taskCount: { fontSize: 14, color: "#666", marginBottom: 10, },
   inputContainer: {
     flexDirection: "row",
@@ -56,7 +57,7 @@ const Estilos = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  checkbox: { marginRight: 12 },
+  checkbox: { marginRight: 4 },
   taskText: { flex: 1, fontSize: 16, color: "#333" },
   completedTaskText: { textDecorationLine: "line-through", color: "#999" },
   deleteButton: { padding: 8 },
@@ -143,17 +144,22 @@ const Estilos = StyleSheet.create({
   buttons: { marginBottom: 50, alignItems: "center" },
   topoCard: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 10,
+    gap: 8,
   },
-  tituloEvento: { fontSize: 18, fontWeight: "bold", flex: 1 },
+  tituloEvento: { fontSize: 18, fontWeight: "bold",  flexGrow: 1,
+  flexShrink: 1,
+  minWidth: "55%", },
 
   badgeTipo: {
     backgroundColor: "#94C0DF",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 15,
+    alignSelf: "flex-start",
   },
 
   textoTipo: { color: "#fff", fontWeight: "bold" },
