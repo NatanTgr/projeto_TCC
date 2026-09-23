@@ -87,11 +87,13 @@ export default function LoginScreen() {
       return;
     }
 
-    if (usuario?.tipo === 'tutor') {
-      router.replace('/(tabs)/TelaTarefasTutor');
-    } else {
-      router.replace('/(tabs)/TelaTarefas');
-    }
+if (usuario?.tipo === "tutor") {
+  router.replace("/(tabs)/TelaTarefasTutor");
+} else if (usuario?.tipo === "professor") {
+  router.replace("/(tabs)/TelaChat");
+} else {
+  router.replace("/(tabs)/TelaTarefas");
+}
 
   };
 

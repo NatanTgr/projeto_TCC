@@ -249,7 +249,24 @@ export default function RootLayout() {
       return;
     }
 
-    router.replace("/(tabs)/TelaTarefas");
+    const { data: usuario, error } = await supabase
+      .from("usuarios")
+      .select("tipo")
+      .eq("id", session.user.id)
+      .single();
+
+    if (error || !usuario) {
+      console.log("Erro ao buscar tipo do usuário:", error);
+      return;
+    }
+
+    if (usuario.tipo === "tutor") {
+      router.replace("/(tabs)/TelaTarefasTutor");
+    } else if (usuario.tipo === "professor") {
+      router.replace("/(tabs)/TelaChat");
+    } else {
+      router.replace("/(tabs)/TelaTarefas");
+    }
   };
 
   // ---------------------------------------------------------

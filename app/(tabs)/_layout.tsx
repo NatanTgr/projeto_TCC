@@ -82,112 +82,107 @@ export default function TabLayout() {
 
   return (
     <>
-    <Tabs
-      initialRouteName={tipoUsuario === "tutor" ? "TelaTarefasTutor" : "TelaCalendario"}
-      screenOptions={{
-        headerShown: false,
-
-        tabBarStyle: {
-          backgroundColor: tema.card,
-          borderTopColor: tema.border,
-
-          height: 70 + insets.bottom,
-
-          paddingBottom: 8 + insets.bottom,
-          paddingTop: 8,
-        },
-
-        tabBarActiveTintColor: tema.primary,
-        tabBarInactiveTintColor:
-          tipoTema === 'escuro' ? '#888' : '#999',
-
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
-        },
-      }}
-    >
-      {/* CHAT */}
-      <Tabs.Screen
-        name="TelaChat"
-        options={{
-          title: 'Chat',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="chatbubble-outline"
-              color={color}
-              size={size}
-            />
-          ),
-        }}
-      />
-
-      {/* CALENDÁRIO */}
-      <Tabs.Screen
-        name="TelaCalendario"
-        options={{
-          title: 'Calendário',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="calendar-outline"
-              color={color}
-              size={size}
-            />
-          ),
-        }}
-      />
-
-      {/* TAREFAS */}
-      <Tabs.Screen
-        name="TelaTarefas"
-        options={{
-          title: 'Tarefas',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="list-outline"
-              color={color}
-              size={size}
-            />
-          ),
-        }}
-      />
-
-      {/* CONFIGURAÇÕES */}
-      <Tabs.Screen
-        name="TelaConfig"
-        options={{
-          title: 'Configurações',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="settings-outline"
-              color={color}
-              size={size}
-            />
-          ),
-        }}
-      />
-
-      {/* TELAS INTERNAS - NÃO APARECEM NA TAB BAR */}
-
-      <Tabs.Screen
-        name="TelaTarefasTutor"
-        options={{
-          href: null,
-        }}
-      />
-
-      <Tabs.Screen
-        name="TelaConversa"
-        options={{
-          href: null,
+      <Tabs
+        initialRouteName={
+          tipoUsuario === "tutor"
+            ? "TelaTarefasTutor"
+            : tipoUsuario === "professor"
+              ? "TelaChat"
+              : "TelaTarefas"
+        }
+        screenOptions={{
           headerShown: false,
+
           tabBarStyle: {
-            display: 'none',
+            backgroundColor: tema.card,
+            borderTopColor: tema.border,
+
+            height: 70 + insets.bottom,
+
+            paddingBottom: 8 + insets.bottom,
+            paddingTop: 8,
+          },
+
+          tabBarActiveTintColor: tema.primary,
+          tabBarInactiveTintColor: tipoTema === "escuro" ? "#888" : "#999",
+
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: "500",
           },
         }}
-      />
-    </Tabs>
-    <AlertaTutorGlobal />
+      >
+        {/* CHAT */}
+        <Tabs.Screen
+          name="TelaChat"
+          options={{
+            title: "Chat",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="chatbubble-outline" color={color} size={size} />
+            ),
+          }}
+        />
+
+        {/* CALENDÁRIO */}
+        <Tabs.Screen
+          name="TelaCalendario"
+          options={{
+            href: tipoUsuario === "estudante" ? undefined : null,
+            title: "Calendário",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="calendar-outline" color={color} size={size} />
+            ),
+          }}
+        />
+
+        {/* TAREFAS */}
+        <Tabs.Screen
+          name="TelaTarefas"
+          options={{
+            href: tipoUsuario === "estudante" ? undefined : null,
+            title: "Tarefas",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="list-outline" color={color} size={size} />
+            ),
+          }}
+        />
+
+                <Tabs.Screen
+          name="TelaTarefasTutor"
+          options={{
+            href: tipoUsuario === "tutor" ? undefined : null,
+            title: "Tarefas",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="list-outline" color={color} size={size} />
+            ),
+          }}
+        />
+
+        {/* CONFIGURAÇÕES */}
+        <Tabs.Screen
+          name="TelaConfig"
+          options={{
+            title: "Configurações",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="settings-outline" color={color} size={size} />
+            ),
+          }}
+        />
+
+        {/* TELAS INTERNAS - NÃO APARECEM NA TAB BAR */}
+
+        <Tabs.Screen
+          name="TelaConversa"
+          options={{
+            href: null,
+            headerShown: false,
+            tabBarStyle: {
+              display: "none",
+            },
+          }}
+        />
+      </Tabs>
+      <AlertaTutorGlobal />
     </>
   );
 }
