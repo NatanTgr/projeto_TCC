@@ -9,6 +9,9 @@ import {
 import { Stack, router } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
 
+import * as Notifications from 'expo-notifications';
+import { registrarPushChat } from '../components/notificacoesChat';
+
 import { supabase } from '../lib/supabase';
 import { styles as globalStyles, colors } from '../style';
 
@@ -144,6 +147,10 @@ export default function RootLayout() {
       (event, session: Session | null) => {
         currentSession = session;
 
+        if (session?.user && event === "SIGNED_IN") {
+          registrarPushChat(session.user.id);
+        }
+
         // O Supabase também pode informar diretamente
         // que a sessão é de recuperação de senha.
         if (event === 'PASSWORD_RECOVERY') {
@@ -156,6 +163,51 @@ export default function RootLayout() {
       }
     );
 
+    const registrarUsuarioAtual = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (user) {
+        await registrarPushChat(user.id);
+      }
+    };
+
+    registrarUsuarioAtual();
+
+    const notificacaoRecebida = Notifications.addNotificationReceivedListener(
+      () => {
+        // O sistema mostra a notificação; a conversa já usa Realtime.
+      },
+    );
+
+    const notificacaoTocada =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const dados = response.notification.request.content.data;
+
+        if (
+          dados?.tipo !== "mensagem" ||
+          typeof dados.remetenteId !== "string"
+        ) {
+          return;
+        }
+
+        router.push({
+          pathname: "/TelaConversa" as any,
+          params: {
+            usuarioId: dados.remetenteId,
+            usuarioNome:
+              typeof dados.remetenteNome === "string"
+                ? dados.remetenteNome
+                : "Usuário",
+            usuarioTipo:
+              typeof dados.remetenteTipo === "string"
+                ? dados.remetenteTipo
+                : "estudante",
+          },
+        });
+      });
+
     // ---------------------------------------------------------
     // Limpeza
     // ---------------------------------------------------------
@@ -163,15 +215,41 @@ export default function RootLayout() {
       clearTimeout(timer);
       subscription.unsubscribe();
       linkingSubscription.remove();
+      notificacaoRecebida.remove();
+      notificacaoTocada.remove();
     };
   }, []);
 
-  const handleNavigation = (session: Session | null) => {
-    if (session) {
-      router.replace('/(tabs)/TelaTarefas');
-    } else {
-      router.replace('/welcome');
+  const handleNavigation = async (session: Session | null) => {
+    if (!session) {
+      router.replace("/welcome");
+      return;
     }
+
+    const resposta = await Notifications.getLastNotificationResponseAsync();
+    const dados = resposta?.notification.request.content.data;
+
+    if (dados?.tipo === "mensagem" && typeof dados.remetenteId === "string") {
+      await Notifications.clearLastNotificationResponseAsync();
+
+      router.replace({
+        pathname: "/TelaConversa" as any,
+        params: {
+          usuarioId: dados.remetenteId,
+          usuarioNome:
+            typeof dados.remetenteNome === "string"
+              ? dados.remetenteNome
+              : "Usuário",
+          usuarioTipo:
+            typeof dados.remetenteTipo === "string"
+              ? dados.remetenteTipo
+              : "estudante",
+        },
+      });
+      return;
+    }
+
+    router.replace("/(tabs)/TelaTarefas");
   };
 
   // ---------------------------------------------------------
@@ -212,6 +290,15 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const localStyles = StyleSheet.create({
   splashContainer: {

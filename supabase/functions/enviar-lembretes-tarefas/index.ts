@@ -214,43 +214,60 @@ Deno.serve(async (req) => {
     let enviadas = 0;
     let ignoradas = 0;
     const erros: string[] = [];
+    const preferenciasPorAluno = new Map<string, boolean>();
 
     for (const tarefa of (tarefas || []) as Tarefa[]) {
-      const tipoLembrete = descobrirLembrete(
-        tarefa.data,
-        hoje,
-      );
+      let tarefasAtivas = preferenciasPorAluno.get(tarefa.aluno_id);
+
+      if (tarefasAtivas === undefined) {
+        const { data: preferencias, error: erroPreferencias } =
+          await supabaseAdmin
+            .from("preferencias_notificacoes")
+            .select("tarefas_ativas")
+            .eq("usuario_id", tarefa.aluno_id)
+            .maybeSingle();
+
+        if (erroPreferencias) {
+          erros.push(`Aluno ${tarefa.aluno_id}: ${erroPreferencias.message}`);
+          continue;
+        }
+
+        tarefasAtivas = preferencias?.tarefas_ativas ?? true;
+        preferenciasPorAluno.set(tarefa.aluno_id, tarefasAtivas);
+      }
+
+      if (!tarefasAtivas) {
+        ignoradas++;
+        continue;
+      }
+      const tipoLembrete = descobrirLembrete(tarefa.data, hoje);
 
       if (!tipoLembrete) {
         ignoradas++;
         continue;
       }
 
-      const { data: registroExistente } =
-        await supabaseAdmin
-          .from("notificacoes_enviadas")
-          .select("id")
-          .eq("tarefa_id", tarefa.id)
-          .eq("usuario_id", tarefa.aluno_id)
-          .eq("tipo", tipoLembrete)
-          .eq("data_referencia", hoje)
-          .maybeSingle();
+      const { data: registroExistente } = await supabaseAdmin
+        .from("notificacoes_enviadas")
+        .select("id")
+        .eq("tarefa_id", tarefa.id)
+        .eq("usuario_id", tarefa.aluno_id)
+        .eq("tipo", tipoLembrete)
+        .eq("data_referencia", hoje)
+        .maybeSingle();
 
       if (registroExistente) {
         ignoradas++;
         continue;
       }
 
-      const { data: dispositivos, error: erroTokens } =
-        await supabaseAdmin
-          .from("dispositivos_push")
-          .select("expo_push_token")
-          .eq("usuario_id", tarefa.aluno_id);
+      const { data: dispositivos, error: erroTokens } = await supabaseAdmin
+        .from("dispositivos_push")
+        .select("expo_push_token")
+        .eq("usuario_id", tarefa.aluno_id);
 
       if (erroTokens) {
-        erros.push(
-          `Tarefa ${tarefa.id}: ${erroTokens.message}`,
-        );
+        erros.push(`Tarefa ${tarefa.id}: ${erroTokens.message}`);
         continue;
       }
 
@@ -259,61 +276,48 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const conteudo = criarMensagem(
-        tarefa,
-        tipoLembrete,
-      );
+      const conteudo = criarMensagem(tarefa, tipoLembrete);
 
-      const mensagens = dispositivos.map(
-        (dispositivo) => ({
-          to: dispositivo.expo_push_token,
-          title: conteudo.title,
-          body: conteudo.body,
-          sound: "default",
-          channelId: "tarefas",
-          data: {
-            rota: "/TelaTarefas",
-            tarefaId: tarefa.id,
-          },
-        }),
-      );
-
-      const respostaExpo = await fetch(
-        "https://exp.host/--/api/v2/push/send",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Accept-Encoding": "gzip, deflate",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(mensagens),
+      const mensagens = dispositivos.map((dispositivo) => ({
+        to: dispositivo.expo_push_token,
+        title: conteudo.title,
+        body: conteudo.body,
+        sound: "default",
+        channelId: "tarefas",
+        data: {
+          rota: "/TelaTarefas",
+          tarefaId: tarefa.id,
         },
-      );
+      }));
+
+      const respostaExpo = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Accept-Encoding": "gzip, deflate",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mensagens),
+      });
 
       const resultadoExpo = await respostaExpo.json();
 
       if (!respostaExpo.ok) {
-        erros.push(
-          `Tarefa ${tarefa.id}: ${JSON.stringify(resultadoExpo)}`,
-        );
+        erros.push(`Tarefa ${tarefa.id}: ${JSON.stringify(resultadoExpo)}`);
         continue;
       }
 
-      const { error: erroRegistro } =
-        await supabaseAdmin
-          .from("notificacoes_enviadas")
-          .insert({
-            tarefa_id: tarefa.id,
-            usuario_id: tarefa.aluno_id,
-            tipo: tipoLembrete,
-            data_referencia: hoje,
-          });
+      const { error: erroRegistro } = await supabaseAdmin
+        .from("notificacoes_enviadas")
+        .insert({
+          tarefa_id: tarefa.id,
+          usuario_id: tarefa.aluno_id,
+          tipo: tipoLembrete,
+          data_referencia: hoje,
+        });
 
       if (erroRegistro) {
-        erros.push(
-          `Registro ${tarefa.id}: ${erroRegistro.message}`,
-        );
+        erros.push(`Registro ${tarefa.id}: ${erroRegistro.message}`);
         continue;
       }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,9 +11,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { styles, colors } from '../../style';
+import { useTheme } from '../../context/ThemeContext';
+import { useFontSize } from '../../context/FontSizeContext';
+import BotaoAlerta from '../../components/BotaoAlerta';
+import AvatarImagem from '../../components/AvatarImagem';
+import { buscarAvatar } from '../../components/avatares';
 
 type Usuario = {
   id: string;
@@ -21,6 +26,7 @@ type Usuario = {
   email: string;
   campus: string | null;
   tipo: 'estudante' | 'tutor' | 'professor';
+  avatar: string | null;
   fixado?: boolean;
 };
 
@@ -38,9 +44,14 @@ export default function Chat() {
   const [campusLogado, setCampusLogado] = useState<string | null>(null);
   const [idsSelecionados, setIdsSelecionados] = useState<string[]>([]);
 
-  useEffect(() => {
+  const { tema } = useTheme();
+  const { escalaFonte } = useFontSize();
+
+useFocusEffect(
+  useCallback(() => {
     carregarUsuarios();
-  }, []);
+  }, []),
+);
 
   const carregarUsuarios = async () => {
     try {
@@ -90,7 +101,7 @@ export default function Chat() {
       // Buscar todos os outros usuários do mesmo campus
       let query = supabase
         .from('usuarios')
-        .select('id, nome, email, campus, tipo')
+        .select('id, nome, email, campus, tipo, avatar')
         .neq('id', user.id);
 
       if (meuCampus) {
@@ -276,12 +287,21 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
         ]}
         onPress={() => abrirConversa(item)}
       >
-        <View style={[styles.chatUserAvatar, { backgroundColor: cor }]}>
-          <Ionicons
-            name={item.tipo === 'professor' ? 'person' : 'people'}
-            size={25}
-            color={colors.white}
-          />
+        <View
+          style={[
+            styles.chatUserAvatar,
+            { backgroundColor: cor, overflow: "hidden" },
+          ]}
+        >
+          {buscarAvatar(item.avatar) ? (
+            <AvatarImagem uri={buscarAvatar(item.avatar)!.url} tamanho={50} />
+          ) : (
+            <Ionicons
+              name={item.tipo === "professor" ? "person" : "people"}
+              size={25}
+              color={colors.white}
+            />
+          )}
         </View>
         <View style={styles.chatUserInfo}>
           <Text style={styles.chatUserName} numberOfLines={1}>
@@ -297,7 +317,7 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
         >
           <Ionicons
             name={item.fixado ? "bookmark" : "bookmark-outline"}
-            size={20}
+            size={25}
             color={item.fixado ? colors.primary : colors.placeholder}
           />
         </Pressable>
@@ -307,57 +327,47 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
 
   return (
     <SafeAreaView
-
-  edges={['left', 'right', 'bottom']}
-  style={[
-    styles.chatContainer,
-    {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-  ]}
->
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      edges={["left", "right"]}
+      style={[
+        styles.chatContainer,
+        {
+          flex: 1,
+          backgroundColor: tema.background,
+        },
+      ]}
+    >
+      <StatusBar barStyle="dark-content" backgroundColor={tema.background} />
 
       {/* Cabeçalho */}
-      <View
-        style={[
-          styles.chatHeader,
-          {
-            paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 4 : 8,
-            minHeight: Platform.OS === 'android' ? 72 + (StatusBar.currentHeight || 24) : 64,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 16,
-            backgroundColor: 'transparent',
-            borderBottomWidth: 0,
-          }
-        ]}
-      >
-        <View style={styles.chatHeaderTitleContainer}>
-          <Text style={styles.chatHeaderTitle}>Conversas ({campusLogado || 'Geral'})</Text>
-        </View>
-
-        <Pressable
-          style={{
-            backgroundColor: '#FFAA56',
-            paddingHorizontal: 10,
-            paddingVertical: 5,
-            borderRadius: 6,
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onPress={() => {}}
-        >
-          <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: 'bold', letterSpacing: 0.5 }}>
-            ALERTA
+      <View style={styles.chatHeader}>
+        <View style={styles.chatTopRow}>
+          <Text
+            style={[
+              styles.chatHeaderTitle,
+              {
+                color: tema.text,
+                fontSize: 30 * escalaFonte,
+              },
+            ]}
+          >
+            Conversas ({campusLogado || "Geral"})
           </Text>
-        </Pressable>
+
+          {tipoLogado === "estudante" && <BotaoAlerta />}
+        </View>
       </View>
 
       {/* Abas Superiores Dinâmicas baseadas no tipo de quem logou */}
-      <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingTop: 2, gap: 12, backgroundColor: colors.background }}>
+      <View
+        style={{
+          flexDirection: "row",
+          paddingHorizontal: 16,
+          paddingTop: 2,
+          paddingBottom: 2,
+          gap: 12,
+          backgroundColor: tema.background,
+        }}
+      >
         {abasPermitidas.map((aba) => (
           <Pressable
             key={aba.key}
@@ -365,13 +375,21 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
               flex: 1,
               paddingVertical: 12,
               borderRadius: 14,
-              backgroundColor: abaAtiva === aba.key ? colors.tutor : colors.white,
-              alignItems: 'center',
+              backgroundColor:
+                abaAtiva === aba.key ? colors.tutor : colors.white,
+              alignItems: "center",
               elevation: 2,
             }}
             onPress={() => setAbaAtiva(aba.key)}
           >
-            <Text style={{ fontSize: 15, fontWeight: '600', color: abaAtiva === aba.key ? colors.white : colors.textSecondary }}>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: "600",
+                color:
+                  abaAtiva === aba.key ? colors.white : colors.textSecondary,
+              }}
+            >
               {aba.label}
             </Text>
           </Pressable>
@@ -379,21 +397,37 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
       </View>
 
       {/* Botão "Filtrar" */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 12, alignItems: 'flex-end', backgroundColor: colors.background }}>
+      <View
+        style={{
+          paddingHorizontal: 16,
+          paddingTop: 12,
+          paddingBottom: 12,
+          alignItems: "flex-end",
+          backgroundColor: tema.background,
+        }}
+      >
         <Pressable
           style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            backgroundColor: colors.border + '50',
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: colors.border + "50",
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 12,
-            gap: 6
+            gap: 6,
           }}
           onPress={() => setModalFiltroVisible(true)}
         >
           <Ionicons name="filter" size={16} color={colors.textSecondary} />
-          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary }}>Filtrar</Text>
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: "600",
+              color: colors.textSecondary,
+            }}
+          >
+            Filtrar
+          </Text>
         </Pressable>
       </View>
 
@@ -404,9 +438,15 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
         </View>
       ) : usuariosFiltrados.length === 0 ? (
         <View style={styles.chatEmptyContainer}>
-          <Ionicons name="chatbubbles-outline" size={64} color={colors.placeholder} />
+          <Ionicons
+            name="chatbubbles-outline"
+            size={64}
+            color={colors.placeholder}
+          />
           <Text style={styles.chatEmptyTitle}>Nenhum usuário disponível</Text>
-          <Text style={styles.chatEmptyText}>Ajuste os filtros para exibir conversas.</Text>
+          <Text style={styles.chatEmptyText}>
+            Ajuste os filtros para exibir conversas.
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -419,14 +459,50 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
       )}
 
       {/* Modal de Filtro Contextual */}
-      <Modal visible={modalFiltroVisible} animationType="slide" transparent={true}>
-        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
-          <View style={{ backgroundColor: colors.white, padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '70%' }}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5, color: colors.heading }}>
-              Filtrar {abasPermitidas.find(a => a.key === abaAtiva)?.label || ''}
+      <Modal
+        visible={modalFiltroVisible}
+        animationType="slide"
+        transparent={true}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "flex-end",
+            backgroundColor: "rgba(0,0,0,0.5)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: colors.white,
+              padding: 20,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              maxHeight: "70%",
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 5,
+                color: colors.heading,
+              }}
+            >
+              Filtrar{" "}
+              {abasPermitidas.find((a) => a.key === abaAtiva)?.label || ""}
             </Text>
-            <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 15 }}>
-              Selecione quais {abasPermitidas.find(a => a.key === abaAtiva)?.label.toLowerCase() || ''} deseja exibir:
+            <Text
+              style={{
+                fontSize: 13,
+                color: colors.textSecondary,
+                marginBottom: 15,
+              }}
+            >
+              Selecione quais{" "}
+              {abasPermitidas
+                .find((a) => a.key === abaAtiva)
+                ?.label.toLowerCase() || ""}{" "}
+              deseja exibir:
             </Text>
 
             <FlatList
@@ -436,7 +512,13 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
                 const selecionado = idsSelecionados.includes(item.id);
                 return (
                   <Pressable
-                    style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      paddingVertical: 10,
+                      borderBottomWidth: 1,
+                      borderBottomColor: colors.border,
+                    }}
                     onPress={() => toggleSelecionFiltro(item.id)}
                   >
                     <Ionicons
@@ -446,10 +528,20 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
                       style={{ marginRight: 10 }}
                     />
                     <View>
-                      <Text style={{ fontSize: 15, fontWeight: '500', color: colors.heading }}>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: "500",
+                          color: colors.heading,
+                        }}
+                      >
                         {formatarNome(item.nome, item.email, item.tipo)}
                       </Text>
-                      <Text style={{ fontSize: 12, color: colors.textSecondary }}>{item.email}</Text>
+                      <Text
+                        style={{ fontSize: 12, color: colors.textSecondary }}
+                      >
+                        {item.email}
+                      </Text>
                     </View>
                   </Pressable>
                 );
@@ -457,10 +549,25 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
             />
 
             <Pressable
-              style={{ marginTop: 15, backgroundColor: colors.primary, padding: 12, borderRadius: 12, alignItems: 'center' }}
+              style={{
+                marginTop: 15,
+                marginBottom: 40,
+                backgroundColor: colors.primary,
+                padding: 12,
+                borderRadius: 12,
+                alignItems: "center",
+              }}
               onPress={() => setModalFiltroVisible(false)}
             >
-              <Text style={{ color: colors.white, fontWeight: 'bold', fontSize: 16 }}>Aplicar Filtro</Text>
+              <Text
+                style={{
+                  color: colors.white,
+                  fontWeight: "bold",
+                  fontSize: 16,
+                }}
+              >
+                Aplicar Filtro
+              </Text>
             </Pressable>
           </View>
         </View>

@@ -4,22 +4,11 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TextInput, View,
+} from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AvatarImagem from '../../components/AvatarImagem';
+import { buscarAvatar } from '../../components/avatares';
 
 import { supabase } from '../../lib/supabase';
 import { colors, styles } from '../../style';
@@ -82,6 +71,8 @@ export default function Conversa() {
       ? `Prof. ${usuarioDestinoNome}`
       : usuarioDestinoNome;
 
+  const [avatarDestino, setAvatarDestino] = useState<string | null>(null);
+
   const [usuarioLogadoId, setUsuarioLogadoId] = useState<string | null>(null);
 
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
@@ -134,6 +125,18 @@ export default function Conversa() {
     }
 
     setUsuarioLogadoId(user.id);
+
+    const { data: usuarioDestino, error: avatarError } = await supabase
+      .from("usuarios")
+      .select("avatar")
+      .eq("id", usuarioDestinoId)
+      .single();
+
+    if (avatarError) {
+      console.error("Erro ao carregar avatar da conversa:", avatarError);
+    }
+
+    setAvatarDestino(usuarioDestino?.avatar ?? null);
 
     await carregarMensagens(user.id);
 
@@ -1165,83 +1168,67 @@ export default function Conversa() {
           backgroundColor: colors.background,
         },
       ]}
-      edges={['left', 'right', 'bottom']}
+      edges={["left", "right", "bottom"]}
     >
       {/* Oculta qualquer dashboard ou header herdado da rota pai */}
       <Stack.Screen options={{ headerShown: false }} />
 
-<StatusBar
-  barStyle="dark-content"
-  backgroundColor={colors.background}
-/>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
-<Modal
-  visible={imagemSelecionada !== null}
-  transparent
-  animationType="fade"
-  onRequestClose={() =>
-    setImagemSelecionada(null)
-  }
->
-  <View
-    style={{
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.95)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}
-  >
-    {/* Botão fechar */}
-    <Pressable
-      onPress={() =>
-        setImagemSelecionada(null)
-      }
-      style={{
-        position: 'absolute',
-        top: Platform.OS === 'android'
-          ? (StatusBar.currentHeight || 24) + 10
-          : 45,
-        right: 20,
-        zIndex: 10,
-        width: 45,
-        height: 45,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <Ionicons
-        name="close"
-        size={32}
-        color="#FFFFFF"
-      />
-    </Pressable>
+      <Modal
+        visible={imagemSelecionada !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImagemSelecionada(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.95)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {/* Botão fechar */}
+          <Pressable
+            onPress={() => setImagemSelecionada(null)}
+            style={{
+              position: "absolute",
+              top:
+                Platform.OS === "android"
+                  ? (StatusBar.currentHeight || 24) + 10
+                  : 45,
+              right: 20,
+              zIndex: 10,
+              width: 45,
+              height: 45,
+              borderRadius: 25,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="close" size={32} color="#FFFFFF" />
+          </Pressable>
 
-    {imagemSelecionada && (
-      <Image
-        source={{
-          uri: imagemSelecionada,
-        }}
-        style={{
-          width: '100%',
-          height: '80%',
-        }}
-        resizeMode="contain"
-      />
-    )}
-          </View>
-        </Modal>
+          {imagemSelecionada && (
+            <Image
+              source={{
+                uri: imagemSelecionada,
+              }}
+              style={{
+                width: "100%",
+                height: "80%",
+              }}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
 
-        <KeyboardAvoidingView
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={
-          Platform.OS === 'ios'
-            ? 'padding'
-            : 'height'
-        }
-        keyboardVerticalOffset={
-          Platform.OS === 'ios' ? 0 : 0
-        }
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {/* =====================================
             CABEÇALHO
@@ -1252,30 +1239,22 @@ export default function Conversa() {
             styles.conversationHeader,
             {
               paddingTop:
-                Platform.OS === 'android'
-                  ? (StatusBar.currentHeight || 24) +
-                    4
+                Platform.OS === "android"
+                  ? (StatusBar.currentHeight || 24) + 4
                   : 8,
 
               minHeight:
-                Platform.OS === 'android'
-                  ? 72 +
-                    (StatusBar.currentHeight || 24)
+                Platform.OS === "android"
+                  ? 72 + (StatusBar.currentHeight || 24)
                   : 64,
             },
           ]}
         >
           <Pressable
-            style={
-              styles.conversationBackButton
-            }
+            style={styles.conversationBackButton}
             onPress={() => router.back()}
           >
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={colors.heading}
-            />
+            <Ionicons name="arrow-back" size={24} color={colors.heading} />
           </Pressable>
 
           <View
@@ -1283,14 +1262,18 @@ export default function Conversa() {
               styles.conversationAvatar,
               {
                 backgroundColor: corTema,
+                
               },
             ]}
           >
-            <Ionicons
-              name="person"
-              size={23}
-              color={colors.white}
-            />
+            {buscarAvatar(avatarDestino) ? (
+              <AvatarImagem
+                uri={buscarAvatar(avatarDestino)!.url}
+                tamanho={50}
+              />
+            ) : (
+              <Ionicons name="person" size={23} color={colors.white} />
+            )}
           </View>
 
           <View
@@ -1298,10 +1281,9 @@ export default function Conversa() {
               styles.conversationHeaderInfo,
               {
                 flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent:
-                  'space-between',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
                 paddingRight: 8,
               },
             ]}
@@ -1312,40 +1294,31 @@ export default function Conversa() {
                 marginRight: 8,
               }}
             >
-              <Text
-                style={
-                  styles.conversationHeaderName
-                }
-                numberOfLines={1}
-              >
+              <Text style={styles.conversationHeaderName} numberOfLines={1}>
                 {nomeFormatado}
               </Text>
 
-              <Text
-                style={
-                  styles.conversationHeaderStatus
-                }
-              >
+              <Text style={styles.conversationHeaderStatus}>
                 Conversa privada
               </Text>
             </View>
 
             <Pressable
               style={{
-                backgroundColor: '#FFAA56',
+                backgroundColor: "#FFAA56",
                 paddingHorizontal: 10,
                 paddingVertical: 5,
                 borderRadius: 6,
-                justifyContent: 'center',
-                alignItems: 'center',
+                justifyContent: "center",
+                alignItems: "center",
               }}
               onPress={() => {}}
             >
               <Text
                 style={{
-                  color: '#FFFFFF',
+                  color: "#FFFFFF",
                   fontSize: 11,
-                  fontWeight: 'bold',
+                  fontWeight: "bold",
                   letterSpacing: 0.5,
                 }}
               >
@@ -1360,51 +1333,23 @@ export default function Conversa() {
         ===================================== */}
 
         {loading ? (
-          <View
-            style={
-              styles.chatLoadingContainer
-            }
-          >
-            <ActivityIndicator
-              size="large"
-              color={corTema}
-            />
+          <View style={styles.chatLoadingContainer}>
+            <ActivityIndicator size="large" color={corTema} />
 
-            <Text
-              style={
-                styles.chatLoadingText
-              }
-            >
-              Carregando conversa...
-            </Text>
+            <Text style={styles.chatLoadingText}>Carregando conversa...</Text>
           </View>
         ) : mensagens.length === 0 ? (
-          <View
-            style={
-              styles.conversationEmptyContainer
-            }
-          >
+          <View style={styles.conversationEmptyContainer}>
             <Ionicons
               name="chatbubble-ellipses-outline"
               size={60}
               color={colors.placeholder}
             />
 
-            <Text
-              style={
-                styles.conversationEmptyTitle
-              }
-            >
-              Inicie a conversa
-            </Text>
+            <Text style={styles.conversationEmptyTitle}>Inicie a conversa</Text>
 
-            <Text
-              style={
-                styles.conversationEmptyText
-              }
-            >
-              Envie uma mensagem para{' '}
-              {nomeFormatado}.
+            <Text style={styles.conversationEmptyText}>
+              Envie uma mensagem para {nomeFormatado}.
             </Text>
           </View>
         ) : (
@@ -1413,9 +1358,7 @@ export default function Conversa() {
             data={criarListaComDatas()}
             keyExtractor={(item) => item.id}
             renderItem={renderMensagem}
-            contentContainerStyle={
-              styles.conversationMessagesList
-            }
+            contentContainerStyle={styles.conversationMessagesList}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() =>
               flatListRef.current?.scrollToEnd({
@@ -1431,8 +1374,7 @@ export default function Conversa() {
 
         <View
           style={{
-            backgroundColor:
-              colors.background,
+            backgroundColor: colors.background,
             paddingVertical: 6,
             borderTopWidth: 1,
             borderTopColor: colors.border,
@@ -1440,48 +1382,38 @@ export default function Conversa() {
         >
           <ScrollView
             horizontal
-            showsHorizontalScrollIndicator={
-              false
-            }
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               paddingHorizontal: 10,
               gap: 8,
             }}
           >
-            {[
-              'Ok, confirmado',
-              'Podemos agendar um horário?',
-              'Obrigado!',
-            ].map((textoPredef, index) => (
-              <Pressable
-                key={index}
-                style={{
-                  backgroundColor:
-                    colors.white,
-                  borderWidth: 1.5,
-                  borderColor: corTema,
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  borderRadius: 18,
-                }}
-                onPress={() =>
-                  enviarMensagem(
-                    textoPredef
-                  )
-                }
-              >
-                <Text
+            {["Ok, confirmado", "Podemos agendar um horário?", "Obrigado!"].map(
+              (textoPredef, index) => (
+                <Pressable
+                  key={index}
                   style={{
-                    color:
-                      colors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: '500',
+                    backgroundColor: colors.white,
+                    borderWidth: 1.5,
+                    borderColor: corTema,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 18,
                   }}
+                  onPress={() => enviarMensagem(textoPredef)}
                 >
-                  {textoPredef}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={{
+                      color: colors.textSecondary,
+                      fontSize: 13,
+                      fontWeight: "500",
+                    }}
+                  >
+                    {textoPredef}
+                  </Text>
+                </Pressable>
+              ),
+            )}
           </ScrollView>
         </View>
 
@@ -1493,12 +1425,8 @@ export default function Conversa() {
           style={[
             styles.messageInputContainer,
             {
-              backgroundColor:
-                colors.background,
-              paddingBottom:
-                Platform.OS === 'android'
-                  ? 40
-                  : 8,
+              backgroundColor: colors.background,
+              paddingBottom: Platform.OS === "android" ? 40 : 8,
             },
           ]}
         >
@@ -1506,16 +1434,13 @@ export default function Conversa() {
             style={[
               styles.messageInput,
               {
-                backgroundColor:
-                  colors.white,
+                backgroundColor: colors.white,
               },
             ]}
             value={novaMensagem}
             onChangeText={setNovaMensagem}
             placeholder="Digite sua mensagem..."
-            placeholderTextColor={
-              colors.placeholder
-            }
+            placeholderTextColor={colors.placeholder}
             multiline
             maxLength={1000}
             editable={!enviando}
@@ -1528,10 +1453,9 @@ export default function Conversa() {
               width: 42,
               height: 42,
               borderRadius: 21,
-              backgroundColor:
-                colors.white,
-              justifyContent: 'center',
-              alignItems: 'center',
+              backgroundColor: colors.white,
+              justifyContent: "center",
+              alignItems: "center",
               marginRight: 6,
               borderWidth: 1,
               borderColor: colors.border,
@@ -1539,11 +1463,7 @@ export default function Conversa() {
             onPress={abrirOpcoesImagem}
             disabled={enviando}
           >
-            <Ionicons
-              name="camera"
-              size={20}
-              color={corTema}
-            />
+            <Ionicons name="camera" size={20} color={corTema} />
           </Pressable>
 
           {/* BOTÃO ENVIAR */}
@@ -1554,8 +1474,7 @@ export default function Conversa() {
               {
                 backgroundColor: corTema,
               },
-              (!novaMensagem.trim() ||
-                enviando) &&
+              (!novaMensagem.trim() || enviando) &&
                 styles.sendMessageButtonDisabled,
               pressed &&
                 novaMensagem.trim() &&
@@ -1563,22 +1482,12 @@ export default function Conversa() {
                 styles.sendMessageButtonPressed,
             ]}
             onPress={() => enviarMensagem()}
-            disabled={
-              !novaMensagem.trim() ||
-              enviando
-            }
+            disabled={!novaMensagem.trim() || enviando}
           >
             {enviando ? (
-              <ActivityIndicator
-                size="small"
-                color={colors.white}
-              />
+              <ActivityIndicator size="small" color={colors.white} />
             ) : (
-              <Ionicons
-                name="send"
-                size={21}
-                color={colors.white}
-              />
+              <Ionicons name="send" size={21} color={colors.white} />
             )}
           </Pressable>
         </View>

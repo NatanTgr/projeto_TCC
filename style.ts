@@ -28,49 +28,49 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     padding: 20,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   scrollContent: {
     flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 20,
     paddingVertical: 40,
   },
   logoContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 28,
   },
   // NOVO ESTILO ADICIONADO AQUI PARA A IMAGEM
   logoImage: {
     width: 400,
     height: 120,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   logoContainerWelcome: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   logoBadgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 2,
   },
   logoSubtitle: {
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.muted,
     letterSpacing: 0.5,
     marginTop: 2,
   },
   card: {
-    width: '100%',
+    width: "100%",
     maxWidth: 380,
     backgroundColor: colors.white,
     borderRadius: 24,
     paddingHorizontal: 24,
     paddingVertical: 28,
-    shadowColor: '#000000',
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 12,
@@ -78,9 +78,9 @@ export const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.heading,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 24,
   },
   inputGroup: { marginBottom: 16 },
@@ -88,7 +88,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     marginBottom: 6,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   input: {
     height: 48,
@@ -99,67 +99,67 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
     backgroundColor: colors.white,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   button: {
     backgroundColor: colors.primary,
     height: 48,
     borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 8,
   },
   buttonPressed: { opacity: 0.9 },
-  buttonText: { color: colors.white, fontSize: 16, fontWeight: '600' },
+  buttonText: { color: colors.white, fontSize: 16, fontWeight: "600" },
   cardFooter: {
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 20,
   },
   cardFooterText: { fontSize: 14, color: colors.muted },
 
-  buttonRow: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  buttonRow: { flexDirection: "row", gap: 12, marginTop: 8 },
   backButton: {
     flex: 1,
     height: 48,
     borderRadius: 14,
     borderWidth: 1.5,
     borderColor: colors.muted,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: colors.white,
   },
   backButtonText: {
     color: colors.textSecondary,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   submitButton: {
     flex: 1,
     height: 48,
     borderRadius: 14,
     backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  submitButtonText: { color: colors.white, fontSize: 15, fontWeight: '600' },
+  submitButtonText: { color: colors.white, fontSize: 15, fontWeight: "600" },
 
   title: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.heading,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 28,
   },
-  cardsContainer: { width: '100%', maxWidth: 380, gap: 16 },
+  cardsContainer: { width: "100%", maxWidth: 380, gap: 16 },
   welcomeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.white,
     borderRadius: 20,
     paddingVertical: 18,
     paddingHorizontal: 20,
-    shadowColor: '#000000',
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 10,
@@ -170,68 +170,68 @@ export const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
   },
-  cardTextContainer: { flex: 1, justifyContent: 'center' },
+  cardTextContainer: { flex: 1, justifyContent: "center" },
   welcomeCardTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
     marginBottom: 2,
   },
-  cardSubtitle: { fontSize: 13, color: '#A39585' },
+  cardSubtitle: { fontSize: 13, color: "#A39585" },
   footer: { marginTop: 36 },
   loginLink: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.success,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
 
-  header: { alignItems: 'center', marginTop: 20 },
+  header: { alignItems: "center", marginTop: 20 },
   avatar: {
     width: 70,
     height: 70,
     borderRadius: 35,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 12,
   },
   welcomeText: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text,
   },
   roleBadgeStudent: {
     fontSize: 14,
     color: colors.student,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 4,
   },
   roleBadgeProfessor: {
     fontSize: 14,
     color: colors.professor,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 4,
   },
   roleBadgeTutor: {
     fontSize: 14,
     color: colors.tutor,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 4,
   },
   content: { flex: 1, marginTop: 40 },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.heading,
     marginBottom: 12,
   },
   dashboardCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
     backgroundColor: colors.white,
     padding: 16,
@@ -240,9 +240,9 @@ export const styles = StyleSheet.create({
   },
   dashboardCardText: { fontSize: 14, color: colors.textSecondary },
   logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     padding: 14,
     backgroundColor: colors.dangerBackground,
@@ -250,19 +250,19 @@ export const styles = StyleSheet.create({
   },
   logoutText: {
     color: colors.danger,
-    fontWeight: '600',
+    fontWeight: "600",
     fontSize: 15,
   },
 
   registerContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   registerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
     color: colors.text,
   },
@@ -270,8 +270,8 @@ export const styles = StyleSheet.create({
 
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   // --- ESTILOS DE SIGNUP / CADASTRO ---
@@ -281,35 +281,35 @@ export const styles = StyleSheet.create({
   },
   signUpScrollContent: {
     flexGrow: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingHorizontal: 20,
     paddingVertical: 32,
   },
   signUpCardTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.heading,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 24,
   },
   signUpSubtitle: {
     fontSize: 14,
     color: colors.muted,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: -16,
     marginBottom: 20,
   },
   signUpLink: {
     fontSize: 14,
-    fontWeight: '600',
-    textDecorationLine: 'underline',
+    fontWeight: "600",
+    textDecorationLine: "underline",
     color: colors.success,
   },
   signUpStepIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     gap: 8,
     marginBottom: 20,
   },
@@ -324,7 +324,7 @@ export const styles = StyleSheet.create({
     width: 24,
   },
   signUpRoleSelector: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
     marginBottom: 20,
   },
@@ -334,16 +334,16 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: colors.white,
   },
   signUpRoleOptionSelected: {
     borderColor: colors.primary,
-    backgroundColor: colors.primary + '15', // Transparência leve no fundo
+    backgroundColor: colors.primary + "15", // Transparência leve no fundo
   },
   signUpRoleOptionText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.textSecondary,
   },
   signUpRoleOptionTextSelected: {
@@ -358,31 +358,31 @@ export const styles = StyleSheet.create({
   signUpErrorText: {
     color: colors.danger,
     fontSize: 13,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   // --- ESTILOS DOS MODAIS DE SELEÇÃO ---
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
     padding: 20,
   },
   modalContainer: {
     backgroundColor: colors.white,
     borderRadius: 16,
     padding: 20,
-    maxHeight: '80%',
-    shadowColor: '#000000',
+    maxHeight: "80%",
+    shadowColor: "#000000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 5,
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -390,13 +390,13 @@ export const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     color: colors.heading,
   },
   modalCloseText: {
     fontSize: 14,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   modalItem: {
     paddingVertical: 14,
@@ -407,7 +407,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
-    // --- ESTILOS DO CHAT ---
+  // --- ESTILOS DO CHAT ---
 
   chatContainer: {
     flex: 1,
@@ -415,20 +415,16 @@ export const styles = StyleSheet.create({
   },
 
   chatHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.white,
+    paddingLeft: 15,
+    paddingRight: 15,
+    marginTop: 40,
   },
 
   chatBackButton: {
     width: 42,
     height: 42,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 8,
   },
 
@@ -436,9 +432,19 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
 
+  chatTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 15,
+    gap: 8,
+  },
+
   chatHeaderTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    flexShrink: 1,
+    fontSize: 30,
+    fontWeight: "bold",
     color: colors.heading,
   },
 
@@ -454,14 +460,14 @@ export const styles = StyleSheet.create({
   },
 
   chatUserItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.white,
     borderRadius: 18,
     padding: 14,
     marginBottom: 10,
     elevation: 2,
-    shadowColor: '#000000',
+    shadowColor: "#000000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -479,8 +485,8 @@ export const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 14,
   },
 
@@ -491,7 +497,7 @@ export const styles = StyleSheet.create({
 
   chatUserName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.heading,
     marginBottom: 3,
   },
@@ -509,8 +515,8 @@ export const styles = StyleSheet.create({
 
   chatLoadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 30,
   },
 
@@ -522,23 +528,23 @@ export const styles = StyleSheet.create({
 
   chatEmptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
   },
 
   chatEmptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.heading,
     marginTop: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
 
   chatEmptyText: {
     fontSize: 14,
     color: colors.muted,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 8,
     lineHeight: 21,
   },
@@ -547,7 +553,7 @@ export const styles = StyleSheet.create({
 
   conversationContainer: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
   },
 
   conversationKeyboard: {
@@ -555,8 +561,8 @@ export const styles = StyleSheet.create({
   },
 
   conversationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.white,
     paddingHorizontal: 10,
     paddingVertical: 10,
@@ -568,8 +574,8 @@ export const styles = StyleSheet.create({
   conversationBackButton: {
     width: 42,
     height: 42,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   conversationAvatar: {
@@ -577,19 +583,19 @@ export const styles = StyleSheet.create({
     height: 42,
     borderRadius: 21,
     backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginHorizontal: 8,
   },
 
   conversationHeaderInfo: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
 
   conversationHeaderName: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.heading,
   },
 
@@ -607,14 +613,14 @@ export const styles = StyleSheet.create({
 
   conversationEmptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 40,
   },
 
   conversationEmptyTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.heading,
     marginTop: 14,
   },
@@ -622,27 +628,27 @@ export const styles = StyleSheet.create({
   conversationEmptyText: {
     fontSize: 14,
     color: colors.muted,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 6,
     lineHeight: 20,
   },
 
   chatMessageContainer: {
-    width: '100%',
+    width: "100%",
     marginBottom: 8,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
 
   chatMessageContainerMine: {
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
 
   chatMessageContainerOther: {
-    justifyContent: 'flex-start',
+    justifyContent: "flex-start",
   },
 
   chatBubble: {
-    maxWidth: '78%',
+    maxWidth: "78%",
     paddingHorizontal: 13,
     paddingTop: 9,
     paddingBottom: 6,
@@ -650,7 +656,7 @@ export const styles = StyleSheet.create({
   },
 
   chatBubbleMine: {
-    backgroundColor: '#DCF8C6',
+    backgroundColor: "#DCF8C6",
     borderBottomRightRadius: 4,
   },
 
@@ -665,7 +671,7 @@ export const styles = StyleSheet.create({
   },
 
   chatMessageTextMine: {
-    color: '#36502B',
+    color: "#36502B",
   },
 
   chatMessageTextOther: {
@@ -674,12 +680,12 @@ export const styles = StyleSheet.create({
 
   chatMessageTime: {
     fontSize: 10,
-    alignSelf: 'flex-end',
+    alignSelf: "flex-end",
     marginTop: 3,
   },
 
   chatMessageTimeMine: {
-    color: '#78936B',
+    color: "#78936B",
   },
 
   chatMessageTimeOther: {
@@ -687,8 +693,8 @@ export const styles = StyleSheet.create({
   },
 
   messageInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -700,7 +706,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     minHeight: 44,
     maxHeight: 110,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: "#F5F5F5",
     borderRadius: 22,
     paddingHorizontal: 17,
     paddingTop: 11,
@@ -715,8 +721,8 @@ export const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: colors.success,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 
   sendMessageButtonDisabled: {
@@ -728,52 +734,50 @@ export const styles = StyleSheet.create({
     transform: [{ scale: 0.95 }],
   },
   chatDashboardButton: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: colors.white,
-  borderRadius: 18,
-  padding: 14,
-  marginTop: 16,
-  elevation: 2,
-  shadowColor: '#000000',
-  shadowOffset: {
-    width: 0,
-    height: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.white,
+    borderRadius: 18,
+    padding: 14,
+    marginTop: 16,
+    elevation: 2,
+    shadowColor: "#000000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 5,
   },
-  shadowOpacity: 0.05,
-  shadowRadius: 5,
-},
 
-chatDashboardButtonPressed: {
-  opacity: 0.85,
-  transform: [{ scale: 0.99 }],
-},
+  chatDashboardButtonPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.99 }],
+  },
 
-chatDashboardIcon: {
-  width: 50,
-  height: 50,
-  borderRadius: 25,
-  backgroundColor: colors.primary,
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginRight: 14,
-},
+  chatDashboardIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
+  },
 
-chatDashboardInfo: {
-  flex: 1,
-},
+  chatDashboardInfo: {
+    flex: 1,
+  },
 
-chatDashboardTitle: {
-  fontSize: 16,
-  fontWeight: '700',
-  color: colors.heading,
-  marginBottom: 3,
-},
+  chatDashboardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: colors.heading,
+    marginBottom: 3,
+  },
 
-chatDashboardSubtitle: {
-  fontSize: 13,
-  color: colors.muted,
-},
-
-
+  chatDashboardSubtitle: {
+    fontSize: 13,
+    color: colors.muted,
+  },
 });

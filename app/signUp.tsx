@@ -789,6 +789,11 @@ export default function SignUp() {
     return ESTADOS_CAMPUS[selectedEstado].campi;
   }, [selectedEstado]);
 
+  // Verifica se o e-mail possui o formato institucional .edu.br
+  const emailInstitucionalValido = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.edu\.br$/i.test(email.trim());
+  };
+
   const handleSignUp = async () => {
     if (
       !fullName.trim() ||
@@ -822,22 +827,40 @@ export default function SignUp() {
       return;
     }
 
+    if (!emailInstitucionalValido(email)) {
+      Alert.alert(
+        'E-mail inválido',
+        'Utilize um endereço de e-mail institucional terminado em .edu.br.'
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } =
-        await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: {
-              full_name: fullName.trim(),
-              estado: selectedEstado,
-              campus: campus.trim(),
-              role: tipoUsuario,
-            },
+      const { error: authError } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            full_name: fullName.trim(),
+            estado: selectedEstado,
+            campus: campus.trim(),
+            role: tipoUsuario,
+
+            // Dados do estudante
+            curso: curso.trim(),
+            turno: turno.trim(),
+            turma: turma.trim(),
+
+            // Dados do professor
+            areaAtuacao: areaAtuacao.trim(),
+
+            // Dados do tutor
+            departamento: departamento.trim(),
           },
-        });
+        },
+      });
 
       if (authError) {
         Alert.alert(
@@ -847,91 +870,13 @@ export default function SignUp() {
         return;
       }
 
-      const userId = authData.user?.id;
-
-      if (!userId) {
-        Alert.alert(
-          'Erro',
-          'Não foi possível obter o ID do usuário.'
-        );
-        return;
-      }
-
-      const { error: usuarioError } = await supabase
-        .from('usuarios')
-        .insert({
-          id: userId,
-          nome: fullName.trim(),
-          email: email.trim(),
-          estado: selectedEstado,
-          campus: campus.trim(),
-          tipo: tipoUsuario,
-        });
-
-      if (usuarioError) {
-        Alert.alert(
-          'Erro ao criar perfil',
-          traduzirErroSupabase(usuarioError.message)
-        );
-        return;
-      }
-
-      if (tipoUsuario === 'estudante') {
-        const { error: alunoError } = await supabase
-          .from('alunos')
-          .insert({
-            id: userId,
-            curso: curso.trim(),
-            turno: turno.trim(),
-            turma: turma.trim(),
-          });
-
-        if (alunoError) {
-          Alert.alert(
-            'Erro ao criar aluno',
-            traduzirErroSupabase(alunoError.message)
-          );
-          return;
-        }
-      }
-
-      if (tipoUsuario === 'tutor') {
-        const { error: tutorError } = await supabase
-          .from('tutores')
-          .insert({
-            id: userId,
-            departamento: departamento.trim(),
-          });
-
-        if (tutorError) {
-          Alert.alert(
-            'Erro ao criar tutor',
-            traduzirErroSupabase(tutorError.message)
-          );
-          return;
-        }
-      }
-
-      if (tipoUsuario === 'professor') {
-        const { error: professorError } = await supabase
-          .from('professores')
-          .insert({
-            id: userId,
-            area_atuacao: areaAtuacao.trim(),
-          });
-
-        if (professorError) {
-          Alert.alert(
-            'Erro ao criar professor',
-            traduzirErroSupabase(professorError.message)
-          );
-          return;
-        }
-      }
-
+      // Como a confirmação de e-mail está ativada no Supabase,
+      // o usuário ainda não terá uma sessão autenticada neste momento.
+      // O trigger do banco cria automaticamente o perfil nas tabelas
+      // usuarios, alunos, professores ou tutores.
       Alert.alert(
         'Cadastro realizado!',
-        'Sua conta foi criada com sucesso.',
+        'Sua conta foi criada. Enviamos um e-mail de confirmação para o endereço informado. Confirme seu e-mail antes de fazer login.',
         [
           {
             text: 'OK',
@@ -1001,13 +946,16 @@ export default function SignUp() {
               <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
-                placeholder="seu@email.com"
+                placeholder="seu@email.edu.br"
                 placeholderTextColor={colors.placeholder}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
                 onChangeText={setEmail}
               />
+              <Text style={{ color: colors.text, fontSize: 12, marginTop: 5 }}>
+                Use seu e-mail institucional terminado em .edu.br
+              </Text>
             </View>
 
             <View style={styles.inputGroup}>

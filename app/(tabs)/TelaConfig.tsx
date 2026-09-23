@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Switch} from "react-native";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
@@ -11,6 +11,12 @@ import AvatarImagem from "../../components/AvatarImagem";
 import SeletorAvatar from "../../components/SeletorAvatar";
 import { AVATARES, buscarAvatar, } from "../../components/avatares";
 import BotaoAlerta from "../../components/BotaoAlerta";
+import { registrarPushChat ,removerPushChatDesteAparelho } from "../../components/notificacoesChat";
+import {
+  notificacaoAtiva,
+  salvarPreferenciaNotificacao,
+  TipoNotificacao,
+} from "../../components/preferenciasNotificacoes";
 
 export default function TelaConfig() {
 
@@ -50,15 +56,72 @@ export default function TelaConfig() {
 
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
+  const [chatAtivo, setChatAtivo] = useState(true);
+  const [tarefasAtivas, setTarefasAtivas] = useState(true);
+  const [salvandoNotificacao, setSalvandoNotificacao] = useState(false);
+
+  async function alterarNotificacao(tipo: "chat" | "tarefas", ativa: boolean) {
+    if (!usuario || salvandoNotificacao) return;
+
+    try {
+      setSalvandoNotificacao(true);
+
+      const { data, error } = await supabase
+        .from("preferencias_notificacoes")
+        .upsert(
+          {
+            usuario_id: usuario.id,
+            chat_ativo: tipo === "chat" ? ativa : chatAtivo,
+            tarefas_ativas: tipo === "tarefas" ? ativa : tarefasAtivas,
+          },
+          { onConflict: "usuario_id" },
+        )
+        .select("chat_ativo, tarefas_ativas")
+        .single();
+
+      if (error) throw error;
+
+      setChatAtivo(data.chat_ativo);
+      setTarefasAtivas(data.tarefas_ativas);
+    } catch (erro) {
+      console.error("Erro ao alterar notificações:", erro);
+      Alert.alert("Erro", "Não foi possível salvar esta configuração.");
+    } finally {
+      setSalvandoNotificacao(false);
+    }
+  }
+
   const [modalTamanhoFonte, setModalTamanhoFonte] = useState(false);
   const sairDaConta = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      Alert.alert("Erro", "Não foi possível sair da conta.");
-      return;
+  try {
+    const {
+      data: { user },
+      error: erroUsuario,
+    } = await supabase.auth.getUser();
+
+    if (erroUsuario || !user) {
+      throw erroUsuario ?? new Error("Usuário não autenticado.");
     }
+
+    // A sessão precisa continuar ativa para a política RLS
+    // permitir a exclusão do token deste aparelho.
+    await removerPushChatDesteAparelho(user.id);
+
+    const { error: erroSaida } = await supabase.auth.signOut({
+      scope: "local",
+    });
+
+    if (erroSaida) throw erroSaida;
+
     router.replace("/login");
-  };
+  } catch (erro) {
+    console.error("Erro ao sair da conta:", erro);
+    Alert.alert(
+      "Erro",
+      "Não foi possível desvincular as notificações deste aparelho. Tente sair novamente.",
+    );
+  }
+};
 
 
   const { tipoTema, selecionarTema, tema } = useTheme();
@@ -148,6 +211,17 @@ export default function TelaConfig() {
       }
 
       setUsuario(dadosUsuario);
+
+      const { data: preferencias, error: erroPreferencias } = await supabase
+        .from("preferencias_notificacoes")
+        .select("chat_ativo, tarefas_ativas")
+        .eq("usuario_id", user.id)
+        .maybeSingle();
+
+      if (erroPreferencias) throw erroPreferencias;
+
+      setChatAtivo(preferencias?.chat_ativo ?? true);
+      setTarefasAtivas(preferencias?.tarefas_ativas ?? true);
 
       // Busca os dados específicos dependendo do tipo
       if (dadosUsuario.tipo === "estudante") {
@@ -276,9 +350,7 @@ export default function TelaConfig() {
             Configurações
           </Text>
 
-          {usuario?.tipo === "estudante" && (
-            <BotaoAlerta />
-          )}
+          {usuario?.tipo === "estudante" && <BotaoAlerta />}
         </View>
       </View>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -670,11 +742,18 @@ export default function TelaConfig() {
               <Text
                 style={[
                   Estilos.texto,
-                  { color: tema.text, fontSize: 16 * escalaFonte },
+                  { color: tema.text, fontSize: 16 * escalaFonte, flex: 1 },
                 ]}
               >
                 Notificações de Chat
               </Text>
+
+              <Switch
+                value={chatAtivo}
+                onValueChange={(valor) => alterarNotificacao("chat", valor)}
+                disabled={!usuario || salvandoNotificacao}
+                accessibilityLabel="Notificações de Chat"
+              />
             </View>
 
             <View
@@ -683,21 +762,27 @@ export default function TelaConfig() {
               <Text
                 style={[
                   Estilos.texto,
-                  { color: tema.text, fontSize: 16 * escalaFonte },
+                  { color: tema.text, fontSize: 16 * escalaFonte, flex: 1 },
                 ]}
               >
                 Lembretes de Tarefas
               </Text>
+
+              <Switch
+                value={tarefasAtivas}
+                onValueChange={(valor) => alterarNotificacao("tarefas", valor)}
+                disabled={!usuario || salvandoNotificacao}
+                accessibilityLabel="Lembretes de Tarefas"
+              />
             </View>
           </View>
-          <TouchableOpacity
-            style={Estilos.botaoSair}
-            onPress={sairDaConta}
-          >
-          <Text style={[Estilos.textoBotaoSair, { fontSize: 16 * escalaFonte }]}>
-            Sair da conta
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={Estilos.botaoSair} onPress={sairDaConta}>
+            <Text
+              style={[Estilos.textoBotaoSair, { fontSize: 16 * escalaFonte }]}
+            >
+              Sair da conta
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
       {usuario && (

@@ -91,7 +91,7 @@ export default function TabLayout() {
           backgroundColor: tema.card,
           borderTopColor: tema.border,
 
-          height: 50 + insets.bottom,
+          height: 70 + insets.bottom,
 
           paddingBottom: 8 + insets.bottom,
           paddingTop: 8,
