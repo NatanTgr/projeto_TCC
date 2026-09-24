@@ -722,6 +722,7 @@ export default function TelaConfig() {
                     color: tema.text,
                     fontSize: 14 * escalaFonte,
                     marginTop: 5,
+                    textAlign: "center"
                   }}
                 >
                   Atual: {tamanhoFonte}

@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AvatarImagem from '../../components/AvatarImagem';
 import { buscarAvatar } from '../../components/avatares';
 import BotaoAlerta from '../../components/BotaoAlerta';
+import { useTheme } from '../../context/ThemeContext';
 
 import { supabase } from '../../lib/supabase';
 import { colors, styles } from '../../style';
@@ -44,6 +45,8 @@ type ItemLista =
 
 export default function Conversa() {
   const router = useRouter();
+
+  const { tema, tipoTema } = useTheme();
 
   const params = useLocalSearchParams<{
     usuarioId: string | string[];
@@ -90,6 +93,15 @@ export default function Conversa() {
 
   const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(null);
 
+    const corBolhaMinha = tema.balaoChat;
+
+    const corBolhaOutra =
+      tipoUsuarioLogado === "estudante" && usuarioDestinoTipo === "professor"
+        ? tema.professores + "95"
+        : tipoUsuarioLogado === "estudante" && usuarioDestinoTipo === "tutor"
+          ? tema.Tutores + "95"
+          : tema.modal;
+
   const [imagemSelecionada, setImagemSelecionada] =
   useState<string | null>(null);
 
@@ -101,62 +113,77 @@ export default function Conversa() {
   // INICIALIZAÇÃO
   // =========================================================
 
-  useEffect(() => {
-    iniciarConversa();
+useEffect(() => {
+  let ativo = true;
 
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-    };
-  }, [usuarioDestinoId]);
+  void iniciarConversa(() => ativo);
 
-  const iniciarConversa = async () => {
-    if (!usuarioDestinoId) {
-      router.back();
-      return;
+  return () => {
+    ativo = false;
+
+    const channel = channelRef.current;
+    channelRef.current = null;
+
+    if (channel) {
+      void supabase.removeChannel(channel);
     }
-
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      router.replace('/login');
-      return;
-    }
-
-    setUsuarioLogadoId(user.id);
-
-    const { data: perfil, error: perfilError } = await supabase
-      .from("usuarios")
-      .select("tipo")
-      .eq("id", user.id)
-      .single();
-
-    if (perfilError) {
-      console.error("Erro ao carregar tipo do usuário:", perfilError);
-    }
-
-    setTipoUsuarioLogado(perfil?.tipo ?? null);
-
-    const { data: usuarioDestino, error: avatarError } = await supabase
-      .from("usuarios")
-      .select("avatar")
-      .eq("id", usuarioDestinoId)
-      .single();
-
-    if (avatarError) {
-      console.error("Erro ao carregar avatar da conversa:", avatarError);
-    }
-
-    setAvatarDestino(usuarioDestino?.avatar ?? null);
-
-    await carregarMensagens(user.id);
-
-    iniciarRealtime(user.id);
   };
+}, [usuarioDestinoId]);
+
+const iniciarConversa = async (estaAtivo: () => boolean) => {
+  if (!usuarioDestinoId) {
+    router.back();
+    return;
+  }
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (!estaAtivo()) return;
+
+  if (error || !user) {
+    router.replace("/login");
+    return;
+  }
+
+  setUsuarioLogadoId(user.id);
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from("usuarios")
+    .select("tipo")
+    .eq("id", user.id)
+    .single();
+
+  if (!estaAtivo()) return;
+
+  if (perfilError) {
+    console.error("Erro ao carregar tipo do usuário:", perfilError);
+  }
+
+  setTipoUsuarioLogado(perfil?.tipo ?? null);
+
+  const { data: usuarioDestino, error: avatarError } = await supabase
+    .from("usuarios")
+    .select("avatar")
+    .eq("id", usuarioDestinoId)
+    .single();
+
+  if (!estaAtivo()) return;
+
+  if (avatarError) {
+    console.error("Erro ao carregar avatar da conversa:", avatarError);
+  }
+
+  setAvatarDestino(usuarioDestino?.avatar ?? null);
+
+  await carregarMensagens(user.id);
+
+  if (!estaAtivo()) return;
+
+  await iniciarRealtime(user.id);
+};
 
   // =========================================================
   // CARREGAR MENSAGENS
@@ -232,109 +259,104 @@ export default function Conversa() {
   // REALTIME
   // =========================================================
 
-  const iniciarRealtime = (meuId: string) => {
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
+const iniciarRealtime = async (meuId: string) => {
+  if (channelRef.current) {
+    const channelAnterior = channelRef.current;
+    channelRef.current = null;
+    await supabase.removeChannel(channelAnterior);
+  }
 
-    const channel = supabase
-      .channel(`chat-${meuId}-${usuarioDestinoId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mensagens',
-        },
-        async (payload) => {
-          // -----------------------------
-          // INSERT
-          // -----------------------------
+  const channel = supabase
+    .channel(`chat-${meuId}-${usuarioDestinoId}-${Date.now()}-${Math.random()}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "mensagens",
+      },
+      async (payload) => {
+        // -----------------------------
+        // INSERT
+        // -----------------------------
 
-          if (payload.eventType === 'INSERT') {
-            let nova = payload.new as Mensagem;
+        if (payload.eventType === "INSERT") {
+          let nova = payload.new as Mensagem;
 
-            const pertenceAoChat =
-              (nova.remetente === meuId &&
-                nova.destinatario === usuarioDestinoId) ||
-              (nova.remetente === usuarioDestinoId &&
-                nova.destinatario === meuId);
+          const pertenceAoChat =
+            (nova.remetente === meuId &&
+              nova.destinatario === usuarioDestinoId) ||
+            (nova.remetente === usuarioDestinoId &&
+              nova.destinatario === meuId);
 
-            if (!pertenceAoChat) return;
+          if (!pertenceAoChat) return;
 
-            if (
-              nova.tipo === 'imagem' &&
-              nova.arquivo_url
-            ) {
-              const { data } = supabase.storage
-                .from('chat-imagens')
-                .getPublicUrl(nova.arquivo_url);
+          if (nova.tipo === "imagem" && nova.arquivo_url) {
+            const { data } = supabase.storage
+              .from("chat-imagens")
+              .getPublicUrl(nova.arquivo_url);
 
-              nova = {
-                ...nova,
-                imagem_url: data.publicUrl,
-              };
-            }
+            nova = {
+              ...nova,
+              imagem_url: data.publicUrl,
+            };
+          }
 
-            setMensagens((atual) => {
-              const jaExiste = atual.some(
-                (mensagem) => mensagem.id === nova.id
-              );
+          setMensagens((atual) => {
+            const jaExiste = atual.some((mensagem) => mensagem.id === nova.id);
 
-              if (jaExiste) return atual;
+            if (jaExiste) return atual;
 
-              return [...atual, nova].sort(
-                (a, b) =>
-                  new Date(a.data_envio).getTime() -
-                  new Date(b.data_envio).getTime()
-              );
+            return [...atual, nova].sort(
+              (a, b) =>
+                new Date(a.data_envio).getTime() -
+                new Date(b.data_envio).getTime(),
+            );
+          });
+
+          setTimeout(() => {
+            flatListRef.current?.scrollToEnd({
+              animated: true,
             });
-
-            setTimeout(() => {
-              flatListRef.current?.scrollToEnd({
-                animated: true,
-              });
-            }, 100);
-          }
-
-          // -----------------------------
-          // UPDATE
-          // -----------------------------
-
-          if (payload.eventType === 'UPDATE') {
-            const atualizada = payload.new as Mensagem;
-
-            setMensagens((atual) =>
-              atual.map((mensagem) =>
-                mensagem.id === atualizada.id
-                  ? {
-                      ...mensagem,
-                      ...atualizada,
-                    }
-                  : mensagem
-              )
-            );
-          }
-
-          // -----------------------------
-          // DELETE
-          // -----------------------------
-
-          if (payload.eventType === 'DELETE') {
-            const apagada = payload.old as Mensagem;
-
-            setMensagens((atual) =>
-              atual.filter(
-                (mensagem) => mensagem.id !== apagada.id
-              )
-            );
-          }
+          }, 100);
         }
-      )
-      .subscribe();
 
-    channelRef.current = channel;
-  };
+        // -----------------------------
+        // UPDATE
+        // -----------------------------
+
+        if (payload.eventType === "UPDATE") {
+          const atualizada = payload.new as Mensagem;
+
+          setMensagens((atual) =>
+            atual.map((mensagem) =>
+              mensagem.id === atualizada.id
+                ? {
+                    ...mensagem,
+                    ...atualizada,
+                  }
+                : mensagem,
+            ),
+          );
+        }
+
+        // -----------------------------
+        // DELETE
+        // -----------------------------
+
+        if (payload.eventType === "DELETE") {
+          const apagada = payload.old as Mensagem;
+
+          setMensagens((atual) =>
+            atual.filter((mensagem) => mensagem.id !== apagada.id),
+          );
+        }
+      },
+    )
+    .subscribe();
+
+  channelRef.current = channel;
+};
 
   // =========================================================
   // ENVIAR TEXTO
@@ -871,15 +893,12 @@ export default function Conversa() {
 
   const getCorPorTipoDestino = () => {
     switch (usuarioDestinoTipo) {
-      case 'professor':
-        return colors.success;
-
-      case 'tutor':
+      case "professor":
+        return colors.professor;
+      case "tutor":
         return colors.tutor;
-
-      case 'estudante':
       default:
-        return colors.primary;
+        return colors.student;
     }
   };
 
@@ -899,7 +918,7 @@ export default function Conversa() {
       >
         <View
           style={{
-            backgroundColor: '#E8E2D5',
+            backgroundColor: tema.card,
             paddingHorizontal: 13,
             paddingVertical: 6,
             borderRadius: 12,
@@ -907,7 +926,7 @@ export default function Conversa() {
         >
           <Text
             style={{
-              color: colors.text,
+              color: tema.text,
               fontSize: 11,
               fontWeight: '600',
             }}
@@ -954,7 +973,7 @@ export default function Conversa() {
         >
           <View
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: tema.card,
               borderRadius: 16,
               padding: 10,
               maxWidth: '85%',
@@ -969,7 +988,7 @@ export default function Conversa() {
               autoFocus
               maxLength={1000}
               style={{
-                color: colors.text,
+                color: tema.text,
                 fontSize: 15,
                 minWidth: 180,
                 maxHeight: 100,
@@ -1041,30 +1060,22 @@ export default function Conversa() {
       <Pressable
         onLongPress={() => {
           if (minhaMensagem) {
-            if (mensagem.tipo === 'texto') {
-              Alert.alert(
-                'Mensagem',
-                'O que deseja fazer?',
-                [
-                  {
-                    text: 'Editar',
-                    onPress: () =>
-                      iniciarEdicao(mensagem),
-                  },
-                  {
-                    text: 'Apagar',
-                    style: 'destructive',
-                    onPress: () =>
-                      confirmarExclusao(
-                        mensagem
-                      ),
-                  },
-                  {
-                    text: 'Cancelar',
-                    style: 'cancel',
-                  },
-                ]
-              );
+            if (mensagem.tipo === "texto") {
+              Alert.alert("Mensagem", "O que deseja fazer?", [
+                {
+                  text: "Editar",
+                  onPress: () => iniciarEdicao(mensagem),
+                },
+                {
+                  text: "Apagar",
+                  style: "destructive",
+                  onPress: () => confirmarExclusao(mensagem),
+                },
+                {
+                  text: "Cancelar",
+                  style: "cancel",
+                },
+              ]);
             } else {
               confirmarExclusao(mensagem);
             }
@@ -1080,40 +1091,31 @@ export default function Conversa() {
         <View
           style={[
             styles.chatBubble,
-            minhaMensagem
-              ? [
-                  styles.chatBubbleMine,
-                  {
-                    backgroundColor:
-                      corTema + '25',
-                  },
-                ]
-              : styles.chatBubbleOther,
+            minhaMensagem ? styles.chatBubbleMine : styles.chatBubbleOther,
+            {
+              backgroundColor: minhaMensagem ? corBolhaMinha : corBolhaOutra,
+            },
           ]}
         >
           {/* -----------------------------------
               IMAGEM
           ----------------------------------- */}
 
-          {mensagem.tipo === 'imagem' &&
-          mensagem.imagem_url ? (
+          {mensagem.tipo === "imagem" && mensagem.imagem_url ? (
             <Pressable
-              onPress={() =>
-              setImagemSelecionada(mensagem.imagem_url!)
-              }
+              onPress={() => setImagemSelecionada(mensagem.imagem_url!)}
             >
               <Image
                 source={{ uri: mensagem.imagem_url }}
-                  style={{
-                    width: 230,
-                    height: 230,
-                    borderRadius: 12,
-                    backgroundColor: colors.border,
+                style={{
+                  width: 230,
+                  height: 230,
+                  borderRadius: 12,
+                  backgroundColor: colors.border,
                 }}
                 resizeMode="cover"
               />
             </Pressable>
-
           ) : (
             /* ---------------------------------
                TEXTO
@@ -1122,9 +1124,12 @@ export default function Conversa() {
             <Text
               style={[
                 styles.chatMessageText,
-                minhaMensagem
-                  ? styles.chatMessageTextMine
-                  : styles.chatMessageTextOther,
+                {
+                  color:
+                    minhaMensagem && tipoTema === "forte" && "escuro"
+                      ? colors.white
+                      : tema.text,
+                },
               ]}
             >
               {mensagem.conteudo}
@@ -1133,9 +1138,9 @@ export default function Conversa() {
 
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-end",
               marginTop: 4,
             }}
           >
@@ -1143,9 +1148,12 @@ export default function Conversa() {
               <Text
                 style={{
                   fontSize: 9,
-                  color: colors.muted,
+                  color:
+                    minhaMensagem && tipoTema === "forte"
+                      ? colors.white
+                      : tema.text,
                   marginRight: 5,
-                  fontStyle: 'italic',
+                  fontStyle: "italic",
                 }}
               >
                 editada
@@ -1155,14 +1163,15 @@ export default function Conversa() {
             <Text
               style={[
                 styles.chatMessageTime,
-                minhaMensagem
-                  ? styles.chatMessageTimeMine
-                  : styles.chatMessageTimeOther,
+                {
+                  color:
+                    minhaMensagem && tipoTema === "forte"
+                      ? colors.white
+                      : tema.text,
+                },
               ]}
             >
-              {formatarHorario(
-                mensagem.data_envio
-              )}
+              {formatarHorario(mensagem.data_envio)}
             </Text>
           </View>
         </View>
@@ -1180,7 +1189,7 @@ export default function Conversa() {
         styles.conversationContainer,
         {
           flex: 1,
-          backgroundColor: colors.background,
+          backgroundColor: tema.background,
         },
       ]}
       edges={["left", "right", "bottom"]}
@@ -1188,7 +1197,10 @@ export default function Conversa() {
       {/* Oculta qualquer dashboard ou header herdado da rota pai */}
       <Stack.Screen options={{ headerShown: false }} />
 
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar
+        barStyle={tipoTema === "claro" ? "dark-content" : "light-content"}
+        backgroundColor={tema.background}
+      />
 
       <Modal
         visible={imagemSelecionada !== null}
@@ -1253,6 +1265,10 @@ export default function Conversa() {
           style={[
             styles.conversationHeader,
             {
+              backgroundColor: tema.card,
+              borderBottomColor: tema.border,
+            },
+            {
               paddingTop:
                 Platform.OS === "android"
                   ? (StatusBar.currentHeight || 24) + 4
@@ -1269,7 +1285,7 @@ export default function Conversa() {
             style={styles.conversationBackButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color={colors.heading} />
+            <Ionicons name="arrow-back" size={24} color={tema.text} />
           </Pressable>
 
           <View
@@ -1309,11 +1325,11 @@ export default function Conversa() {
                 marginRight: 8,
               }}
             >
-              <Text style={styles.conversationHeaderName} numberOfLines={1}>
+              <Text style={[styles.conversationHeaderName, { color: tema.text }]} numberOfLines={1}>
                 {nomeFormatado}
               </Text>
 
-              <Text style={styles.conversationHeaderStatus}>
+              <Text style={[styles.conversationHeaderStatus, { color: tema.text}]}>
                 Conversa privada
               </Text>
             </View>
@@ -1334,7 +1350,7 @@ export default function Conversa() {
           <View style={styles.chatLoadingContainer}>
             <ActivityIndicator size="large" color={corTema} />
 
-            <Text style={styles.chatLoadingText}>Carregando conversa...</Text>
+            <Text style={[styles.chatLoadingText, { color: tema.text }]}>Carregando conversa...</Text>
           </View>
         ) : mensagens.length === 0 ? (
           <View style={styles.conversationEmptyContainer}>
@@ -1344,9 +1360,9 @@ export default function Conversa() {
               color={colors.placeholder}
             />
 
-            <Text style={styles.conversationEmptyTitle}>Inicie a conversa</Text>
+            <Text style={[styles.conversationEmptyTitle, { color: tema.text }]}>Inicie a conversa</Text>
 
-            <Text style={styles.conversationEmptyText}>
+            <Text style={[styles.conversationEmptyText, { color: tema.text }]}>
               Envie uma mensagem para {nomeFormatado}.
             </Text>
           </View>
@@ -1372,10 +1388,10 @@ export default function Conversa() {
 
         <View
           style={{
-            backgroundColor: colors.background,
+            backgroundColor: tema.background,
             paddingVertical: 6,
             borderTopWidth: 1,
-            borderTopColor: colors.border,
+            borderTopColor: tema.border,
           }}
         >
           <ScrollView
@@ -1391,7 +1407,7 @@ export default function Conversa() {
                 <Pressable
                   key={index}
                   style={{
-                    backgroundColor: colors.white,
+                    backgroundColor: tema.card,
                     borderWidth: 1.5,
                     borderColor: corTema,
                     paddingHorizontal: 14,
@@ -1402,7 +1418,7 @@ export default function Conversa() {
                 >
                   <Text
                     style={{
-                      color: colors.textSecondary,
+                      color: tema.text,
                       fontSize: 13,
                       fontWeight: "500",
                     }}
@@ -1423,7 +1439,8 @@ export default function Conversa() {
           style={[
             styles.messageInputContainer,
             {
-              backgroundColor: colors.background,
+              backgroundColor: tema.background,
+              borderTopColor: tema.border,
               paddingBottom: Platform.OS === "android" ? 40 : 8,
             },
           ]}
@@ -1432,13 +1449,14 @@ export default function Conversa() {
             style={[
               styles.messageInput,
               {
-                backgroundColor: colors.white,
+                backgroundColor: tema.input,
+                color: tipoTema === 'forte' ? '#000000' : tema.text,
               },
             ]}
             value={novaMensagem}
             onChangeText={setNovaMensagem}
             placeholder="Digite sua mensagem..."
-            placeholderTextColor={colors.placeholder}
+            placeholderTextColor={tema.text}
             multiline
             maxLength={1000}
             editable={!enviando}
@@ -1451,7 +1469,7 @@ export default function Conversa() {
               width: 42,
               height: 42,
               borderRadius: 21,
-              backgroundColor: colors.white,
+              backgroundColor: tema.card,
               justifyContent: "center",
               alignItems: "center",
               marginRight: 6,

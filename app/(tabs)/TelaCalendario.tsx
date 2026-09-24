@@ -593,9 +593,19 @@ const adicionarTarefa = async (tipo: string) => {
               todayTextColor: "#fff",
               todayBackgroundColor: "#836F68",
               monthTextColor: "#000000",
+
               arrowStyle: {
                 margin: 0,
                 padding: 0,
+              },
+
+              "stylesheet.dot": {
+                dot: {
+                  width: 7,
+                  height: 7,
+                  borderRadius: 4,
+                  marginHorizontal: 1,
+                },
               },
 
               ["Estilosheet.day.basic"]: {

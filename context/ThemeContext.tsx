@@ -40,17 +40,23 @@ export function ThemeProvider({
           border: "#444444",
           primary: "#94C0DF",
           modal: "#524c4c",
+          professores: "#94c0df",
+          Tutores: "#88c688",
+          balaoChat: "#524c4c",
         }
       : tipoTema === "forte"
         ? {
-            background: "#e90000",
-            card: "#FFF200",
-            text: "#ffffff",
+            background: "#000000",
+            card: "#303030",
+            text: "#ffea00",
             secondaryText: "#222222",
             input: "#FFFFFF",
             border: "#000000",
             primary: "#0057FF",
-            modal: "#ff6200",
+            modal: "#303030",
+            professores: "#94c0df",
+            Tutores: "#88c688",
+            balaoChat: "#0057FF",
           }
         : {
             background: "#FFFDD0",
@@ -61,6 +67,9 @@ export function ThemeProvider({
             border: "#DDDDDD",
             primary: "#94C0DF",
             modal: "#fff",
+            professores: "#94c0df",
+            Tutores: "#88c688",
+            balaoChat: "#ffb1638f",
           };
 
   useEffect(() => {

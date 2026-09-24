@@ -80,7 +80,7 @@ const Estilos = StyleSheet.create({
   alignSelf: "center",
   width: "100%",
   paddingHorizontal: 15,
-  marginTop: 20, // substitui 70
+  marginTop: 20,
   marginBottom: 10,
   },
 

@@ -5,6 +5,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  TouchableOpacity,
   StatusBar,
   Text,
   View,
@@ -279,10 +280,14 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
 
   const renderUsuario = ({ item }: { item: Usuario }) => {
     const cor = getCorTipo(item.tipo);
+    
     return (
       <Pressable
         style={({ pressed }) => [
           styles.chatUserItem,
+          {
+            backgroundColor: tema.modal,
+          },
           pressed && styles.chatUserItemPressed,
         ]}
         onPress={() => abrirConversa(item)}
@@ -303,11 +308,11 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
             />
           )}
         </View>
-        <View style={styles.chatUserInfo}>
-          <Text style={styles.chatUserName} numberOfLines={1}>
+        <View style={[styles.chatUserInfo, {}]}>
+          <Text style={[styles.chatUserName, { color: tema.text}]} numberOfLines={1}>
             {formatarNome(item.nome, item.email, item.tipo)}
           </Text>
-          <Text style={styles.chatUserType}>Última mensagem...</Text>
+          <Text style={[styles.chatUserType, { color: tema.text }]}>Última mensagem...</Text>
         </View>
 
         {/* Botão Fixar (Bookmark) */}
@@ -368,32 +373,39 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
           backgroundColor: tema.background,
         }}
       >
-        {abasPermitidas.map((aba) => (
-          <Pressable
-            key={aba.key}
-            style={{
-              flex: 1,
-              paddingVertical: 12,
-              borderRadius: 14,
-              backgroundColor:
-                abaAtiva === aba.key ? colors.tutor : colors.white,
-              alignItems: "center",
-              elevation: 2,
-            }}
-            onPress={() => setAbaAtiva(aba.key)}
-          >
-            <Text
+        {abasPermitidas.map((aba) => {
+          const selecionada = abaAtiva === aba.key;
+
+          return (
+            <TouchableOpacity
+              key={aba.key}
+              activeOpacity={0.7}
+              onPress={() => setAbaAtiva(aba.key)}
               style={{
-                fontSize: 15,
-                fontWeight: "600",
-                color:
-                  abaAtiva === aba.key ? colors.white : colors.textSecondary,
+                flex: 1,
+                paddingVertical: 12,
+                borderRadius: 14,
+                backgroundColor: selecionada
+                  ? aba.key === "professor"
+                    ? "#94C0DF" // azul
+                    : "#88C688" // verde para tutores
+                  : "#FFFFFF",
+                alignItems: "center",
+                elevation: 2,
               }}
             >
-              {aba.label}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: selecionada ? "#FFFFFF" : colors.textSecondary,
+                }}
+              >
+                {aba.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* Botão "Filtrar" */}
@@ -434,7 +446,7 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
       {loading ? (
         <View style={styles.chatLoadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.chatLoadingText}>Carregando usuários...</Text>
+          <Text style={[styles.chatLoadingText, { color: tema.text }]}>Carregando usuários...</Text>
         </View>
       ) : usuariosFiltrados.length === 0 ? (
         <View style={styles.chatEmptyContainer}>
@@ -473,7 +485,7 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
         >
           <View
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: tema.modal,
               padding: 20,
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
@@ -485,7 +497,7 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
                 fontSize: 18,
                 fontWeight: "bold",
                 marginBottom: 5,
-                color: colors.heading,
+                color: tema.text,
               }}
             >
               Filtrar{" "}
@@ -494,7 +506,7 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
             <Text
               style={{
                 fontSize: 13,
-                color: colors.textSecondary,
+                color: tema.text,
                 marginBottom: 15,
               }}
             >
@@ -532,13 +544,13 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
                         style={{
                           fontSize: 15,
                           fontWeight: "500",
-                          color: colors.heading,
+                          color: tema.text,
                         }}
                       >
                         {formatarNome(item.nome, item.email, item.tipo)}
                       </Text>
                       <Text
-                        style={{ fontSize: 12, color: colors.textSecondary }}
+                        style={{ fontSize: 12, color: tema.text }}
                       >
                         {item.email}
                       </Text>

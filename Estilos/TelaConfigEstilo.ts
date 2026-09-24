@@ -74,6 +74,7 @@ const Estilos = StyleSheet.create({
   cardOpcoes: {
     backgroundColor: "#FFFDD0",
     borderRadius: 15,
+    width: "100%",
     padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
