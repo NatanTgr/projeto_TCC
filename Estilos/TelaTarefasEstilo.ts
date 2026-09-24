@@ -125,10 +125,11 @@ const Estilos = StyleSheet.create({
   },
   botaoCancelar: {
     backgroundColor: "#FFAA56",
-    padding: 12,
+    padding: 22,
     borderRadius: 10,
     width: "45%",
     alignItems: "center",
+    textAlign: "center"
   },
   botaoConfirmar: {
     backgroundColor: "#94C0DF",

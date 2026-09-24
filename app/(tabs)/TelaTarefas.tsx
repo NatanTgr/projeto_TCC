@@ -720,63 +720,63 @@ const getData = async () => {
                   Título
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { color: tema.text }]}
                   placeholder="Nome do evento"
                   value={titulo}
                   onChangeText={setTitulo}
-                ></TextInput>
+                />
 
                 <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
                   Data
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { color: tema.text }]}
                   placeholder="dd/mm/aaaa"
                   value={data}
                   onChangeText={alterarData}
                   keyboardType="numeric"
                   maxLength={10}
-                ></TextInput>
+                />
 
                 <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
                   Disciplina
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { color: tema.text }]}
                   placeholder="Ex: Matemática"
                   value={disciplina}
                   onChangeText={setDisciplina}
-                ></TextInput>
+                />
 
                 <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
                   Professor
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { color: tema.text }]}
                   placeholder="Nome do professor"
                   value={professor}
                   onChangeText={setProfessor}
-                ></TextInput>
+                />
 
                 <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
                   Plataforma de Realização
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { color: tema.text }]}
                   placeholder="Ex: Google Classroom, Moodle"
                   value={plataforma}
                   onChangeText={setPlataforma}
-                ></TextInput>
+                />
 
                 <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
                   Descrição
                 </Text>
                 <TextInput
-                  style={Estilos.textosInfo}
+                  style={[Estilos.textosInfo, { color: tema.text }]}
                   placeholder="Detalhes do evento"
                   value={descricao}
                   onChangeText={setDescricao}
-                ></TextInput>
+                />
               </View>
 
               {/* Botões */}
