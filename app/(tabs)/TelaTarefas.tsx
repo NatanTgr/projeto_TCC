@@ -10,6 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Estilos from "../../Estilos/TelaTarefasEstilo";
 import { supabase } from "../../bd/supabase";
 import BotaoAlerta from "../../components/BotaoAlerta";
+import ModalDetalhesTarefa from "../../components/ModalDetalhesTarefa";
 
 // Definindo o tipo para uma tarefa
 type Task = {
@@ -661,11 +662,21 @@ const getData = async () => {
               contentContainerStyle={Estilos.modalContent}
               keyboardShouldPersistTaps="handled"
             >
-              <Text style={[Estilos.tituloModal, { color: tema.text, fontSize: 20 * escalaFonte,  }]}>
+              <Text
+                style={[
+                  Estilos.tituloModal,
+                  { color: tema.text, fontSize: 20 * escalaFonte },
+                ]}
+              >
                 {editando ? "Editar Evento" : "Novo Evento"}
               </Text>
 
-              <Text style={[Estilos.textoTipoAdicionar, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
+              <Text
+                style={[
+                  Estilos.textoTipoAdicionar,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+              >
                 Tipo
               </Text>
 
@@ -815,90 +826,17 @@ const getData = async () => {
         </View>
       </Modal>
 
-      <Modal visible={modalDetalhes} transparent animationType="fade">
-        <View style={Estilos.modalOverlay}>
-          <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
-            <Text style={[Estilos.tituloModal, { color: tema.text }]}>
-              Detalhes do Evento
-            </Text>
-
-            <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>
-                Título
-              </Text>{" "}
-              {tarefaSelecionada?.titulo}
-            </Text>
-
-            <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>Data</Text>{" "}
-              {formatarDataDetalhes()}
-            </Text>
-
-            <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>
-                Disciplina
-              </Text>{" "}
-              {tarefaSelecionada?.disciplina}
-            </Text>
-
-            <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>
-                Professor
-              </Text>{" "}
-              {tarefaSelecionada?.professor}
-            </Text>
-
-            <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>Tipo</Text>{" "}
-              {tarefaSelecionada?.tipo}
-            </Text>
-
-            <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>
-                Plataforma
-              </Text>{" "}
-              {tarefaSelecionada?.plataforma}
-            </Text>
-
-            <Text>
-              <Text style={{ fontWeight: "bold", color: tema.text }}>
-                Descrição
-              </Text>{" "}
-              {tarefaSelecionada?.descricao}
-            </Text>
-
-            <TouchableOpacity
-              style={Estilos.botaoConfirmar}
-              onPress={abrirEdicao}
-            >
-              <Ionicons name="create-outline" size={20} color="#fff" />
-
-              <Text style={{ color: "#fff", marginLeft: 8 }}>
-                Editar Evento
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={Estilos.botaoConfirmar}
-              onPress={() => setModalDetalhes(false)}
-            >
-              <Text style={{ color: "#fff" }}>Fechar</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={Estilos.deleteButton}
-              onPress={() => {
-                if (tarefaSelecionada) {
-                  removerTarefa(tarefaSelecionada.id);
-                  setModalDetalhes(false);
-                }
-              }}
-            >
-              <Ionicons name="trash-outline" size={20} color="#ff3b30" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <ModalDetalhesTarefa
+        visible={modalDetalhes}
+        tarefa={tarefaSelecionada}
+        onClose={() => setModalDetalhes(false)}
+        onEdit={abrirEdicao}
+        onDelete={() => {
+          if (tarefaSelecionada) {
+            removerTarefa(tarefaSelecionada.id);
+          }
+        }}
+      />
     </View>
   );
 }

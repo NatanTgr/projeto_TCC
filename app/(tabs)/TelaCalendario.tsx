@@ -9,6 +9,7 @@ import { useFontSize } from "../../context/FontSizeContext";
 import { useFocusEffect } from 'expo-router';
 import Estilos from "../../Estilos/TelaCalendarioEstilo";
 import BotaoAlerta from "../../components/BotaoAlerta";
+import ModalDetalhesTarefa from "../../components/ModalDetalhesTarefa";
 
 import { ptBR } from "../../Utils/configCal"
 
@@ -781,197 +782,32 @@ const adicionarTarefa = async (tipo: string) => {
         </View>
       </Modal>
 
-      <Modal
+      <ModalDetalhesTarefa
         visible={modalDetalhes}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalDetalhes(false)}
-      >
-        <View style={Estilos.modalOverlay}>
-          <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              <Text
-                style={[
-                  Estilos.tituloModal,
-                  { color: tema.text, fontSize: 27 * escalaFonte },
-                ]}
-              >
-                Detalhes do Evento
-              </Text>
+        tarefa={tarefaSelecionada}
+        onClose={() => setModalDetalhes(false)}
+        onEdit={abrirEdicao}
+        onDelete={() => {
+          if (!tarefaSelecionada) return;
 
-              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
-                <Text
-                  style={[
-                    Estilos.tituloDetalhe,
-                    {
-                      fontSize: 19 * escalaFonte,
-                    },
-                  ]}
-                >
-                  Título:
-                </Text>{" "}
-                <Text
-                  style={[
-                    Estilos.textoDetalhe,
-                    {
-                      fontSize: 16 * escalaFonte,
-                    },
-                  ]}
-                >
-                  {tarefaSelecionada?.titulo}
-                </Text>
-              </Text>
-
-              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
-                <Text
-                  style={[
-                    Estilos.tituloDetalhe,
-                    { fontSize: 19 * escalaFonte },
-                  ]}
-                >
-                  Data:
-                </Text>{" "}
-                <Text
-                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
-                >
-                  {tarefaSelecionada
-                    ? formatarData(tarefaSelecionada.data)
-                    : ""}
-                </Text>
-              </Text>
-
-              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
-                <Text
-                  style={[
-                    Estilos.tituloDetalhe,
-                    { fontSize: 19 * escalaFonte },
-                  ]}
-                >
-                  Disciplina:
-                </Text>{" "}
-                <Text
-                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
-                >
-                  {tarefaSelecionada?.disciplina}
-                </Text>
-              </Text>
-
-              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
-                <Text
-                  style={[
-                    Estilos.tituloDetalhe,
-                    { fontSize: 19 * escalaFonte },
-                  ]}
-                >
-                  Professor:
-                </Text>{" "}
-                <Text
-                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
-                >
-                  {tarefaSelecionada?.professor}
-                </Text>
-              </Text>
-
-              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
-                <Text
-                  style={[
-                    Estilos.tituloDetalhe,
-                    { fontSize: 19 * escalaFonte },
-                  ]}
-                >
-                  Tipo:
-                </Text>{" "}
-                <Text
-                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
-                >
-                  {tarefaSelecionada?.tipo}
-                </Text>
-              </Text>
-
-              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
-                <Text
-                  style={[
-                    Estilos.tituloDetalhe,
-                    { fontSize: 19 * escalaFonte },
-                  ]}
-                >
-                  Plataforma:
-                </Text>{" "}
-                <Text
-                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
-                >
-                  {tarefaSelecionada?.plataforma}
-                </Text>
-              </Text>
-
-              <Text style={{ color: tema.text, fontSize: 16 * escalaFonte }}>
-                <Text
-                  style={[
-                    Estilos.tituloDetalhe,
-                    { fontSize: 19 * escalaFonte },
-                  ]}
-                >
-                  Descrição:
-                </Text>{" "}
-                <Text
-                  style={[Estilos.textoDetalhe, { fontSize: 16 * escalaFonte }]}
-                >
-                  {tarefaSelecionada?.descricao}
-                </Text>
-              </Text>
-
-              <TouchableOpacity
-                style={Estilos.botaoConfirmar}
-                onPress={abrirEdicao}
-              >
-                <Ionicons name="create-outline" size={20} color="#fff" />
-
-                <Text
-                  style={[
-                    Estilos.textoBotao,
-                    {
-                      color: "#fff",
-                      fontSize: 16 * escalaFonte,
-                    },
-                  ]}
-                >
-                  Editar Evento
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={Estilos.botaoConfirmarDetalhes}
-                onPress={() => setModalDetalhes(false)}
-              >
-                <Text
-                  style={[
-                    Estilos.textoBotao,
-                    { color: "#fff", fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Fechar
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={Estilos.deleteButton}
-                onPress={async () => {
-                  if (tarefaSelecionada) {
-                    await removerTarefa(tarefaSelecionada.id);
-
-                    setModalDetalhes(false);
-                    setTarefaSelecionada(null);
-
-                    await carregarEventosCalendario();
-                  }
-                }}
-              >
-                <Feather name="trash-2" size={20} color="#ff3b30" />
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+          Alert.alert(
+            "Excluir evento",
+            "Tem certeza que deseja excluir este evento?",
+            [
+              { text: "Cancelar", style: "cancel" },
+              {
+                text: "Excluir",
+                style: "destructive",
+                onPress: async () => {
+                  await removerTarefa(tarefaSelecionada.id);
+                  setModalDetalhes(false);
+                  setTarefaSelecionada(null);
+                },
+              },
+            ],
+          );
+        }}
+      />
 
       <Modal
         visible={modalVisible}
