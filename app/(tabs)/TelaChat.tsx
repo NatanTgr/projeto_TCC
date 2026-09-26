@@ -1,11 +1,10 @@
-import { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Modal,
   Platform,
   Pressable,
-  TouchableOpacity,
   StatusBar,
   Text,
   View,
@@ -15,11 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { styles, colors } from '../../style';
-import { useTheme } from '../../context/ThemeContext';
-import { useFontSize } from '../../context/FontSizeContext';
-import BotaoAlerta from '../../components/BotaoAlerta';
-import AvatarImagem from '../../components/AvatarImagem';
-import { buscarAvatar } from '../../components/avatares';
 
 type Usuario = {
   id: string;
@@ -27,32 +21,87 @@ type Usuario = {
   email: string;
   campus: string | null;
   tipo: 'estudante' | 'tutor' | 'professor';
-  avatar: string | null;
   fixado?: boolean;
+  mensagemNaoLida?: boolean;
+  ultimaMensagemData?: string | null;
 };
 
 export default function Chat() {
   const router = useRouter();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   // Estado para armazenar o tipo do usuário logado e a aba ativa dinâmica
   const [tipoLogado, setTipoLogado] = useState<Usuario['tipo']>('estudante');
   const [abaAtiva, setAbaAtiva] = useState<string>('professor');
-
+  
   // Estados para o Filtro por Campus/Categoria
   const [modalFiltroVisible, setModalFiltroVisible] = useState(false);
   const [campusLogado, setCampusLogado] = useState<string | null>(null);
   const [idsSelecionados, setIdsSelecionados] = useState<string[]>([]);
+  const [usuarioLogadoId, setUsuarioLogadoId] = useState<string | null>(null);
 
-  const { tema } = useTheme();
-  const { escalaFonte } = useFontSize();
+  useFocusEffect(
+    useCallback(() => {
+      carregarUsuarios();
+    }, [])
+  );
 
-useFocusEffect(
-  useCallback(() => {
-    carregarUsuarios();
-  }, []),
-);
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let ativo = true;
+
+    const iniciarRealtimeLista = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+      if (error || !user || !ativo) return;
+
+      setUsuarioLogadoId(user.id);
+
+      channel = supabase
+        .channel(`lista-chat-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'mensagens',
+            filter: `destinatario=eq.${user.id}`,
+          },
+          (payload) => {
+            const novaMensagem = payload.new as {
+              remetente: string;
+              destinatario: string;
+              data_envio: string;
+            };
+
+            if (novaMensagem.destinatario !== user.id) return;
+
+            setUsuarios((atual) =>
+              atual.map((usuario) =>
+                usuario.id === novaMensagem.remetente
+                  ? {
+                      ...usuario,
+                      mensagemNaoLida: true,
+                      ultimaMensagemData: novaMensagem.data_envio,
+                    }
+                  : usuario
+              )
+            );
+          }
+        )
+        .subscribe();
+    };
+
+    iniciarRealtimeLista();
+
+    return () => {
+      ativo = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, []);
 
   const carregarUsuarios = async () => {
     try {
@@ -77,6 +126,32 @@ useFocusEffect(
       (fixados || []).map(item => item.usuario_fixado_id)
     );
 
+    setUsuarioLogadoId(user.id);
+
+    // Busca as mensagens recebidas que ainda não foram lidas.
+    const { data: mensagensNaoLidas, error: naoLidasError } =
+      await supabase
+        .from('mensagens')
+        .select('remetente, data_envio')
+        .eq('destinatario', user.id)
+        .eq('lida', false)
+        .order('data_envio', { ascending: false });
+
+    if (naoLidasError) {
+      console.error('Erro ao carregar mensagens não lidas:', naoLidasError);
+    }
+
+    const naoLidasPorRemetente = new Map<string, string>();
+
+    (mensagensNaoLidas || []).forEach((mensagem) => {
+      if (!naoLidasPorRemetente.has(mensagem.remetente)) {
+        naoLidasPorRemetente.set(
+          mensagem.remetente,
+          mensagem.data_envio
+        );
+      }
+    });
+
       // Buscar dados do usuário logado para descobrir o campus e o tipo dele
       const { data: dadosUsuarioLogado } = await supabase
         .from('usuarios')
@@ -86,7 +161,7 @@ useFocusEffect(
 
       const meuCampus = dadosUsuarioLogado?.campus || null;
       const meuTipo = (dadosUsuarioLogado?.tipo || 'estudante') as Usuario['tipo'];
-
+      
       setCampusLogado(meuCampus);
       setTipoLogado(meuTipo);
 
@@ -102,7 +177,7 @@ useFocusEffect(
       // Buscar todos os outros usuários do mesmo campus
       let query = supabase
         .from('usuarios')
-        .select('id, nome, email, campus, tipo, avatar')
+        .select('id, nome, email, campus, tipo')
         .neq('id', user.id);
 
       if (meuCampus) {
@@ -119,6 +194,8 @@ useFocusEffect(
       const listaUsuarios = (data || []).map(usuario => ({
   ...usuario,
   fixado: idsFixados.has(usuario.id),
+  mensagemNaoLida: naoLidasPorRemetente.has(usuario.id),
+  ultimaMensagemData: naoLidasPorRemetente.get(usuario.id) || null,
 })) as Usuario[];
 
 setUsuarios(listaUsuarios);
@@ -162,6 +239,15 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
   const abasPermitidas = getAbasPermitidas();
 
   const abrirConversa = (usuario: Usuario) => {
+    // Remove imediatamente a bolinha da lista enquanto a conversa é aberta.
+    setUsuarios((atual) =>
+      atual.map((item) =>
+        item.id === usuario.id
+          ? { ...item, mensagemNaoLida: false }
+          : item
+      )
+    );
+
     router.push({
       pathname: '/TelaConversa' as any,
       params: {
@@ -270,60 +356,95 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
     return nomeExibicao;
   };
 
-  // Filtra por aba ativa, se está selecionado pelo usuário e ordena fixados no topo
+  // Filtra por aba e mantém a ordem: fixados > não lidos > demais.
+  // Dentro dos não lidos, a mensagem recebida mais recentemente fica primeiro.
   const usuariosFiltrados = usuarios
     .filter((u) => u.tipo === abaAtiva && idsSelecionados.includes(u.id))
-    .sort((a, b) => (b.fixado ? 1 : 0) - (a.fixado ? 1 : 0));
+    .sort((a, b) => {
+      if (a.fixado !== b.fixado) {
+        return a.fixado ? -1 : 1;
+      }
+
+      if (a.mensagemNaoLida !== b.mensagemNaoLida) {
+        return a.mensagemNaoLida ? -1 : 1;
+      }
+
+      if (a.mensagemNaoLida && b.mensagemNaoLida) {
+        const dataA = a.ultimaMensagemData
+          ? new Date(a.ultimaMensagemData).getTime()
+          : 0;
+        const dataB = b.ultimaMensagemData
+          ? new Date(b.ultimaMensagemData).getTime()
+          : 0;
+        return dataB - dataA;
+      }
+
+      return 0;
+    });
 
   // Usuários exibidos no Modal de Filtro (somente da aba ativa atual)
   const usuariosParaFiltrarNaAba = usuarios.filter((u) => u.tipo === abaAtiva);
 
   const renderUsuario = ({ item }: { item: Usuario }) => {
     const cor = getCorTipo(item.tipo);
-    
     return (
       <Pressable
         style={({ pressed }) => [
           styles.chatUserItem,
-          {
-            backgroundColor: tema.modal,
-          },
           pressed && styles.chatUserItemPressed,
         ]}
         onPress={() => abrirConversa(item)}
       >
-        <View
-          style={[
-            styles.chatUserAvatar,
-            { backgroundColor: cor, overflow: "hidden" },
-          ]}
-        >
-          {buscarAvatar(item.avatar) ? (
-            <AvatarImagem uri={buscarAvatar(item.avatar)!.url} tamanho={50} />
-          ) : (
-            <Ionicons
-              name={item.tipo === "professor" ? "person" : "people"}
-              size={25}
-              color={colors.white}
-            />
-          )}
+        <View style={[styles.chatUserAvatar, { backgroundColor: cor }]}>
+          <Ionicons
+            name={item.tipo === 'professor' ? 'person' : 'people'}
+            size={25}
+            color={colors.white}
+          />
         </View>
-        <View style={[styles.chatUserInfo, {}]}>
-          <Text style={[styles.chatUserName, { color: tema.text}]} numberOfLines={1}>
-            {formatarNome(item.nome, item.email, item.tipo)}
+        <View style={[styles.chatUserInfo, { flex: 1 }]}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+            }}
+          >
+            <Text
+              style={[styles.chatUserName, { flex: 1 }]}
+              numberOfLines={1}
+            >
+              {formatarNome(item.nome, item.email, item.tipo)}
+            </Text>
+
+            {item.mensagemNaoLida && (
+              <View
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: cor,
+                  marginLeft: 8,
+                }}
+              />
+            )}
+          </View>
+
+          <Text style={styles.chatUserType}>
+            {item.mensagemNaoLida
+              ? 'Nova mensagem'
+              : 'Última mensagem...'}
           </Text>
-          <Text style={[styles.chatUserType, { color: tema.text }]}>Última mensagem...</Text>
         </View>
 
         {/* Botão Fixar (Bookmark) */}
-        <Pressable
-          style={{ padding: 6 }}
+        <Pressable 
+          style={{ padding: 6 }} 
           onPress={(e) => toggleFixar(item.id, e)}
         >
-          <Ionicons
-            name={item.fixado ? "bookmark" : "bookmark-outline"}
-            size={25}
-            color={item.fixado ? colors.primary : colors.placeholder}
+          <Ionicons 
+            name={item.fixado ? "bookmark" : "bookmark-outline"} 
+            size={20} 
+            color={item.fixado ? colors.primary : colors.placeholder} 
           />
         </Pressable>
       </Pressable>
@@ -332,133 +453,106 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
 
   return (
     <SafeAreaView
-      edges={["left", "right"]}
-      style={[
-        styles.chatContainer,
-        {
-          flex: 1,
-          backgroundColor: tema.background,
-        },
-      ]}
-    >
-      <StatusBar barStyle="dark-content" backgroundColor={tema.background} />
-
+  
+  edges={['left', 'right', 'bottom']}
+  style={[
+    styles.chatContainer,
+    {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+  ]}
+>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      
       {/* Cabeçalho */}
-      <View style={styles.chatHeader}>
-        <View style={styles.chatTopRow}>
-          <Text
-            style={[
-              styles.chatHeaderTitle,
-              {
-                color: tema.text,
-                fontSize: 30 * escalaFonte,
-              },
-            ]}
-          >
-            Conversas ({campusLogado || "Geral"})
-          </Text>
-
-          {tipoLogado === "estudante" && <BotaoAlerta />}
+      <View 
+        style={[
+          styles.chatHeader,
+          {
+            paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 24) + 4 : 8,
+            minHeight: Platform.OS === 'android' ? 72 + (StatusBar.currentHeight || 24) : 64,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 16,
+            backgroundColor: 'transparent',
+            borderBottomWidth: 0,
+          }
+        ]}
+      >
+        <View style={styles.chatHeaderTitleContainer}>
+          <Text style={styles.chatHeaderTitle}>Conversas ({campusLogado || 'Geral'})</Text>
         </View>
+        
+        <Pressable 
+          style={{
+            backgroundColor: '#FFAA56',
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+            borderRadius: 6,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }} 
+          onPress={() => {}}
+        >
+          <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: 'bold', letterSpacing: 0.5 }}>
+            ALERTA
+          </Text>
+        </Pressable>
       </View>
 
       {/* Abas Superiores Dinâmicas baseadas no tipo de quem logou */}
-      <View
-        style={{
-          flexDirection: "row",
-          paddingHorizontal: 16,
-          paddingTop: 2,
-          paddingBottom: 2,
-          gap: 12,
-          backgroundColor: tema.background,
-        }}
-      >
-        {abasPermitidas.map((aba) => {
-          const selecionada = abaAtiva === aba.key;
-
-          return (
-            <TouchableOpacity
-              key={aba.key}
-              activeOpacity={0.7}
-              onPress={() => setAbaAtiva(aba.key)}
-              style={{
-                flex: 1,
-                paddingVertical: 12,
-                borderRadius: 14,
-                backgroundColor: selecionada
-                  ? aba.key === "professor"
-                    ? "#94C0DF" // azul
-                    : "#88C688" // verde para tutores
-                  : "#FFFFFF",
-                alignItems: "center",
-                elevation: 2,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 15,
-                  fontWeight: "600",
-                  color: selecionada ? "#FFFFFF" : colors.textSecondary,
-                }}
-              >
-                {aba.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={{ flexDirection: 'row', paddingHorizontal: 16, paddingTop: 2, gap: 12, backgroundColor: colors.background }}>
+        {abasPermitidas.map((aba) => (
+          <Pressable
+            key={aba.key}
+            style={{
+              flex: 1,
+              paddingVertical: 12,
+              borderRadius: 14,
+              backgroundColor: abaAtiva === aba.key ? colors.tutor : colors.white,
+              alignItems: 'center',
+              elevation: 2,
+            }}
+            onPress={() => setAbaAtiva(aba.key)}
+          >
+            <Text style={{ fontSize: 15, fontWeight: '600', color: abaAtiva === aba.key ? colors.white : colors.textSecondary }}>
+              {aba.label}
+            </Text>
+          </Pressable>
+        ))}
       </View>
 
       {/* Botão "Filtrar" */}
-      <View
-        style={{
-          paddingHorizontal: 16,
-          paddingTop: 12,
-          paddingBottom: 12,
-          alignItems: "flex-end",
-          backgroundColor: tema.background,
-        }}
-      >
-        <Pressable
+      <View style={{ paddingHorizontal: 16, paddingTop: 12, alignItems: 'flex-end', backgroundColor: colors.background }}>
+        <Pressable 
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            backgroundColor: colors.border + "50",
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: colors.border + '50',
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 12,
-            gap: 6,
+            gap: 6
           }}
           onPress={() => setModalFiltroVisible(true)}
         >
           <Ionicons name="filter" size={16} color={colors.textSecondary} />
-          <Text
-            style={{
-              fontSize: 13,
-              fontWeight: "600",
-              color: colors.textSecondary,
-            }}
-          >
-            Filtrar
-          </Text>
+          <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textSecondary }}>Filtrar</Text>
         </Pressable>
       </View>
 
       {loading ? (
         <View style={styles.chatLoadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.chatLoadingText, { color: tema.text }]}>Carregando usuários...</Text>
+          <Text style={styles.chatLoadingText}>Carregando usuários...</Text>
         </View>
       ) : usuariosFiltrados.length === 0 ? (
         <View style={styles.chatEmptyContainer}>
-          <Ionicons
-            name="chatbubbles-outline"
-            size={64}
-            color={colors.placeholder}
-          />
+          <Ionicons name="chatbubbles-outline" size={64} color={colors.placeholder} />
           <Text style={styles.chatEmptyTitle}>Nenhum usuário disponível</Text>
-          <Text style={styles.chatEmptyText}>
-            Ajuste os filtros para exibir conversas.
-          </Text>
+          <Text style={styles.chatEmptyText}>Ajuste os filtros para exibir conversas.</Text>
         </View>
       ) : (
         <FlatList
@@ -471,50 +565,14 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
       )}
 
       {/* Modal de Filtro Contextual */}
-      <Modal
-        visible={modalFiltroVisible}
-        animationType="slide"
-        transparent={true}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "flex-end",
-            backgroundColor: "rgba(0,0,0,0.5)",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: tema.modal,
-              padding: 20,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              maxHeight: "70%",
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 18,
-                fontWeight: "bold",
-                marginBottom: 5,
-                color: tema.text,
-              }}
-            >
-              Filtrar{" "}
-              {abasPermitidas.find((a) => a.key === abaAtiva)?.label || ""}
+      <Modal visible={modalFiltroVisible} animationType="slide" transparent={true}>
+        <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View style={{ backgroundColor: colors.white, padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '70%' }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 5, color: colors.heading }}>
+              Filtrar {abasPermitidas.find(a => a.key === abaAtiva)?.label || ''}
             </Text>
-            <Text
-              style={{
-                fontSize: 13,
-                color: tema.text,
-                marginBottom: 15,
-              }}
-            >
-              Selecione quais{" "}
-              {abasPermitidas
-                .find((a) => a.key === abaAtiva)
-                ?.label.toLowerCase() || ""}{" "}
-              deseja exibir:
+            <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 15 }}>
+              Selecione quais {abasPermitidas.find(a => a.key === abaAtiva)?.label.toLowerCase() || ''} deseja exibir:
             </Text>
 
             <FlatList
@@ -524,36 +582,20 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
                 const selecionado = idsSelecionados.includes(item.id);
                 return (
                   <Pressable
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      paddingVertical: 10,
-                      borderBottomWidth: 1,
-                      borderBottomColor: colors.border,
-                    }}
+                    style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}
                     onPress={() => toggleSelecionFiltro(item.id)}
                   >
-                    <Ionicons
-                      name={selecionado ? "checkbox" : "square-outline"}
-                      size={22}
-                      color={selecionado ? colors.primary : colors.placeholder}
+                    <Ionicons 
+                      name={selecionado ? "checkbox" : "square-outline"} 
+                      size={22} 
+                      color={selecionado ? colors.primary : colors.placeholder} 
                       style={{ marginRight: 10 }}
                     />
                     <View>
-                      <Text
-                        style={{
-                          fontSize: 15,
-                          fontWeight: "500",
-                          color: tema.text,
-                        }}
-                      >
+                      <Text style={{ fontSize: 15, fontWeight: '500', color: colors.heading }}>
                         {formatarNome(item.nome, item.email, item.tipo)}
                       </Text>
-                      <Text
-                        style={{ fontSize: 12, color: tema.text }}
-                      >
-                        {item.email}
-                      </Text>
+                      <Text style={{ fontSize: 12, color: colors.textSecondary }}>{item.email}</Text>
                     </View>
                   </Pressable>
                 );
@@ -561,25 +603,10 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
             />
 
             <Pressable
-              style={{
-                marginTop: 15,
-                marginBottom: 40,
-                backgroundColor: colors.primary,
-                padding: 12,
-                borderRadius: 12,
-                alignItems: "center",
-              }}
+              style={{ marginTop: 15, backgroundColor: colors.primary, padding: 12, borderRadius: 12, alignItems: 'center' }}
               onPress={() => setModalFiltroVisible(false)}
             >
-              <Text
-                style={{
-                  color: colors.white,
-                  fontWeight: "bold",
-                  fontSize: 16,
-                }}
-              >
-                Aplicar Filtro
-              </Text>
+              <Text style={{ color: colors.white, fontWeight: 'bold', fontSize: 16 }}>Aplicar Filtro</Text>
             </Pressable>
           </View>
         </View>
