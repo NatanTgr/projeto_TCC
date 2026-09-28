@@ -537,7 +537,12 @@ const adicionarTarefa = async (tipo: string) => {
             Atrasada
           </Text>
         </View>
-
+        
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+          ></ScrollView>
         <View style={Estilos.legendaItem}>
           <View style={[Estilos.quadrado, { backgroundColor: "#88C688" }]} />
 
@@ -580,6 +585,7 @@ const adicionarTarefa = async (tipo: string) => {
         ]}
       >
         <Calendar
+          key={`calendario-${escalaFonte}`}
           style={Estilos.calendar}
           renderArrow={(direction: "right" | "left") => (
             <Feather size={24} color="#000000" name={`chevron-${direction}`} />
@@ -594,6 +600,9 @@ const adicionarTarefa = async (tipo: string) => {
               todayTextColor: "#fff",
               todayBackgroundColor: "#836F68",
               monthTextColor: "#000000",
+              textDayFontSize: 14 * escalaFonte,
+              textMonthFontSize: 16 * escalaFonte,
+              textDayHeaderFontSize: 12 * escalaFonte,
 
               arrowStyle: {
                 margin: 0,
@@ -632,6 +641,7 @@ const adicionarTarefa = async (tipo: string) => {
           markedDates={markedDates}
         />
       </View>
+      
 
       <Modal
         visible={modalEscolha}

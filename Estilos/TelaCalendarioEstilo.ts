@@ -4,7 +4,6 @@ const Estilos = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFDD0",
-   
   },
 
   header: {
@@ -50,7 +49,8 @@ const Estilos = StyleSheet.create({
   calendar: {
     borderRadius: 24,
     width: "100%",
-    padding: 15,
+    paddingHorizontal: 4,
+    paddingVertical: 10,
   },
 
   titulo: {
@@ -76,15 +76,15 @@ const Estilos = StyleSheet.create({
   },
 
   legendaContainer: {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  justifyContent: "center",
-  gap: 12,
-  alignSelf: "center",
-  width: "100%",
-  paddingHorizontal: 15,
-  marginTop: 20,
-  marginBottom: 10,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 12,
+    alignSelf: "center",
+    width: "100%",
+    paddingHorizontal: 15,
+    marginTop: 20,
+    marginBottom: 10,
   },
 
   buttons: {
