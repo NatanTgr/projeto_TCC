@@ -806,7 +806,7 @@ const getData = async () => {
                     setTipoSelecionado("");
                   }}
                 >
-                  <Text style={[Estilos.textoBotao, { fontSize: 16 * escalaFonte}]}>Cancelar</Text>
+                  <Text style={[Estilos.textoBotao, { color: tema.textoBotao, fontSize: 16 * escalaFonte}]}>Cancelar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -827,7 +827,7 @@ const getData = async () => {
                     }
                   }}
                 >
-                  <Text style={[Estilos.textoBotao, { fontSize: 16 * escalaFonte }]}>{textoBotao}</Text>
+                  <Text style={[Estilos.textoBotao, { color: tema.textoBotao, fontSize: 16 * escalaFonte }]}>{textoBotao}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

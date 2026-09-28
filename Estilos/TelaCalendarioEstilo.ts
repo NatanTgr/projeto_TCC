@@ -8,20 +8,23 @@ const Estilos = StyleSheet.create({
   },
 
   header: {
-    paddingLeft: 15,
-    paddingRight: 15,
+    paddingHorizontal: 15,
     marginTop: 40,
     width: "100%",
   },
 
   topRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
+    gap: 8,
   },
 
   headerTitle: {
+    flexGrow: 1,
+    flexShrink: 1,
     fontSize: 30,
     fontWeight: "bold",
     color: "#333",
@@ -97,7 +100,9 @@ const Estilos = StyleSheet.create({
   },
 
   cardModalEscolha: {
-    width: "85%",
+    width: "92%",
+    maxWidth: 520,
+    maxHeight: "85%",
     backgroundColor: "#ffffff",
     borderRadius: 15,
     padding: 20,
@@ -184,7 +189,8 @@ const Estilos = StyleSheet.create({
   },
 
   cardModal: {
-    width: "85%",
+    width: "92%",
+    maxWidth: 520,
     maxHeight: "85%",
     backgroundColor: "#ffffff",
     borderRadius: 15,
@@ -205,6 +211,8 @@ const Estilos = StyleSheet.create({
 
   opcoesRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
     marginBottom: 15,
   },
 
@@ -237,12 +245,15 @@ const Estilos = StyleSheet.create({
   botoesModal: {
     flexDirection: "row",
     justifyContent: "space-between",
+    flexWrap: "wrap",
     marginTop: 20,
+    marginBottom: 5,
   },
 
   botaoCancelar: {
     backgroundColor: "#FFAA56",
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
     borderRadius: 10,
     width: "45%",
     alignItems: "center",
@@ -251,6 +262,8 @@ const Estilos = StyleSheet.create({
 
   botaoConfirmar: {
     backgroundColor: "#94C0DF",
+    paddingHorizontal: 12,
+    paddingVertical: 14,
     padding: 12,
     borderRadius: 10,
     width: "50%",
@@ -265,6 +278,8 @@ const Estilos = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#dbdbdb",
     borderRadius: 10,
+    minHeight: 48,
+    paddingHorizontal: 12,
   },
 
   titulosInfoTarefa: {
