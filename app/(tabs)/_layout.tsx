@@ -7,6 +7,7 @@ import { supabase } from "../../bd/supabase";
 import { registrarNotificacoes } from "../../services/notificacoes";
 import AlertaTutorGlobal from "../../components/AlertaTutorGlobal";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFontSize } from "../../context/FontSizeContext";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
@@ -14,6 +15,7 @@ export default function TabLayout() {
   const [carregandoTipoUsuario, setCarregandoTipoUsuario] = useState(true);
   const [tipoUsuario, setTipoUsuario] = useState<string | null>(null);
   const usuarioRegistradoRef = useRef<string | null>(null);
+  const { escalaFonte } = useFontSize();
 
   useEffect(() => {
     let active = true;
@@ -97,7 +99,7 @@ export default function TabLayout() {
             backgroundColor: tema.card,
             borderTopColor: tema.border,
 
-            height: 70 + insets.bottom,
+            height: 70 + 20 * (escalaFonte - 1) + insets.bottom,
 
             paddingBottom: 8 + insets.bottom,
             paddingTop: 8,
@@ -107,7 +109,7 @@ export default function TabLayout() {
           tabBarInactiveTintColor: tipoTema === "escuro" ? "#888" : "#999",
 
           tabBarLabelStyle: {
-            fontSize: 12,
+            fontSize: 12 * escalaFonte,
             fontWeight: "500",
           },
         }}

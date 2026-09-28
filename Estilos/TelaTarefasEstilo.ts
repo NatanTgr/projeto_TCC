@@ -1,16 +1,18 @@
 import { StyleSheet } from "react-native";
+
 const Estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFDD0" },
-  header: { paddingLeft: 15, paddingRight: 15, marginTop: 40 },
+  header: { paddingLeft: 15, paddingRight: 15, marginTop: 15 },
   topRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
     marginBottom: 0,
     gap: 8,
   },
-  headerTitle: { flexShrink: 1, fontSize: 30, fontWeight: "bold", color: "#333" },
+  headerTitle: { flexShrink: 1, fontSize: 30, fontWeight: "bold", minWidth: 0, flexGrow: 1, },
   taskCount: { fontSize: 14, color: "#666", marginBottom: 10, },
   inputContainer: {
     flexDirection: "row",
@@ -88,9 +90,9 @@ const Estilos = StyleSheet.create({
   },
   scrollModal: { flexGrow: 1, justifyContent: "center", alignItems: "center" },
   cardModal: {
-    width: "85%",
+    width: "92%",
+    maxWidth: 520,
     maxHeight: "85%",
-    backgroundColor: "#ffffff",
     borderRadius: 15,
     padding: 20,
   },
@@ -100,7 +102,7 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     marginRight: 20,
   },
-  opcoesRow: { flexDirection: "row", marginBottom: 15 },
+  opcoesRow: { flexDirection: "row", marginBottom: 15, flexWrap: "wrap", gap: 12 },
   radioExterno: {
     width: 24,
     height: 24,
@@ -125,22 +127,25 @@ const Estilos = StyleSheet.create({
   },
   botaoCancelar: {
     backgroundColor: "#FFAA56",
-    padding: 22,
+    padding: 0,
     borderRadius: 10,
     width: "45%",
+    height: "100%",
     alignItems: "center",
-    textAlign: "center"
+    textAlign: "center",
   },
   botaoConfirmar: {
     backgroundColor: "#94C0DF",
-    padding: 12,
+    padding: 0,
     borderRadius: 10,
     width: "50%",
+    height: "100%",
     alignItems: "center",
+    textAlign: "center",
   },
-  textoBotao: { fontSize: 16, textAlign: "center" },
+  textoBotao: { fontSize: 16, textAlign: "center", alignSelf: "center" },
   infoTarefa: { gap: 10 },
-  textosInfo: { borderWidth: 1, borderColor: "#dbdbdb", borderRadius: 10 },
+  textosInfo: { borderWidth: 1, borderColor: "#dbdbdb", borderRadius: 10, minHeight: 48, paddingHorizontal: 12, },
   titulosInfoTarefa: { marginTop: 20,},
   buttons: { marginBottom: 50, alignItems: "center" },
   topoCard: {

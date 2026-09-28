@@ -43,6 +43,7 @@ export function ThemeProvider({
           professores: "#94c0df",
           Tutores: "#88c688",
           balaoChat: "#524c4c",
+          placeholder: "#fff"
         }
       : tipoTema === "forte"
         ? {
@@ -57,6 +58,7 @@ export function ThemeProvider({
             professores: "#94c0df",
             Tutores: "#88c688",
             balaoChat: "#0057FF",
+            placeholder: "#fff"
           }
         : {
             background: "#FFFDD0",
@@ -70,6 +72,7 @@ export function ThemeProvider({
             professores: "#94c0df",
             Tutores: "#88c688",
             balaoChat: "#ffb1638f",
+            placeholder: "#836F68" + 80,
           };
 
   useEffect(() => {

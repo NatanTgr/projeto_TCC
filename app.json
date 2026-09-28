@@ -4,7 +4,7 @@
     "slug": "calteste",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icone_PAED.png",
     "scheme": "meuapp",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -14,8 +14,8 @@
       "package": "com.natanrodrigues.paed",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundColor": "#FFFDD0",
+        "foregroundImage": "./assets/images/icone_PAED.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -27,7 +27,13 @@
     },
     "plugins": [
       "expo-router",
+      [
       "expo-notifications",
+        {
+          "icon": "./assets/images/icone_PAED.png",
+          "color": "#88C688"
+        }
+      ],
       "expo-font",
       "expo-status-bar",
       [

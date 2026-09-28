@@ -4,22 +4,13 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StatusBar,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TextInput, View,
+} from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import AvatarImagem from '../../components/AvatarImagem';
+import { buscarAvatar } from '../../components/avatares';
+import BotaoAlerta from '../../components/BotaoAlerta';
+import { useTheme } from '../../context/ThemeContext';
 
 import { supabase } from '../../lib/supabase';
 import { colors, styles } from '../../style';
@@ -38,7 +29,6 @@ type Mensagem = {
   data_edicao?: string | null;
 
   imagem_url?: string | null;
-  lida?: boolean;
 };
 
 type ItemLista =
@@ -55,6 +45,8 @@ type ItemLista =
 
 export default function Conversa() {
   const router = useRouter();
+
+  const { tema, tipoTema } = useTheme();
 
   const params = useLocalSearchParams<{
     usuarioId: string | string[];
@@ -83,6 +75,8 @@ export default function Conversa() {
       ? `Prof. ${usuarioDestinoNome}`
       : usuarioDestinoNome;
 
+  const [avatarDestino, setAvatarDestino] = useState<string | null>(null);
+
   const [usuarioLogadoId, setUsuarioLogadoId] = useState<string | null>(null);
 
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
@@ -97,6 +91,17 @@ export default function Conversa() {
 
   const [textoEditado, setTextoEditado] = useState('');
 
+  const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(null);
+
+    const corBolhaMinha = tema.balaoChat;
+
+    const corBolhaOutra =
+      tipoUsuarioLogado === "estudante" && usuarioDestinoTipo === "professor"
+        ? tema.professores + "95"
+        : tipoUsuarioLogado === "estudante" && usuarioDestinoTipo === "tutor"
+          ? tema.Tutores + "95"
+          : tema.modal;
+
   const [imagemSelecionada, setImagemSelecionada] =
   useState<string | null>(null);
 
@@ -108,42 +113,77 @@ export default function Conversa() {
   // INICIALIZAÇÃO
   // =========================================================
 
-  useEffect(() => {
-    iniciarConversa();
+useEffect(() => {
+  let ativo = true;
 
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-    };
-  }, [usuarioDestinoId]);
+  void iniciarConversa(() => ativo);
 
-  const iniciarConversa = async () => {
-    if (!usuarioDestinoId) {
-      router.back();
-      return;
+  return () => {
+    ativo = false;
+
+    const channel = channelRef.current;
+    channelRef.current = null;
+
+    if (channel) {
+      void supabase.removeChannel(channel);
     }
-
-    const {
-      data: { user },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error || !user) {
-      router.replace('/login');
-      return;
-    }
-
-    setUsuarioLogadoId(user.id);
-
-    await carregarMensagens(user.id);
-
-    // Marca as mensagens recebidas desta conversa como lidas
-    await marcarMensagensComoLidas(user.id);
-
-    iniciarRealtime(user.id);
-  
   };
+}, [usuarioDestinoId]);
+
+const iniciarConversa = async (estaAtivo: () => boolean) => {
+  if (!usuarioDestinoId) {
+    router.back();
+    return;
+  }
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (!estaAtivo()) return;
+
+  if (error || !user) {
+    router.replace("/login");
+    return;
+  }
+
+  setUsuarioLogadoId(user.id);
+
+  const { data: perfil, error: perfilError } = await supabase
+    .from("usuarios")
+    .select("tipo")
+    .eq("id", user.id)
+    .single();
+
+  if (!estaAtivo()) return;
+
+  if (perfilError) {
+    console.error("Erro ao carregar tipo do usuário:", perfilError);
+  }
+
+  setTipoUsuarioLogado(perfil?.tipo ?? null);
+
+  const { data: usuarioDestino, error: avatarError } = await supabase
+    .from("usuarios")
+    .select("avatar")
+    .eq("id", usuarioDestinoId)
+    .single();
+
+  if (!estaAtivo()) return;
+
+  if (avatarError) {
+    console.error("Erro ao carregar avatar da conversa:", avatarError);
+  }
+
+  setAvatarDestino(usuarioDestino?.avatar ?? null);
+
+  await carregarMensagens(user.id);
+
+  if (!estaAtivo()) return;
+
+  await iniciarRealtime(user.id);
+};
 
   // =========================================================
   // CARREGAR MENSAGENS
@@ -186,25 +226,6 @@ export default function Conversa() {
   };
 
   // =========================================================
-  // MARCAR MENSAGENS RECEBIDAS COMO LIDAS
-  // =========================================================
-
-  const marcarMensagensComoLidas = async (meuId: string) => {
-    if (!usuarioDestinoId) return;
-
-    const { error } = await supabase
-      .from('mensagens')
-      .update({ lida: true })
-      .eq('remetente', usuarioDestinoId)
-      .eq('destinatario', meuId)
-      .eq('lida', false);
-
-    if (error) {
-      console.error('Erro ao marcar mensagens como lidas:', error);
-    }
-  };
-
-  // =========================================================
   // CARREGAR URL DAS IMAGENS
   // =========================================================
 
@@ -238,109 +259,104 @@ export default function Conversa() {
   // REALTIME
   // =========================================================
 
-  const iniciarRealtime = (meuId: string) => {
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-    }
+const iniciarRealtime = async (meuId: string) => {
+  if (channelRef.current) {
+    const channelAnterior = channelRef.current;
+    channelRef.current = null;
+    await supabase.removeChannel(channelAnterior);
+  }
 
-    const channel = supabase
-      .channel(`chat-${meuId}-${usuarioDestinoId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'mensagens',
-        },
-        async (payload) => {
-          // -----------------------------
-          // INSERT
-          // -----------------------------
+  const channel = supabase
+    .channel(`chat-${meuId}-${usuarioDestinoId}-${Date.now()}-${Math.random()}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "mensagens",
+      },
+      async (payload) => {
+        // -----------------------------
+        // INSERT
+        // -----------------------------
 
-          if (payload.eventType === 'INSERT') {
-            let nova = payload.new as Mensagem;
+        if (payload.eventType === "INSERT") {
+          let nova = payload.new as Mensagem;
 
-            const pertenceAoChat =
-              (nova.remetente === meuId &&
-                nova.destinatario === usuarioDestinoId) ||
-              (nova.remetente === usuarioDestinoId &&
-                nova.destinatario === meuId);
+          const pertenceAoChat =
+            (nova.remetente === meuId &&
+              nova.destinatario === usuarioDestinoId) ||
+            (nova.remetente === usuarioDestinoId &&
+              nova.destinatario === meuId);
 
-            if (!pertenceAoChat) return;
+          if (!pertenceAoChat) return;
 
-            if (
-              nova.tipo === 'imagem' &&
-              nova.arquivo_url
-            ) {
-              const { data } = supabase.storage
-                .from('chat-imagens')
-                .getPublicUrl(nova.arquivo_url);
+          if (nova.tipo === "imagem" && nova.arquivo_url) {
+            const { data } = supabase.storage
+              .from("chat-imagens")
+              .getPublicUrl(nova.arquivo_url);
 
-              nova = {
-                ...nova,
-                imagem_url: data.publicUrl,
-              };
-            }
+            nova = {
+              ...nova,
+              imagem_url: data.publicUrl,
+            };
+          }
 
-            setMensagens((atual) => {
-              const jaExiste = atual.some(
-                (mensagem) => mensagem.id === nova.id
-              );
+          setMensagens((atual) => {
+            const jaExiste = atual.some((mensagem) => mensagem.id === nova.id);
 
-              if (jaExiste) return atual;
+            if (jaExiste) return atual;
 
-              return [...atual, nova].sort(
-                (a, b) =>
-                  new Date(a.data_envio).getTime() -
-                  new Date(b.data_envio).getTime()
-              );
+            return [...atual, nova].sort(
+              (a, b) =>
+                new Date(a.data_envio).getTime() -
+                new Date(b.data_envio).getTime(),
+            );
+          });
+
+          setTimeout(() => {
+            flatListRef.current?.scrollToEnd({
+              animated: true,
             });
-
-            setTimeout(() => {
-              flatListRef.current?.scrollToEnd({
-                animated: true,
-              });
-            }, 100);
-          }
-
-          // -----------------------------
-          // UPDATE
-          // -----------------------------
-
-          if (payload.eventType === 'UPDATE') {
-            const atualizada = payload.new as Mensagem;
-
-            setMensagens((atual) =>
-              atual.map((mensagem) =>
-                mensagem.id === atualizada.id
-                  ? {
-                      ...mensagem,
-                      ...atualizada,
-                    }
-                  : mensagem
-              )
-            );
-          }
-
-          // -----------------------------
-          // DELETE
-          // -----------------------------
-
-          if (payload.eventType === 'DELETE') {
-            const apagada = payload.old as Mensagem;
-
-            setMensagens((atual) =>
-              atual.filter(
-                (mensagem) => mensagem.id !== apagada.id
-              )
-            );
-          }
+          }, 100);
         }
-      )
-      .subscribe();
 
-    channelRef.current = channel;
-  };
+        // -----------------------------
+        // UPDATE
+        // -----------------------------
+
+        if (payload.eventType === "UPDATE") {
+          const atualizada = payload.new as Mensagem;
+
+          setMensagens((atual) =>
+            atual.map((mensagem) =>
+              mensagem.id === atualizada.id
+                ? {
+                    ...mensagem,
+                    ...atualizada,
+                  }
+                : mensagem,
+            ),
+          );
+        }
+
+        // -----------------------------
+        // DELETE
+        // -----------------------------
+
+        if (payload.eventType === "DELETE") {
+          const apagada = payload.old as Mensagem;
+
+          setMensagens((atual) =>
+            atual.filter((mensagem) => mensagem.id !== apagada.id),
+          );
+        }
+      },
+    )
+    .subscribe();
+
+  channelRef.current = channel;
+};
 
   // =========================================================
   // ENVIAR TEXTO
@@ -569,7 +585,7 @@ export default function Conversa() {
       if (!imagem?.uri) {
         return;
       }
-      
+
       await enviarImagem(
         imagem.uri,
         imagem.mimeType || 'image/jpeg',
@@ -580,7 +596,7 @@ export default function Conversa() {
         'Erro ao escolher imagem:',
         error
       );
-      
+
 
       Alert.alert(
         'Erro',
@@ -877,15 +893,12 @@ export default function Conversa() {
 
   const getCorPorTipoDestino = () => {
     switch (usuarioDestinoTipo) {
-      case 'professor':
-        return colors.success;
-
-      case 'tutor':
+      case "professor":
+        return colors.professor;
+      case "tutor":
         return colors.tutor;
-
-      case 'estudante':
       default:
-        return colors.primary;
+        return colors.student;
     }
   };
 
@@ -905,7 +918,7 @@ export default function Conversa() {
       >
         <View
           style={{
-            backgroundColor: '#E8E2D5',
+            backgroundColor: tema.card,
             paddingHorizontal: 13,
             paddingVertical: 6,
             borderRadius: 12,
@@ -913,7 +926,7 @@ export default function Conversa() {
         >
           <Text
             style={{
-              color: colors.text,
+              color: tema.text,
               fontSize: 11,
               fontWeight: '600',
             }}
@@ -960,7 +973,7 @@ export default function Conversa() {
         >
           <View
             style={{
-              backgroundColor: colors.white,
+              backgroundColor: tema.card,
               borderRadius: 16,
               padding: 10,
               maxWidth: '85%',
@@ -975,7 +988,7 @@ export default function Conversa() {
               autoFocus
               maxLength={1000}
               style={{
-                color: colors.text,
+                color: tema.text,
                 fontSize: 15,
                 minWidth: 180,
                 maxHeight: 100,
@@ -1047,30 +1060,22 @@ export default function Conversa() {
       <Pressable
         onLongPress={() => {
           if (minhaMensagem) {
-            if (mensagem.tipo === 'texto') {
-              Alert.alert(
-                'Mensagem',
-                'O que deseja fazer?',
-                [
-                  {
-                    text: 'Editar',
-                    onPress: () =>
-                      iniciarEdicao(mensagem),
-                  },
-                  {
-                    text: 'Apagar',
-                    style: 'destructive',
-                    onPress: () =>
-                      confirmarExclusao(
-                        mensagem
-                      ),
-                  },
-                  {
-                    text: 'Cancelar',
-                    style: 'cancel',
-                  },
-                ]
-              );
+            if (mensagem.tipo === "texto") {
+              Alert.alert("Mensagem", "O que deseja fazer?", [
+                {
+                  text: "Editar",
+                  onPress: () => iniciarEdicao(mensagem),
+                },
+                {
+                  text: "Apagar",
+                  style: "destructive",
+                  onPress: () => confirmarExclusao(mensagem),
+                },
+                {
+                  text: "Cancelar",
+                  style: "cancel",
+                },
+              ]);
             } else {
               confirmarExclusao(mensagem);
             }
@@ -1086,40 +1091,31 @@ export default function Conversa() {
         <View
           style={[
             styles.chatBubble,
-            minhaMensagem
-              ? [
-                  styles.chatBubbleMine,
-                  {
-                    backgroundColor:
-                      corTema + '25',
-                  },
-                ]
-              : styles.chatBubbleOther,
+            minhaMensagem ? styles.chatBubbleMine : styles.chatBubbleOther,
+            {
+              backgroundColor: minhaMensagem ? corBolhaMinha : corBolhaOutra,
+            },
           ]}
         >
           {/* -----------------------------------
               IMAGEM
           ----------------------------------- */}
 
-          {mensagem.tipo === 'imagem' &&
-          mensagem.imagem_url ? (
+          {mensagem.tipo === "imagem" && mensagem.imagem_url ? (
             <Pressable
-              onPress={() =>
-              setImagemSelecionada(mensagem.imagem_url!)
-              }
+              onPress={() => setImagemSelecionada(mensagem.imagem_url!)}
             >
               <Image
                 source={{ uri: mensagem.imagem_url }}
-                  style={{
-                    width: 230,
-                    height: 230,
-                    borderRadius: 12,
-                    backgroundColor: colors.border,
+                style={{
+                  width: 230,
+                  height: 230,
+                  borderRadius: 12,
+                  backgroundColor: colors.border,
                 }}
                 resizeMode="cover"
               />
             </Pressable>
-
           ) : (
             /* ---------------------------------
                TEXTO
@@ -1128,9 +1124,12 @@ export default function Conversa() {
             <Text
               style={[
                 styles.chatMessageText,
-                minhaMensagem
-                  ? styles.chatMessageTextMine
-                  : styles.chatMessageTextOther,
+                {
+                  color:
+                    minhaMensagem && tipoTema === "forte" && "escuro"
+                      ? colors.white
+                      : tema.text,
+                },
               ]}
             >
               {mensagem.conteudo}
@@ -1139,9 +1138,9 @@ export default function Conversa() {
 
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-end",
               marginTop: 4,
             }}
           >
@@ -1149,9 +1148,12 @@ export default function Conversa() {
               <Text
                 style={{
                   fontSize: 9,
-                  color: colors.muted,
+                  color:
+                    minhaMensagem && tipoTema === "forte"
+                      ? colors.white
+                      : tema.text,
                   marginRight: 5,
-                  fontStyle: 'italic',
+                  fontStyle: "italic",
                 }}
               >
                 editada
@@ -1161,14 +1163,15 @@ export default function Conversa() {
             <Text
               style={[
                 styles.chatMessageTime,
-                minhaMensagem
-                  ? styles.chatMessageTimeMine
-                  : styles.chatMessageTimeOther,
+                {
+                  color:
+                    minhaMensagem && tipoTema === "forte"
+                      ? colors.white
+                      : tema.text,
+                },
               ]}
             >
-              {formatarHorario(
-                mensagem.data_envio
-              )}
+              {formatarHorario(mensagem.data_envio)}
             </Text>
           </View>
         </View>
@@ -1186,86 +1189,73 @@ export default function Conversa() {
         styles.conversationContainer,
         {
           flex: 1,
-          backgroundColor: colors.background,
+          backgroundColor: tema.background,
         },
       ]}
-      edges={['left', 'right', 'bottom']}
+      edges={["left", "right", "bottom"]}
     >
       {/* Oculta qualquer dashboard ou header herdado da rota pai */}
       <Stack.Screen options={{ headerShown: false }} />
 
-<StatusBar
-  barStyle="dark-content"
-  backgroundColor={colors.background}
-/>
-
-<Modal
-  visible={imagemSelecionada !== null}
-  transparent
-  animationType="fade"
-  onRequestClose={() =>
-    setImagemSelecionada(null)
-  }
->
-  <View
-    style={{
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.95)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}
-  >
-    {/* Botão fechar */}
-    <Pressable
-      onPress={() =>
-        setImagemSelecionada(null)
-      }
-      style={{
-        position: 'absolute',
-        top: Platform.OS === 'android'
-          ? (StatusBar.currentHeight || 24) + 10
-          : 45,
-        right: 20,
-        zIndex: 10,
-        width: 45,
-        height: 45,
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
-    >
-      <Ionicons
-        name="close"
-        size={32}
-        color="#FFFFFF"
+      <StatusBar
+        barStyle={tipoTema === "claro" ? "dark-content" : "light-content"}
+        backgroundColor={tema.background}
       />
-    </Pressable>
 
-    {imagemSelecionada && (
-      <Image
-        source={{
-          uri: imagemSelecionada,
-        }}
-        style={{
-          width: '100%',
-          height: '80%',
-        }}
-        resizeMode="contain"
-      />
-    )}
-          </View>
-        </Modal>
+      <Modal
+        visible={imagemSelecionada !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setImagemSelecionada(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0, 0, 0, 0.95)",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          {/* Botão fechar */}
+          <Pressable
+            onPress={() => setImagemSelecionada(null)}
+            style={{
+              position: "absolute",
+              top:
+                Platform.OS === "android"
+                  ? (StatusBar.currentHeight || 24) + 10
+                  : 45,
+              right: 20,
+              zIndex: 10,
+              width: 45,
+              height: 45,
+              borderRadius: 25,
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <Ionicons name="close" size={32} color="#FFFFFF" />
+          </Pressable>
 
-        <KeyboardAvoidingView
+          {imagemSelecionada && (
+            <Image
+              source={{
+                uri: imagemSelecionada,
+              }}
+              style={{
+                width: "100%",
+                height: "80%",
+              }}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+
+      <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={
-          Platform.OS === 'ios'
-            ? 'padding'
-            : 'height'
-        }
-        keyboardVerticalOffset={
-          Platform.OS === 'ios' ? 0 : 0
-        }
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
       >
         {/* =====================================
             CABEÇALHO
@@ -1275,31 +1265,27 @@ export default function Conversa() {
           style={[
             styles.conversationHeader,
             {
+              backgroundColor: tema.card,
+              borderBottomColor: tema.border,
+            },
+            {
               paddingTop:
-                Platform.OS === 'android'
-                  ? (StatusBar.currentHeight || 24) +
-                    4
+                Platform.OS === "android"
+                  ? (StatusBar.currentHeight || 24) + 4
                   : 8,
 
               minHeight:
-                Platform.OS === 'android'
-                  ? 72 +
-                    (StatusBar.currentHeight || 24)
+                Platform.OS === "android"
+                  ? 72 + (StatusBar.currentHeight || 24)
                   : 64,
             },
           ]}
         >
           <Pressable
-            style={
-              styles.conversationBackButton
-            }
+            style={styles.conversationBackButton}
             onPress={() => router.back()}
           >
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={colors.heading}
-            />
+            <Ionicons name="arrow-back" size={24} color={tema.text} />
           </Pressable>
 
           <View
@@ -1310,11 +1296,14 @@ export default function Conversa() {
               },
             ]}
           >
-            <Ionicons
-              name="person"
-              size={23}
-              color={colors.white}
-            />
+            {buscarAvatar(avatarDestino) ? (
+              <AvatarImagem
+                uri={buscarAvatar(avatarDestino)!.url}
+                tamanho={50}
+              />
+            ) : (
+              <Ionicons name="person" size={23} color={colors.white} />
+            )}
           </View>
 
           <View
@@ -1322,10 +1311,9 @@ export default function Conversa() {
               styles.conversationHeaderInfo,
               {
                 flex: 1,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent:
-                  'space-between',
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
                 paddingRight: 8,
               },
             ]}
@@ -1333,49 +1321,24 @@ export default function Conversa() {
             <View
               style={{
                 flex: 1,
+                minWidth: 0,
                 marginRight: 8,
               }}
             >
-              <Text
-                style={
-                  styles.conversationHeaderName
-                }
-                numberOfLines={1}
-              >
+              <Text style={[styles.conversationHeaderName, { color: tema.text }]} numberOfLines={1}>
                 {nomeFormatado}
               </Text>
 
-              <Text
-                style={
-                  styles.conversationHeaderStatus
-                }
-              >
+              <Text style={[styles.conversationHeaderStatus, { color: tema.text}]}>
                 Conversa privada
               </Text>
             </View>
 
-            <Pressable
-              style={{
-                backgroundColor: '#FFAA56',
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-                borderRadius: 6,
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-              onPress={() => {}}
-            >
-              <Text
-                style={{
-                  color: '#FFFFFF',
-                  fontSize: 11,
-                  fontWeight: 'bold',
-                  letterSpacing: 0.5,
-                }}
-              >
-                ALERTA
-              </Text>
-            </Pressable>
+            {tipoUsuarioLogado === "estudante" && (
+              <View style={{ flexShrink: 0 }}>
+                <BotaoAlerta />
+              </View>
+            )}
           </View>
         </View>
 
@@ -1384,51 +1347,23 @@ export default function Conversa() {
         ===================================== */}
 
         {loading ? (
-          <View
-            style={
-              styles.chatLoadingContainer
-            }
-          >
-            <ActivityIndicator
-              size="large"
-              color={corTema}
-            />
+          <View style={styles.chatLoadingContainer}>
+            <ActivityIndicator size="large" color={corTema} />
 
-            <Text
-              style={
-                styles.chatLoadingText
-              }
-            >
-              Carregando conversa...
-            </Text>
+            <Text style={[styles.chatLoadingText, { color: tema.text }]}>Carregando conversa...</Text>
           </View>
         ) : mensagens.length === 0 ? (
-          <View
-            style={
-              styles.conversationEmptyContainer
-            }
-          >
+          <View style={styles.conversationEmptyContainer}>
             <Ionicons
               name="chatbubble-ellipses-outline"
               size={60}
               color={colors.placeholder}
             />
 
-            <Text
-              style={
-                styles.conversationEmptyTitle
-              }
-            >
-              Inicie a conversa
-            </Text>
+            <Text style={[styles.conversationEmptyTitle, { color: tema.text }]}>Inicie a conversa</Text>
 
-            <Text
-              style={
-                styles.conversationEmptyText
-              }
-            >
-              Envie uma mensagem para{' '}
-              {nomeFormatado}.
+            <Text style={[styles.conversationEmptyText, { color: tema.text }]}>
+              Envie uma mensagem para {nomeFormatado}.
             </Text>
           </View>
         ) : (
@@ -1437,9 +1372,7 @@ export default function Conversa() {
             data={criarListaComDatas()}
             keyExtractor={(item) => item.id}
             renderItem={renderMensagem}
-            contentContainerStyle={
-              styles.conversationMessagesList
-            }
+            contentContainerStyle={styles.conversationMessagesList}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() =>
               flatListRef.current?.scrollToEnd({
@@ -1455,57 +1388,46 @@ export default function Conversa() {
 
         <View
           style={{
-            backgroundColor:
-              colors.background,
+            backgroundColor: tema.background,
             paddingVertical: 6,
             borderTopWidth: 1,
-            borderTopColor: colors.border,
+            borderTopColor: tema.border,
           }}
         >
           <ScrollView
             horizontal
-            showsHorizontalScrollIndicator={
-              false
-            }
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={{
               paddingHorizontal: 10,
               gap: 8,
             }}
           >
-            {[
-              'Ok, confirmado',
-              'Podemos agendar um horário?',
-              'Obrigado!',
-            ].map((textoPredef, index) => (
-              <Pressable
-                key={index}
-                style={{
-                  backgroundColor:
-                    colors.white,
-                  borderWidth: 1.5,
-                  borderColor: corTema,
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  borderRadius: 18,
-                }}
-                onPress={() =>
-                  enviarMensagem(
-                    textoPredef
-                  )
-                }
-              >
-                <Text
+            {["Ok, confirmado", "Podemos agendar um horário?", "Obrigado!"].map(
+              (textoPredef, index) => (
+                <Pressable
+                  key={index}
                   style={{
-                    color:
-                      colors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: '500',
+                    backgroundColor: tema.card,
+                    borderWidth: 1.5,
+                    borderColor: corTema,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 18,
                   }}
+                  onPress={() => enviarMensagem(textoPredef)}
                 >
-                  {textoPredef}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 13,
+                      fontWeight: "500",
+                    }}
+                  >
+                    {textoPredef}
+                  </Text>
+                </Pressable>
+              ),
+            )}
           </ScrollView>
         </View>
 
@@ -1517,12 +1439,9 @@ export default function Conversa() {
           style={[
             styles.messageInputContainer,
             {
-              backgroundColor:
-                colors.background,
-              paddingBottom:
-                Platform.OS === 'android'
-                  ? 40
-                  : 8,
+              backgroundColor: tema.background,
+              borderTopColor: tema.border,
+              paddingBottom: Platform.OS === "android" ? 40 : 8,
             },
           ]}
         >
@@ -1530,16 +1449,14 @@ export default function Conversa() {
             style={[
               styles.messageInput,
               {
-                backgroundColor:
-                  colors.white,
+                backgroundColor: tema.input,
+                color: tipoTema === 'forte' ? '#000000' : tema.text,
               },
             ]}
             value={novaMensagem}
             onChangeText={setNovaMensagem}
             placeholder="Digite sua mensagem..."
-            placeholderTextColor={
-              colors.placeholder
-            }
+            placeholderTextColor={tema.text}
             multiline
             maxLength={1000}
             editable={!enviando}
@@ -1552,10 +1469,9 @@ export default function Conversa() {
               width: 42,
               height: 42,
               borderRadius: 21,
-              backgroundColor:
-                colors.white,
-              justifyContent: 'center',
-              alignItems: 'center',
+              backgroundColor: tema.card,
+              justifyContent: "center",
+              alignItems: "center",
               marginRight: 6,
               borderWidth: 1,
               borderColor: colors.border,
@@ -1563,11 +1479,7 @@ export default function Conversa() {
             onPress={abrirOpcoesImagem}
             disabled={enviando}
           >
-            <Ionicons
-              name="camera"
-              size={20}
-              color={corTema}
-            />
+            <Ionicons name="camera" size={20} color={corTema} />
           </Pressable>
 
           {/* BOTÃO ENVIAR */}
@@ -1578,8 +1490,7 @@ export default function Conversa() {
               {
                 backgroundColor: corTema,
               },
-              (!novaMensagem.trim() ||
-                enviando) &&
+              (!novaMensagem.trim() || enviando) &&
                 styles.sendMessageButtonDisabled,
               pressed &&
                 novaMensagem.trim() &&
@@ -1587,22 +1498,12 @@ export default function Conversa() {
                 styles.sendMessageButtonPressed,
             ]}
             onPress={() => enviarMensagem()}
-            disabled={
-              !novaMensagem.trim() ||
-              enviando
-            }
+            disabled={!novaMensagem.trim() || enviando}
           >
             {enviando ? (
-              <ActivityIndicator
-                size="small"
-                color={colors.white}
-              />
+              <ActivityIndicator size="small" color={colors.white} />
             ) : (
-              <Ionicons
-                name="send"
-                size={21}
-                color={colors.white}
-              />
+              <Ionicons name="send" size={21} color={colors.white} />
             )}
           </Pressable>
         </View>

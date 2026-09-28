@@ -1,12 +1,12 @@
 // Importando componentes e recursos
 import { useState,  useCallback } from "react";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { View, ScrollView, Text, TextInput, 
   Modal, TouchableOpacity, Alert,} from 'react-native';
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-//import { router, Link } from 'expo-router';
 import Estilos from "../../Estilos/TelaTarefasEstilo";
 import { supabase } from "../../bd/supabase";
 import BotaoAlerta from "../../components/BotaoAlerta";
@@ -591,7 +591,10 @@ const getData = async () => {
 );
 
   return (
-    <View style={[Estilos.container, { backgroundColor: tema.background }]}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={[Estilos.container, { backgroundColor: tema.background }]}
+    >
       {/* Cabeçalho */}
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
@@ -604,7 +607,7 @@ const getData = async () => {
             Minhas Tarefas
           </Text>
 
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-end" }}>
             {/* Botão ALERTA */}
             <BotaoAlerta />
             <TouchableOpacity
@@ -692,7 +695,7 @@ const getData = async () => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text }]}>
+                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte }]}>
                     Tarefa
                   </Text>
                 </TouchableOpacity>
@@ -708,7 +711,7 @@ const getData = async () => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text }]}>
+                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte }]}>
                     Reunião
                   </Text>
                 </TouchableOpacity>
@@ -716,64 +719,70 @@ const getData = async () => {
 
               {/*Colocar Textos*/}
               <View style={Estilos.infoTarefa}>
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte }]}>
                   Título
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text }]}
+                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte }]}
                   placeholder="Nome do evento"
+                  placeholderTextColor={tema.placeholder}
                   value={titulo}
                   onChangeText={setTitulo}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
                   Data
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text }]}
+                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte }]}
                   placeholder="dd/mm/aaaa"
+                  placeholderTextColor={tema.placeholder}
                   value={data}
                   onChangeText={alterarData}
                   keyboardType="numeric"
                   maxLength={10}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
                   Disciplina
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text }]}
+                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
                   placeholder="Ex: Matemática"
+                  placeholderTextColor={tema.placeholder}
                   value={disciplina}
                   onChangeText={setDisciplina}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
                   Professor
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text }]}
+                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
                   placeholder="Nome do professor"
+                  placeholderTextColor={tema.placeholder}
                   value={professor}
                   onChangeText={setProfessor}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
                   Plataforma de Realização
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text }]}
+                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
                   placeholder="Ex: Google Classroom, Moodle"
+                  placeholderTextColor={tema.placeholder}
                   value={plataforma}
                   onChangeText={setPlataforma}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text }]}>
+                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
                   Descrição
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text }]}
+                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
                   placeholder="Detalhes do evento"
+                  placeholderTextColor={tema.placeholder}
                   value={descricao}
                   onChangeText={setDescricao}
                 />
@@ -797,7 +806,7 @@ const getData = async () => {
                     setTipoSelecionado("");
                   }}
                 >
-                  <Text style={{ color: "#fff" }}>Cancelar</Text>
+                  <Text style={[Estilos.textoBotao, { fontSize: 16 * escalaFonte}]}>Cancelar</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -818,7 +827,7 @@ const getData = async () => {
                     }
                   }}
                 >
-                  <Text style={[Estilos.textoBotao]}>{textoBotao}</Text>
+                  <Text style={[Estilos.textoBotao, { fontSize: 16 * escalaFonte }]}>{textoBotao}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -837,6 +846,6 @@ const getData = async () => {
           }
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
