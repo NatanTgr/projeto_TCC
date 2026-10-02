@@ -112,9 +112,15 @@ export default function TelaConfig() {
     router.replace("/login");
   } catch (erro) {
     console.error("Erro ao sair da conta:", erro);
+
+    const detalhe =
+      typeof erro === "object" && erro !== null && "message" in erro
+        ? String(erro.message)
+        : "Erro sem detalhes disponíveis.";
+
     Alert.alert(
-      "Erro",
-      "Não foi possível desvincular as notificações deste aparelho. Tente sair novamente.",
+      "Não foi possível sair",
+      `Tente novamente.\n\nDetalhe: ${detalhe}`,
     );
   }
 };

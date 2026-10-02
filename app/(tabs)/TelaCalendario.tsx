@@ -99,13 +99,11 @@ const converterData = (data: string) => {
       !dataInterna.trim() ||
       !disciplina.trim() ||
       !professor.trim() ||
-      !tipoSelecionado.trim() ||
-      !plataforma.trim() ||
-      !descricao.trim()
+      !tipoSelecionado.trim()
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha todos os campos para editar o evento.",
+        "Preencha título, data, disciplina, professor e tipo do evento.",
       );
       return false;
     }

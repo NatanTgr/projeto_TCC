@@ -1,8 +1,9 @@
 // Importando componentes e recursos
-import { useState,  useCallback } from "react";
+import { useState,  useCallback, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, ScrollView, Text, TextInput, 
-  Modal, TouchableOpacity, Alert,} from 'react-native';
+  Modal, TouchableOpacity, Alert, Keyboard} from 'react-native';
+import { Calendar, LocaleConfig, DateData } from "react-native-calendars";
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -11,6 +12,7 @@ import Estilos from "../../Estilos/TelaTarefasEstilo";
 import { supabase } from "../../bd/supabase";
 import BotaoAlerta from "../../components/BotaoAlerta";
 import ModalDetalhesTarefa from "../../components/ModalDetalhesTarefa";
+import { ptBR } from "../../Utils/configCal";
 
 // Definindo o tipo para uma tarefa
 type Task = {
@@ -29,7 +31,7 @@ type Task = {
 
 export default function ListaTarefas() {
   const { alunoId } = useLocalSearchParams<{ alunoId?: string }>();
-  
+
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
   const [tarefas, setTarefas] = useState<Task[]>([]);
@@ -77,15 +79,12 @@ export default function ListaTarefas() {
       !dataInterna.trim() ||
       !disciplina.trim() ||
       !professor.trim() ||
-      !tipoSelecionado.trim() ||
-      !plataforma.trim() ||
-      !descricao.trim()
+      !tipoSelecionado.trim()
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha todos os campos para adicionar o evento.",
+        "Preencha título, data, disciplina, professor e tipo do evento.",
       );
-
       return false;
     }
 
@@ -239,11 +238,21 @@ export default function ListaTarefas() {
         </View>
       </View>
 
-      <Text style={[Estilos.textodataEvento, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
+      <Text
+        style={[
+          Estilos.textodataEvento,
+          { color: tema.text, fontSize: 14 * escalaFonte },
+        ]}
+      >
         📅 {formatarData(item.data)} 📚 {item.disciplina}
       </Text>
 
-      <Text style={[Estilos.textodataEvento, { color: tema.text, fontSize: 14 * escalaFonte, }]}>
+      <Text
+        style={[
+          Estilos.textodataEvento,
+          { color: tema.text, fontSize: 14 * escalaFonte },
+        ]}
+      >
         👨‍🏫 Prof. {item.professor}
       </Text>
     </TouchableOpacity>
@@ -320,7 +329,6 @@ export default function ListaTarefas() {
               // Fecha o modal
               setModalDetalhes(false);
               setTarefaSelecionada(null);
-
             } catch (error) {
               console.log("Erro ao remover tarefa:", error);
             }
@@ -334,43 +342,43 @@ export default function ListaTarefas() {
   const totalTarefas = tarefas.length;
   const tarefasCompletas = tarefas.filter((task) => task.concluido).length;
 
-const getData = async () => {
-  try {
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+  const getData = async () => {
+    try {
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
 
-    if (authError) {
-      console.log("Erro ao obter usuário logado:", authError);
-      setTarefas([]);
-      return;
-    }
+      if (authError) {
+        console.log("Erro ao obter usuário logado:", authError);
+        setTarefas([]);
+        return;
+      }
 
-    if (!user) {
-      console.log("Nenhum usuário está logado.");
-      setTarefas([]);
-      return;
-    }
+      if (!user) {
+        console.log("Nenhum usuário está logado.");
+        setTarefas([]);
+        return;
+      }
 
-    console.log("Carregando tarefas do usuário:", user.id);
+      console.log("Carregando tarefas do usuário:", user.id);
 
-    const { data: tarefasSalvas, error } = await supabase
-      .from("tarefas")
-      .select("*")
-      .eq("aluno_id", alunoId || user.id)
-      .order("data", { ascending: true });
+      const { data: tarefasSalvas, error } = await supabase
+        .from("tarefas")
+        .select("*")
+        .eq("aluno_id", alunoId || user.id)
+        .order("data", { ascending: true });
 
-    if (error) {
+      if (error) {
+        console.log("Erro ao carregar tarefas:", error);
+        return;
+      }
+
+      setTarefas(tarefasSalvas || []);
+    } catch (error) {
       console.log("Erro ao carregar tarefas:", error);
-      return;
     }
-
-    setTarefas(tarefasSalvas || []);
-  } catch (error) {
-    console.log("Erro ao carregar tarefas:", error);
-  }
-};
+  };
 
   //converter data
   const converterData = (data: string) => {
@@ -402,6 +410,37 @@ const getData = async () => {
 
   //o que sera salvo
   const [dataInterna, setDataInterna] = useState("");
+
+  const [calendarioDataAberto, setCalendarioDataAberto] = useState(false);
+
+  // Usa a data local do aparelho, evitando mudança de dia pelo fuso UTC.
+  const agora = new Date();
+
+  const hojeCalendario = [
+    agora.getFullYear(),
+    String(agora.getMonth() + 1).padStart(2, "0"),
+    String(agora.getDate()).padStart(2, "0"),
+  ].join("-");
+
+  const abrirCalendarioData = () => {
+    Keyboard.dismiss();
+    setCalendarioDataAberto((aberto) => !aberto);
+  };
+
+  const selecionarDataCalendario = (dia: DateData) => {
+    // Preserva a regra existente de impedir datas passadas.
+    if (dia.dateString < hojeCalendario) return;
+
+    const [ano, mes, diaNumero] = dia.dateString.split("-");
+
+    setData(`${diaNumero}/${mes}/${ano}`);
+    setDataInterna(dia.dateString);
+    setCalendarioDataAberto(false);
+  };
+
+  useEffect(() => {
+    setCalendarioDataAberto(false);
+  }, [modalVisivel]);
 
   //cria a data de hoje
   const hoje = new Date();
@@ -472,13 +511,11 @@ const getData = async () => {
       !dataInterna.trim() ||
       !disciplina.trim() ||
       !professor.trim() ||
-      !tipoSelecionado.trim() ||
-      !plataforma.trim() ||
-      !descricao.trim()
+      !tipoSelecionado.trim()
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha todos os campos para editar o evento.",
+        "Preencha título, data, disciplina, professor e tipo do evento.",
       );
       return false;
     }
@@ -566,7 +603,10 @@ const getData = async () => {
     return (
       <View style={{ marginBottom: 20 }}>
         <Text
-          style={[Estilos.tituloSecao, { color: tema.text, fontSize: 22 * escalaFonte }]}
+          style={[
+            Estilos.tituloSecao,
+            { color: tema.text, fontSize: 22 * escalaFonte },
+          ]}
         >
           {titulo}
         </Text>
@@ -585,10 +625,10 @@ const getData = async () => {
   }
 
   useFocusEffect(
-  useCallback(() => {
-    getData();
-  }, []),
-);
+    useCallback(() => {
+      getData();
+    }, []),
+  );
 
   return (
     <SafeAreaView
@@ -607,7 +647,14 @@ const getData = async () => {
             Minhas Tarefas
           </Text>
 
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "flex-end" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              alignSelf: "flex-end",
+            }}
+          >
             {/* Botão ALERTA */}
             <BotaoAlerta />
             <TouchableOpacity
@@ -695,7 +742,12 @@ const getData = async () => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte }]}>
+                  <Text
+                    style={[
+                      Estilos.textoOpcao,
+                      { color: tema.text, fontSize: 16 * escalaFonte },
+                    ]}
+                  >
                     Tarefa
                   </Text>
                 </TouchableOpacity>
@@ -711,7 +763,12 @@ const getData = async () => {
                     )}
                   </View>
 
-                  <Text style={[Estilos.textoOpcao, { color: tema.text, fontSize: 16 * escalaFonte }]}>
+                  <Text
+                    style={[
+                      Estilos.textoOpcao,
+                      { color: tema.text, fontSize: 16 * escalaFonte },
+                    ]}
+                  >
                     Reunião
                   </Text>
                 </TouchableOpacity>
@@ -719,68 +776,197 @@ const getData = async () => {
 
               {/*Colocar Textos*/}
               <View style={Estilos.infoTarefa}>
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
+                >
                   Título
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte }]}
+                  style={[
+                    Estilos.textosInfo,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
                   placeholder="Nome do evento"
                   placeholderTextColor={tema.placeholder}
                   value={titulo}
                   onChangeText={setTitulo}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
+                >
                   Data
                 </Text>
-                <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte }]}
-                  placeholder="dd/mm/aaaa"
-                  placeholderTextColor={tema.placeholder}
-                  value={data}
-                  onChangeText={alterarData}
-                  keyboardType="numeric"
-                  maxLength={10}
-                />
+                <TouchableOpacity
+                  onPress={abrirCalendarioData}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    data ? `Alterar data: ${data}` : "Selecionar data do evento"
+                  }
+                  accessibilityState={{ expanded: calendarioDataAberto }}
+                  style={[
+                    Estilos.textosInfo,
+                    Estilos.campoData,
+                    { backgroundColor: tema.card },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 16 * escalaFonte,
+                      flex: 1,
+                      flexShrink: 1,
+                    }}
+                  >
+                    {data || "Selecionar data"}
+                  </Text>
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={24}
+                    color={tema.text}
+                  />
+                </TouchableOpacity>
+
+                {calendarioDataAberto && (
+                  <View
+                    style={[
+                      Estilos.seletorData,
+                      { backgroundColor: tema.card },
+                    ]}
+                  >
+                    <Calendar
+                      key={`seletor-data-${escalaFonte}-${tema.background}`}
+                      current={
+                        dataInterna && dataInterna >= hojeCalendario
+                          ? dataInterna
+                          : hojeCalendario
+                      }
+                      minDate={hojeCalendario}
+                      disableAllTouchEventsForDisabledDays
+                      firstDay={0}
+                      hideExtraDays
+                      onDayPress={selecionarDataCalendario}
+                      markedDates={
+                        dataInterna
+                          ? {
+                              [dataInterna]: {
+                                selected: true,
+                                selectedColor: "#94C0DF",
+                                selectedTextColor: tema.text,
+                              },
+                            }
+                          : {}
+                      }
+                      theme={{
+                        calendarBackground: tema.card,
+                        dayTextColor: tema.text,
+                        monthTextColor: tema.text,
+                        textSectionTitleColor: tema.text,
+                        todayTextColor: tema.text,
+                        todayBackgroundColor: "#c49a7e",
+                        arrowColor: tema.text,
+                        textDisabledColor: "#888888",
+                        textDayFontSize: 14 * escalaFonte,
+                        textMonthFontSize: 16 * escalaFonte,
+                        textDayHeaderFontSize: 12 * escalaFonte,
+                      }}
+                    />
+
+                    <TouchableOpacity
+                      onPress={() => setCalendarioDataAberto(false)}
+                      accessibilityRole="button"
+                      style={Estilos.botaoFecharCalendario}
+                    >
+                      <Text
+                        style={{
+                          color: tema.text,
+                          fontSize: 14 * escalaFonte,
+                          textAlign: "center",
+                        }}
+                      >
+                        Fechar calendário
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
+                >
                   Disciplina
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
+                  style={[
+                    Estilos.textosInfo,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
                   placeholder="Ex: Matemática"
                   placeholderTextColor={tema.placeholder}
                   value={disciplina}
                   onChangeText={setDisciplina}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
+                >
                   Professor
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
+                  style={[
+                    Estilos.textosInfo,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
                   placeholder="Nome do professor"
                   placeholderTextColor={tema.placeholder}
                   value={professor}
                   onChangeText={setProfessor}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
+                >
                   Plataforma de Realização
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
+                  style={[
+                    Estilos.textosInfo,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
                   placeholder="Ex: Google Classroom, Moodle"
                   placeholderTextColor={tema.placeholder}
                   value={plataforma}
                   onChangeText={setPlataforma}
                 />
 
-                <Text style={[Estilos.titulosInfoTarefa, { color: tema.text, fontSize: 14 * escalaFonte  }]}>
+                <Text
+                  style={[
+                    Estilos.titulosInfoTarefa,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
+                >
                   Descrição
                 </Text>
                 <TextInput
-                  style={[Estilos.textosInfo, { color: tema.text, fontSize: 14 * escalaFonte  }]}
+                  style={[
+                    Estilos.textosInfo,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
                   placeholder="Detalhes do evento"
                   placeholderTextColor={tema.placeholder}
                   value={descricao}
@@ -806,7 +992,14 @@ const getData = async () => {
                     setTipoSelecionado("");
                   }}
                 >
-                  <Text style={[Estilos.textoBotao, { color: tema.textoBotao, fontSize: 16 * escalaFonte}]}>Cancelar</Text>
+                  <Text
+                    style={[
+                      Estilos.textoBotao,
+                      { color: tema.textoBotao, fontSize: 16 * escalaFonte },
+                    ]}
+                  >
+                    Cancelar
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -827,7 +1020,14 @@ const getData = async () => {
                     }
                   }}
                 >
-                  <Text style={[Estilos.textoBotao, { color: tema.textoBotao, fontSize: 16 * escalaFonte }]}>{textoBotao}</Text>
+                  <Text
+                    style={[
+                      Estilos.textoBotao,
+                      { color: tema.textoBotao, fontSize: 16 * escalaFonte },
+                    ]}
+                  >
+                    {textoBotao}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>

@@ -9,6 +9,9 @@ module.exports = ({ config }) => {
       package: desenvolvimento
         ? `${config.android.package}.dev`
         : config.android.package,
+      googleServicesFile: desenvolvimento
+        ? "./google-services-dev.json"
+        : "./google-services.json",
     },
   };
 };

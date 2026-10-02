@@ -12,8 +12,14 @@ const Estilos = StyleSheet.create({
     marginBottom: 0,
     gap: 8,
   },
-  headerTitle: { flexShrink: 1, fontSize: 30, fontWeight: "bold", minWidth: 0, flexGrow: 1, },
-  taskCount: { fontSize: 14, color: "#666", marginBottom: 10, },
+  headerTitle: {
+    flexShrink: 1,
+    fontSize: 30,
+    fontWeight: "bold",
+    minWidth: 0,
+    flexGrow: 1,
+  },
+  taskCount: { fontSize: 14, color: "#666", marginBottom: 10 },
   inputContainer: {
     flexDirection: "row",
     padding: 16,
@@ -102,7 +108,12 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     marginRight: 20,
   },
-  opcoesRow: { flexDirection: "row", marginBottom: 15, flexWrap: "wrap", gap: 12 },
+  opcoesRow: {
+    flexDirection: "row",
+    marginBottom: 15,
+    flexWrap: "wrap",
+    gap: 12,
+  },
   radioExterno: {
     width: 24,
     height: 24,
@@ -145,8 +156,14 @@ const Estilos = StyleSheet.create({
   },
   textoBotao: { fontSize: 16, textAlign: "center", alignSelf: "center" },
   infoTarefa: { gap: 10 },
-  textosInfo: { borderWidth: 1, borderColor: "#dbdbdb", borderRadius: 10, minHeight: 48, paddingHorizontal: 12, },
-  titulosInfoTarefa: { marginTop: 20,},
+  textosInfo: {
+    borderWidth: 1,
+    borderColor: "#dbdbdb",
+    borderRadius: 10,
+    minHeight: 48,
+    paddingHorizontal: 12,
+  },
+  titulosInfoTarefa: { marginTop: 20 },
   buttons: { marginBottom: 50, alignItems: "center" },
   topoCard: {
     flexDirection: "row",
@@ -156,9 +173,13 @@ const Estilos = StyleSheet.create({
     marginBottom: 10,
     gap: 8,
   },
-  tituloEvento: { fontSize: 18, fontWeight: "bold",  flexGrow: 1,
-  flexShrink: 1,
-  minWidth: "55%", },
+  tituloEvento: {
+    fontSize: 18,
+    fontWeight: "bold",
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: "55%",
+  },
 
   badgeTipo: {
     backgroundColor: "#94C0DF",
@@ -192,7 +213,31 @@ const Estilos = StyleSheet.create({
     marginBottom: 10,
     marginLeft: 5,
   },
-  modalContent: {
+  modalContent: {},
+
+  campoData: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 12,
+  },
+
+  seletorData: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#dbdbdb",
+    borderRadius: 12,
+    padding: 4,
+    overflow: "hidden",
+  },
+
+  botaoFecharCalendario: {
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
 export default Estilos;
