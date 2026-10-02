@@ -6,11 +6,12 @@ const Estilos = StyleSheet.create({
   header: {
     width: "100%",
     paddingHorizontal: 15,
-    marginTop: 40,
+    marginTop: 8,
   },
 
   topRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
@@ -20,6 +21,7 @@ const Estilos = StyleSheet.create({
 
   headerTitle: {
     flex: 1,
+    flexShrink: 1,
     minWidth: 0,
     fontSize: 30,
     fontWeight: "bold",
@@ -75,10 +77,11 @@ const Estilos = StyleSheet.create({
     backgroundColor: "#FFFDD0",
     borderRadius: 15,
     width: "100%",
-    padding: 20,
+    padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
     elevation: 5,
   },
   cardNotiChat: {
@@ -93,10 +96,12 @@ const Estilos = StyleSheet.create({
   cardLembrete: {
     backgroundColor: "#FFFDD0",
     borderRadius: 15,
-    padding: 20,
+    width: "100%",
+    padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
     elevation: 5,
   },
   botaoSair: {
@@ -112,7 +117,7 @@ const Estilos = StyleSheet.create({
   texto2: { fontSize: 18 },
   textoConfiguracoes: {},
   navbar: { marginBottom: 50, alignItems: "center" },
-  perfilTopo: { flexDirection: "row", alignItems: "center" },
+  perfilTopo: { flexDirection: "row", alignItems: "center", gap: 16 },
   avatarContainer: {
     width: 90,
     height: 90,
@@ -120,7 +125,7 @@ const Estilos = StyleSheet.create({
     backgroundColor: "#94C0DF",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 18,
+    flexShrink: 0,
   },
   avatarTexto: { fontSize: 42 },
   informacoesPerfil: { flex: 1, gap: 4 },
@@ -137,11 +142,12 @@ const Estilos = StyleSheet.create({
     padding: 12,
     marginTop: 18,
   },
-  textoBotaoAvatar: { fontWeight: "600" },
+  textoBotaoAvatar: { fontWeight: "600", flexShrink: 1, textAlign: "center" },
   botoesTema: { flexDirection: "row", gap: 8, width: "100%", flexWrap: "wrap" },
   botaoTema: {
-    minWidth: "45%",
+    minHeight: 48,
     flexGrow: 1,
+    flexBasis: 120,
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,
@@ -201,6 +207,8 @@ const Estilos = StyleSheet.create({
 
   textoAlterarSenha: {
     fontWeight: "600",
+    flexShrink: 1,
+    textAlign: "center",
   },
 
   fundoModal: {
@@ -211,7 +219,9 @@ const Estilos = StyleSheet.create({
   },
 
   modalSenha: {
-    width: "85%",
+    width: "92%",
+    maxWidth: 520,
+    maxHeight: "85%",
     padding: 20,
     borderRadius: 15,
   },
@@ -245,6 +255,7 @@ const Estilos = StyleSheet.create({
   textoConfirmarSenha: {
     color: "#fff",
     fontWeight: "bold",
+    textAlign: "center",
   },
 
   botaoCancelarSenha: {

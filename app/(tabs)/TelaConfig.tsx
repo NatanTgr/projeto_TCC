@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Switch} from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, Alert, Switch, useWindowDimensions, KeyboardAvoidingView, Platform,} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
@@ -122,6 +123,10 @@ export default function TelaConfig() {
   const { tipoTema, selecionarTema, tema } = useTheme();
 
   const { tamanhoFonte, escalaFonte, selecionarTamanhoFonte } = useFontSize();
+
+  const { width, fontScale } = useWindowDimensions();
+
+  const perfilEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
 
   const [modalAlterarSenha, setModalAlterarSenha] = useState(false);
 
@@ -322,13 +327,9 @@ export default function TelaConfig() {
   }, []);
 
   return (
-    <View
-      style={[
-        Estilos.container,
-        {
-          backgroundColor: tema.background,
-        },
-      ]}
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={[Estilos.container, { backgroundColor: tema.background }]}
     >
       {/* Cabeçalho */}
       <View style={Estilos.header}>
@@ -352,7 +353,15 @@ export default function TelaConfig() {
         <View style={Estilos.tela}>
           <View style={[Estilos.cardPerfil, { backgroundColor: tema.modal }]}>
             {/* Avatar + informações */}
-            <View style={Estilos.perfilTopo}>
+            <View
+              style={[
+                Estilos.perfilTopo,
+                perfilEmColuna && {
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                },
+              ]}
+            >
               {/* Avatar */}
               <View style={Estilos.avatarContainer}>
                 {avatarPerfil ? (
@@ -363,7 +372,15 @@ export default function TelaConfig() {
               </View>
 
               {/* Informações do usuário */}
-              <View style={Estilos.informacoesPerfil}>
+              <View
+                style={[
+                  Estilos.informacoesPerfil,
+                  perfilEmColuna && {
+                    flex: 0,
+                    width: "100%",
+                  },
+                ]}
+              >
                 <Text
                   style={[
                     Estilos.nomePerfil,
@@ -595,6 +612,7 @@ export default function TelaConfig() {
           >
             <View
               style={{
+                flex: 1,
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 10,
@@ -608,6 +626,7 @@ export default function TelaConfig() {
                   {
                     color: tema.text,
                     fontSize: 18 * escalaFonte,
+                    flexShrink: 1,
                   },
                 ]}
               >
@@ -704,7 +723,7 @@ export default function TelaConfig() {
               ]}
               onPress={() => setModalTamanhoFonte(true)}
             >
-              <View>
+              <View style={{ flex: 1, minWidth: 0 }}>
                 <Text
                   style={[
                     Estilos.texto,
@@ -722,7 +741,7 @@ export default function TelaConfig() {
                     color: tema.text,
                     fontSize: 14 * escalaFonte,
                     marginTop: 5,
-                    textAlign: "center"
+                    textAlign: "center",
                   }}
                 >
                   Atual: {tamanhoFonte}
@@ -950,14 +969,15 @@ export default function TelaConfig() {
         animationType="fade"
         onRequestClose={() => setModalAlterarSenha(false)}
       >
-        <View style={Estilos.fundoModal}>
-          <View
-            style={[
-              Estilos.modalSenha,
-              {
-                backgroundColor: tema.modal,
-              },
-            ]}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={Estilos.fundoModal}
+        >
+          <ScrollView
+            style={[Estilos.modalSenha, { backgroundColor: tema.modal, flexGrow: 0, }]}
+            contentContainerStyle={{ padding: 20 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
             <Text
               style={[
@@ -1052,9 +1072,9 @@ export default function TelaConfig() {
                 Cancelar
               </Text>
             </TouchableOpacity>
-          </View>
-        </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }

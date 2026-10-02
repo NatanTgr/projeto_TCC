@@ -520,7 +520,11 @@ const adicionarTarefa = async (tipo: string) => {
           <BotaoAlerta />
         </View>
       </View>
-
+      <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+      >
       <View style={Estilos.legendaContainer}>
         <View style={Estilos.legendaItem}>
           <View style={[Estilos.quadrado, { backgroundColor: "#FFA64E" }]} />
@@ -537,12 +541,7 @@ const adicionarTarefa = async (tipo: string) => {
             Atrasada
           </Text>
         </View>
-        
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 24 }}
-          showsVerticalScrollIndicator={false}
-          ></ScrollView>
+
         <View style={Estilos.legendaItem}>
           <View style={[Estilos.quadrado, { backgroundColor: "#88C688" }]} />
 
@@ -641,8 +640,7 @@ const adicionarTarefa = async (tipo: string) => {
           markedDates={markedDates}
         />
       </View>
-      
-
+      </ScrollView>
       <Modal
         visible={modalEscolha}
         transparent

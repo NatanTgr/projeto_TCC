@@ -8,6 +8,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from "react-native";
 
 import { useTheme } from "../context/ThemeContext";
@@ -31,6 +32,34 @@ export default function SeletorAvatar({
 }: Props) {
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
+
+  const { width, fontScale } = useWindowDimensions();
+
+  const [larguraGrade, setLarguraGrade] = useState(0);
+
+  const espacoEntreAvatares = 8;
+
+  // Estimativa inicial; onLayout depois informa a largura real da grade.
+  const larguraDisponivel =
+    larguraGrade || Math.max(1, Math.min(width * 0.92, 540) - 36);
+
+  const larguraDesejada = Math.max(96, 96 * escalaFonte * fontScale);
+
+  const quantidadeColunas = Math.max(
+    1,
+    Math.min(
+      4,
+      Math.floor(
+        (larguraDisponivel + espacoEntreAvatares) /
+          (larguraDesejada + espacoEntreAvatares),
+      ),
+    ),
+  );
+
+  const larguraOpcao = Math.floor(
+    (larguraDisponivel - espacoEntreAvatares * (quantidadeColunas - 1)) /
+      quantidadeColunas,
+  );
 
   const [avatarSelecionado, setAvatarSelecionado] =
     useState<string | null>(null);
@@ -99,6 +128,7 @@ export default function SeletorAvatar({
           ]}
         >
           <ScrollView
+            style={{ flexGrow: 0 }}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={estilos.conteudo}
           >
@@ -124,10 +154,7 @@ export default function SeletorAvatar({
 
             {escolhido && (
               <View style={estilos.previa}>
-                <AvatarImagem
-                  uri={escolhido.url}
-                  tamanho={104}
-                />
+                <AvatarImagem uri={escolhido.url} tamanho={104} />
 
                 <Text
                   accessibilityLiveRegion="polite"
@@ -142,10 +169,14 @@ export default function SeletorAvatar({
               </View>
             )}
 
-            <View style={estilos.grade}>
+            <View
+              style={estilos.grade}
+              onLayout={({ nativeEvent }) => {
+                setLarguraGrade(nativeEvent.layout.width);
+              }}
+            >
               {AVATARES.map((avatar) => {
-                const selecionado =
-                  avatar.id === avatarSelecionado;
+                const selecionado = avatar.id === avatarSelecionado;
 
                 return (
                   <TouchableOpacity
@@ -163,26 +194,20 @@ export default function SeletorAvatar({
                     style={[
                       estilos.opcao,
                       {
+                        width: larguraOpcao,
                         backgroundColor: tema.card,
-                        borderColor: selecionado
-                          ? "#4CAF50"
-                          : tema.border,
+                        borderColor: selecionado ? "#4CAF50" : tema.border,
                       },
                     ]}
                   >
-                    <AvatarImagem
-                      uri={avatar.url}
-                      tamanho={64}
-                    />
+                    <AvatarImagem uri={avatar.url} tamanho={64} />
 
                     <View style={estilos.nomeAvatar}>
                       <Text
                         style={{
                           color: tema.text,
                           fontSize: 12 * escalaFonte,
-                          fontWeight: selecionado
-                            ? "bold"
-                            : "normal",
+                          fontWeight: selecionado ? "bold" : "normal",
                           textAlign: "center",
                         }}
                       >
@@ -216,8 +241,7 @@ export default function SeletorAvatar({
               style={[
                 estilos.botaoSalvar,
                 {
-                  opacity:
-                    !escolhido || salvando ? 0.5 : 1,
+                  opacity: !escolhido || salvando ? 0.5 : 1,
                 },
               ]}
             >
@@ -229,6 +253,7 @@ export default function SeletorAvatar({
                     color: "#fff",
                     fontWeight: "bold",
                     fontSize: 16 * escalaFonte,
+                    textAlign: "center",
                   }}
                 >
                   Salvar avatar
@@ -246,6 +271,7 @@ export default function SeletorAvatar({
                 style={{
                   color: tema.text,
                   fontSize: 16 * escalaFonte,
+                  textAlign: "center",
                 }}
               >
                 Cancelar
@@ -270,7 +296,7 @@ const estilos = StyleSheet.create({
   modal: {
     width: "92%",
     maxWidth: 540,
-    maxHeight: "100%",
+    maxHeight: "85%",
     borderRadius: 18,
     overflow: "hidden",
     flexShrink: 1,
@@ -287,15 +313,15 @@ const estilos = StyleSheet.create({
   },
 
   grade: {
+    width: "100%",
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
+    alignItems: "stretch",
     gap: 8,
   },
 
   opcao: {
-    width: "30%",
-    minWidth: 76,
     borderWidth: 2,
     borderRadius: 12,
     paddingTop: 8,
@@ -305,7 +331,7 @@ const estilos = StyleSheet.create({
   nomeAvatar: {
     width: "100%",
     minHeight: 48,
-    padding: 4,
+    padding: 6,
     alignItems: "center",
     justifyContent: "center",
   },
