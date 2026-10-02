@@ -130,6 +130,21 @@ useEffect(() => {
   };
 }, [usuarioDestinoId]);
 
+const marcarMensagensComoLidas = async (meuId: string) => {
+  if (!usuarioDestinoId) return;
+
+  const { error } = await supabase
+    .from("mensagens")
+    .update({ lida: true })
+    .eq("destinatario", meuId)
+    .eq("remetente", usuarioDestinoId)
+    .eq("lida", false);
+
+  if (error) {
+    console.error("Erro ao marcar mensagens como lidas:", error);
+  }
+};
+
 const iniciarConversa = async (estaAtivo: () => boolean) => {
   if (!usuarioDestinoId) {
     router.back();
@@ -183,6 +198,10 @@ const iniciarConversa = async (estaAtivo: () => boolean) => {
   if (!estaAtivo()) return;
 
   await iniciarRealtime(user.id);
+
+  if (!estaAtivo()) return;
+
+  await marcarMensagensComoLidas(user.id);
 };
 
   // =========================================================
@@ -290,6 +309,10 @@ const iniciarRealtime = async (meuId: string) => {
               nova.destinatario === meuId);
 
           if (!pertenceAoChat) return;
+
+          if (nova.destinatario === meuId) {
+            await marcarMensagensComoLidas(meuId);
+          }
 
           if (nova.tipo === "imagem" && nova.arquivo_url) {
             const { data } = supabase.storage

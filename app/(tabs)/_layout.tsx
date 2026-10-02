@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { Tabs, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../../context/ThemeContext";
@@ -48,6 +49,8 @@ export default function TabLayout() {
   }, []);
 
   useEffect(() => {
+  if (Platform.OS === "web") return;
+
   const abrirNotificacao = (notification: Notifications.Notification) => {
     const rota = notification.request.content.data?.rota;
 

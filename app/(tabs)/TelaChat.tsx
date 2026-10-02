@@ -26,9 +26,11 @@ type Usuario = {
   nome: string;
   email: string;
   campus: string | null;
-  tipo: 'estudante' | 'tutor' | 'professor';
+  tipo: "estudante" | "tutor" | "professor";
   avatar: string | null;
   fixado?: boolean;
+  mensagemNaoLida?: boolean;
+  ultimaMensagemData?: string | null;
 };
 
 export default function Chat() {
@@ -54,6 +56,60 @@ useFocusEffect(
   }, []),
 );
 
+useEffect(() => {
+  let ativo = true;
+  let channel: ReturnType<typeof supabase.channel> | null = null;
+
+  const iniciar = async () => {
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    if (!ativo || error || !user) return;
+
+    channel = supabase
+      .channel(`nao-lidas-${user.id}-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "mensagens",
+          filter: `destinatario=eq.${user.id}`,
+        },
+        (payload) => {
+          if (!ativo) return;
+
+          const mensagem = payload.new as {
+            remetente: string;
+            data_envio: string;
+            lida?: boolean;
+          };
+
+          if (mensagem.lida === true) return;
+
+          setUsuarios((atual) =>
+            atual.map((usuario) =>
+              usuario.id === mensagem.remetente
+                ? {
+                    ...usuario,
+                    mensagemNaoLida: true,
+                    ultimaMensagemData: mensagem.data_envio,
+                  }
+                : usuario
+            )
+          );
+        }
+      )
+      .subscribe();
+  };
+
+  void iniciar();
+
+  return () => {
+    ativo = false;
+    if (channel) void supabase.removeChannel(channel);
+  };
+}, []);
+
   const carregarUsuarios = async () => {
     try {
       setLoading(true);
@@ -76,6 +132,25 @@ useFocusEffect(
     const idsFixados = new Set(
       (fixados || []).map(item => item.usuario_fixado_id)
     );
+
+    const { data: mensagensNaoLidas, error: naoLidasError } = await supabase
+      .from("mensagens")
+      .select("remetente, data_envio")
+      .eq("destinatario", user.id)
+      .eq("lida", false)
+      .order("data_envio", { ascending: false });
+
+    if (naoLidasError) {
+      console.error("Erro ao carregar mensagens não lidas:", naoLidasError);
+    }
+
+    const naoLidasPorRemetente = new Map<string, string>();
+
+    (mensagensNaoLidas || []).forEach((mensagem) => {
+      if (!naoLidasPorRemetente.has(mensagem.remetente)) {
+        naoLidasPorRemetente.set(mensagem.remetente, mensagem.data_envio);
+      }
+    });
 
       // Buscar dados do usuário logado para descobrir o campus e o tipo dele
       const { data: dadosUsuarioLogado } = await supabase
@@ -116,10 +191,12 @@ useFocusEffect(
         return;
       }
 
-      const listaUsuarios = (data || []).map(usuario => ({
-  ...usuario,
-  fixado: idsFixados.has(usuario.id),
-})) as Usuario[];
+      const listaUsuarios = (data || []).map((usuario) => ({
+        ...usuario,
+        fixado: idsFixados.has(usuario.id),
+        mensagemNaoLida: naoLidasPorRemetente.has(usuario.id),
+        ultimaMensagemData: naoLidasPorRemetente.get(usuario.id) || null,
+      })) as Usuario[];
 
 setUsuarios(listaUsuarios);
 setIdsSelecionados(listaUsuarios.map(u => u.id));
@@ -308,11 +385,33 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
             />
           )}
         </View>
-        <View style={[styles.chatUserInfo, {}]}>
-          <Text style={[styles.chatUserName, { color: tema.text}]} numberOfLines={1}>
-            {formatarNome(item.nome, item.email, item.tipo)}
+        <View style={[styles.chatUserInfo, { flex: 1 }]}>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text
+              style={[styles.chatUserName, { color: tema.text, flex: 1 }]}
+              numberOfLines={1}
+            >
+              {formatarNome(item.nome, item.email, item.tipo)}
+            </Text>
+
+            {item.mensagemNaoLida && (
+              <View
+                accessible
+                accessibilityLabel="Mensagem não lida"
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 5,
+                  backgroundColor: cor,
+                  marginLeft: 8,
+                }}
+              />
+            )}
+          </View>
+
+          <Text style={[styles.chatUserType, { color: tema.text }]}>
+            {item.mensagemNaoLida ? "Nova mensagem" : "Última mensagem..."}
           </Text>
-          <Text style={[styles.chatUserType, { color: tema.text }]}>Última mensagem...</Text>
         </View>
 
         {/* Botão Fixar (Bookmark) */}

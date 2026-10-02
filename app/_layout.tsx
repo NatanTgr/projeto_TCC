@@ -5,6 +5,7 @@ import {
   StatusBar,
   StyleSheet,
   Linking,
+  Platform,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
@@ -226,27 +227,31 @@ export default function RootLayout() {
       return;
     }
 
-    const resposta = await Notifications.getLastNotificationResponseAsync();
-    const dados = resposta?.notification.request.content.data;
+    if (Platform.OS !== "web") {
+      const resposta = await Notifications.getLastNotificationResponseAsync();
 
-    if (dados?.tipo === "mensagem" && typeof dados.remetenteId === "string") {
-      await Notifications.clearLastNotificationResponseAsync();
+      const dados = resposta?.notification.request.content.data;
 
-      router.replace({
-        pathname: "/TelaConversa" as any,
-        params: {
-          usuarioId: dados.remetenteId,
-          usuarioNome:
-            typeof dados.remetenteNome === "string"
-              ? dados.remetenteNome
-              : "Usuário",
-          usuarioTipo:
-            typeof dados.remetenteTipo === "string"
-              ? dados.remetenteTipo
-              : "estudante",
-        },
-      });
-      return;
+      if (dados?.tipo === "mensagem" && typeof dados.remetenteId === "string") {
+        await Notifications.clearLastNotificationResponseAsync();
+
+        router.replace({
+          pathname: "/TelaConversa" as any,
+          params: {
+            usuarioId: dados.remetenteId,
+            usuarioNome:
+              typeof dados.remetenteNome === "string"
+                ? dados.remetenteNome
+                : "Usuário",
+            usuarioTipo:
+              typeof dados.remetenteTipo === "string"
+                ? dados.remetenteTipo
+                : "estudante",
+          },
+        });
+
+        return;
+      }
     }
 
     const { data: usuario, error } = await supabase
