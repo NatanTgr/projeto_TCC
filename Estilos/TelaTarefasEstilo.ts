@@ -100,7 +100,6 @@ const Estilos = StyleSheet.create({
     maxWidth: 520,
     maxHeight: "85%",
     borderRadius: 15,
-    padding: 20,
   },
   tituloModal: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
   opcaoContainer: {

@@ -194,7 +194,6 @@ const Estilos = StyleSheet.create({
     maxHeight: "85%",
     backgroundColor: "#ffffff",
     borderRadius: 15,
-    padding: 20,
   },
 
   tituloModal: {

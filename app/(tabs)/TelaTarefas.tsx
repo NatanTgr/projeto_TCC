@@ -1,8 +1,8 @@
 // Importando componentes e recursos
-import { useState,  useCallback, useEffect } from "react";
+import { useState,  useCallback, useEffect} from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { View, ScrollView, Text, TextInput, 
-  Modal, TouchableOpacity, Alert, Keyboard} from 'react-native';
+  Modal, TouchableOpacity, Alert, Keyboard, KeyboardAvoidingView, Platform,} from 'react-native';
 import { Calendar, LocaleConfig, DateData } from "react-native-calendars";
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
@@ -704,335 +704,338 @@ export default function ListaTarefas() {
         </View>
       )}
 
-      <Modal transparent={true} visible={modalVisivel} animationType="fade">
-        <View style={Estilos.modalOverlay}>
-          <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={Estilos.modalContent}
-              keyboardShouldPersistTaps="handled"
+      <Modal
+        transparent={true}
+        visible={modalVisivel}
+        animationType="fade"
+        onRequestClose={() => setModalVisivel(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={Estilos.modalOverlay}
+        >
+          <ScrollView
+            style={[
+              Estilos.cardModal,
+              { backgroundColor: tema.modal, flexGrow: 0 },
+            ]}
+            contentContainerStyle={{ padding: 20 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text
+              style={[
+                Estilos.tituloModal,
+                { color: tema.text, fontSize: 20 * escalaFonte },
+              ]}
             >
-              <Text
-                style={[
-                  Estilos.tituloModal,
-                  { color: tema.text, fontSize: 20 * escalaFonte },
-                ]}
-              >
-                {editando ? "Editar Evento" : "Novo Evento"}
-              </Text>
+              {editando ? "Editar Evento" : "Novo Evento"}
+            </Text>
 
+            <Text
+              style={[
+                Estilos.textoTipoAdicionar,
+                { color: tema.text, fontSize: 14 * escalaFonte },
+              ]}
+            >
+              Tipo
+            </Text>
+
+            <View style={Estilos.opcoesRow}>
+              {/* Opção Tarefa */}
+              <TouchableOpacity
+                style={Estilos.opcaoContainer}
+                onPress={() => setTipoSelecionado("Tarefa")}
+              >
+                <View style={Estilos.radioExterno}>
+                  {tipoSelecionado === "Tarefa" && (
+                    <View style={Estilos.radioInterno} />
+                  )}
+                </View>
+
+                <Text
+                  style={[
+                    Estilos.textoOpcao,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Tarefa
+                </Text>
+              </TouchableOpacity>
+
+              {/* Opção Reunião */}
+              <TouchableOpacity
+                style={Estilos.opcaoContainer}
+                onPress={() => setTipoSelecionado("Reunião")}
+              >
+                <View style={Estilos.radioExterno}>
+                  {tipoSelecionado === "Reunião" && (
+                    <View style={Estilos.radioInterno} />
+                  )}
+                </View>
+
+                <Text
+                  style={[
+                    Estilos.textoOpcao,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Reunião
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/*Colocar Textos*/}
+            <View style={Estilos.infoTarefa}>
               <Text
                 style={[
-                  Estilos.textoTipoAdicionar,
+                  Estilos.titulosInfoTarefa,
                   { color: tema.text, fontSize: 14 * escalaFonte },
                 ]}
               >
-                Tipo
+                Título
               </Text>
+              <TextInput
+                style={[
+                  Estilos.textosInfo,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+                placeholder="Nome do evento"
+                placeholderTextColor={tema.placeholder}
+                value={titulo}
+                onChangeText={setTitulo}
+              />
 
-              <View style={Estilos.opcoesRow}>
-                {/* Opção Tarefa */}
-                <TouchableOpacity
-                  style={Estilos.opcaoContainer}
-                  onPress={() => setTipoSelecionado("Tarefa")}
-                >
-                  <View style={Estilos.radioExterno}>
-                    {tipoSelecionado === "Tarefa" && (
-                      <View style={Estilos.radioInterno} />
-                    )}
-                  </View>
-
-                  <Text
-                    style={[
-                      Estilos.textoOpcao,
-                      { color: tema.text, fontSize: 16 * escalaFonte },
-                    ]}
-                  >
-                    Tarefa
-                  </Text>
-                </TouchableOpacity>
-
-                {/* Opção Reunião */}
-                <TouchableOpacity
-                  style={Estilos.opcaoContainer}
-                  onPress={() => setTipoSelecionado("Reunião")}
-                >
-                  <View style={Estilos.radioExterno}>
-                    {tipoSelecionado === "Reunião" && (
-                      <View style={Estilos.radioInterno} />
-                    )}
-                  </View>
-
-                  <Text
-                    style={[
-                      Estilos.textoOpcao,
-                      { color: tema.text, fontSize: 16 * escalaFonte },
-                    ]}
-                  >
-                    Reunião
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/*Colocar Textos*/}
-              <View style={Estilos.infoTarefa}>
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+              >
+                Data
+              </Text>
+              <TouchableOpacity
+                onPress={abrirCalendarioData}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  data ? `Alterar data: ${data}` : "Selecionar data do evento"
+                }
+                accessibilityState={{ expanded: calendarioDataAberto }}
+                style={[
+                  Estilos.textosInfo,
+                  Estilos.campoData,
+                  { backgroundColor: tema.card },
+                ]}
+              >
                 <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                >
-                  Título
-                </Text>
-                <TextInput
-                  style={[
-                    Estilos.textosInfo,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                  placeholder="Nome do evento"
-                  placeholderTextColor={tema.placeholder}
-                  value={titulo}
-                  onChangeText={setTitulo}
-                />
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                >
-                  Data
-                </Text>
-                <TouchableOpacity
-                  onPress={abrirCalendarioData}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    data ? `Alterar data: ${data}` : "Selecionar data do evento"
-                  }
-                  accessibilityState={{ expanded: calendarioDataAberto }}
-                  style={[
-                    Estilos.textosInfo,
-                    Estilos.campoData,
-                    { backgroundColor: tema.card },
-                  ]}
-                >
-                  <Text
-                    style={{
-                      color: tema.text,
-                      fontSize: 16 * escalaFonte,
-                      flex: 1,
-                      flexShrink: 1,
-                    }}
-                  >
-                    {data || "Selecionar data"}
-                  </Text>
-
-                  <Ionicons
-                    name="calendar-outline"
-                    size={24}
-                    color={tema.text}
-                  />
-                </TouchableOpacity>
-
-                {calendarioDataAberto && (
-                  <View
-                    style={[
-                      Estilos.seletorData,
-                      { backgroundColor: tema.card },
-                    ]}
-                  >
-                    <Calendar
-                      key={`seletor-data-${escalaFonte}-${tema.background}`}
-                      current={
-                        dataInterna && dataInterna >= hojeCalendario
-                          ? dataInterna
-                          : hojeCalendario
-                      }
-                      minDate={hojeCalendario}
-                      disableAllTouchEventsForDisabledDays
-                      firstDay={0}
-                      hideExtraDays
-                      onDayPress={selecionarDataCalendario}
-                      markedDates={
-                        dataInterna
-                          ? {
-                              [dataInterna]: {
-                                selected: true,
-                                selectedColor: "#94C0DF",
-                                selectedTextColor: tema.text,
-                              },
-                            }
-                          : {}
-                      }
-                      theme={{
-                        calendarBackground: tema.card,
-                        dayTextColor: tema.text,
-                        monthTextColor: tema.text,
-                        textSectionTitleColor: tema.text,
-                        todayTextColor: tema.text,
-                        todayBackgroundColor: "#c49a7e",
-                        arrowColor: tema.text,
-                        textDisabledColor: "#888888",
-                        textDayFontSize: 14 * escalaFonte,
-                        textMonthFontSize: 16 * escalaFonte,
-                        textDayHeaderFontSize: 12 * escalaFonte,
-                      }}
-                    />
-
-                    <TouchableOpacity
-                      onPress={() => setCalendarioDataAberto(false)}
-                      accessibilityRole="button"
-                      style={Estilos.botaoFecharCalendario}
-                    >
-                      <Text
-                        style={{
-                          color: tema.text,
-                          fontSize: 14 * escalaFonte,
-                          textAlign: "center",
-                        }}
-                      >
-                        Fechar calendário
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                >
-                  Disciplina
-                </Text>
-                <TextInput
-                  style={[
-                    Estilos.textosInfo,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                  placeholder="Ex: Matemática"
-                  placeholderTextColor={tema.placeholder}
-                  value={disciplina}
-                  onChangeText={setDisciplina}
-                />
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                >
-                  Professor
-                </Text>
-                <TextInput
-                  style={[
-                    Estilos.textosInfo,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                  placeholder="Nome do professor"
-                  placeholderTextColor={tema.placeholder}
-                  value={professor}
-                  onChangeText={setProfessor}
-                />
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                >
-                  Plataforma de Realização
-                </Text>
-                <TextInput
-                  style={[
-                    Estilos.textosInfo,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                  placeholder="Ex: Google Classroom, Moodle"
-                  placeholderTextColor={tema.placeholder}
-                  value={plataforma}
-                  onChangeText={setPlataforma}
-                />
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                >
-                  Descrição
-                </Text>
-                <TextInput
-                  style={[
-                    Estilos.textosInfo,
-                    { color: tema.text, fontSize: 14 * escalaFonte },
-                  ]}
-                  placeholder="Detalhes do evento"
-                  placeholderTextColor={tema.placeholder}
-                  value={descricao}
-                  onChangeText={setDescricao}
-                />
-              </View>
-
-              {/* Botões */}
-              <View style={Estilos.botoesModal}>
-                <TouchableOpacity
-                  style={Estilos.botaoCancelar}
-                  onPress={() => {
-                    setModalVisivel(false);
-                    setEditando(false);
-
-                    setTitulo("");
-                    setData("");
-                    setDataInterna("");
-                    setDisciplina("");
-                    setProfessor("");
-                    setPlataforma("");
-                    setDescricao("");
-                    setTipoSelecionado("");
+                  style={{
+                    color: tema.text,
+                    fontSize: 16 * escalaFonte,
+                    flex: 1,
+                    flexShrink: 1,
                   }}
                 >
-                  <Text
-                    style={[
-                      Estilos.textoBotao,
-                      { color: tema.textoBotao, fontSize: 16 * escalaFonte },
-                    ]}
-                  >
-                    Cancelar
-                  </Text>
-                </TouchableOpacity>
+                  {data || "Selecionar data"}
+                </Text>
 
-                <TouchableOpacity
-                  style={Estilos.botaoConfirmar}
-                  onPress={async () => {
-                    if (editando) {
-                      const sucesso = await editarTarefa();
+                <Ionicons name="calendar-outline" size={24} color={tema.text} />
+              </TouchableOpacity>
 
-                      if (sucesso) {
-                        setModalVisivel(false);
-                      }
-                    } else {
-                      const sucesso = await adicionarTarefa();
-
-                      if (sucesso) {
-                        setModalVisivel(false);
-                      }
+              {calendarioDataAberto && (
+                <View
+                  style={[Estilos.seletorData, { backgroundColor: tema.card }]}
+                >
+                  <Calendar
+                    key={`seletor-data-${escalaFonte}-${tema.background}`}
+                    current={
+                      dataInterna && dataInterna >= hojeCalendario
+                        ? dataInterna
+                        : hojeCalendario
                     }
-                  }}
-                >
-                  <Text
-                    style={[
-                      Estilos.textoBotao,
-                      { color: tema.textoBotao, fontSize: 16 * escalaFonte },
-                    ]}
+                    minDate={hojeCalendario}
+                    disableAllTouchEventsForDisabledDays
+                    firstDay={0}
+                    hideExtraDays
+                    onDayPress={selecionarDataCalendario}
+                    markedDates={
+                      dataInterna
+                        ? {
+                            [dataInterna]: {
+                              selected: true,
+                              selectedColor: "#94C0DF",
+                              selectedTextColor: tema.text,
+                            },
+                          }
+                        : {}
+                    }
+                    theme={{
+                      calendarBackground: tema.card,
+                      dayTextColor: tema.text,
+                      monthTextColor: tema.text,
+                      textSectionTitleColor: tema.text,
+                      todayTextColor: tema.text,
+                      todayBackgroundColor: "#c49a7e",
+                      arrowColor: tema.text,
+                      textDisabledColor: "#888888",
+                      textDayFontSize: 14 * escalaFonte,
+                      textMonthFontSize: 16 * escalaFonte,
+                      textDayHeaderFontSize: 12 * escalaFonte,
+                    }}
+                  />
+
+                  <TouchableOpacity
+                    onPress={() => setCalendarioDataAberto(false)}
+                    accessibilityRole="button"
+                    style={Estilos.botaoFecharCalendario}
                   >
-                    {textoBotao}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </View>
+                    <Text
+                      style={{
+                        color: tema.text,
+                        fontSize: 14 * escalaFonte,
+                        textAlign: "center",
+                      }}
+                    >
+                      Fechar calendário
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+              >
+                Disciplina
+              </Text>
+              <TextInput
+                style={[
+                  Estilos.textosInfo,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+                placeholder="Ex: Matemática"
+                placeholderTextColor={tema.placeholder}
+                value={disciplina}
+                onChangeText={setDisciplina}
+              />
+
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+              >
+                Professor
+              </Text>
+              <TextInput
+                style={[
+                  Estilos.textosInfo,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+                placeholder="Nome do professor"
+                placeholderTextColor={tema.placeholder}
+                value={professor}
+                onChangeText={setProfessor}
+              />
+
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+              >
+                Plataforma de Realização (Opcional)
+              </Text>
+              <TextInput
+                style={[
+                  Estilos.textosInfo,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+                placeholder="Ex: Google Classroom, Moodle"
+                placeholderTextColor={tema.placeholder}
+                value={plataforma}
+                onChangeText={setPlataforma}
+              />
+
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+              >
+                Descrição (Opcional)
+              </Text>
+              <TextInput
+                style={[
+                  Estilos.textosInfo,
+                  { color: tema.text, fontSize: 14 * escalaFonte },
+                ]}
+                placeholder="Detalhes do evento"
+                placeholderTextColor={tema.placeholder}
+                value={descricao}
+                onChangeText={setDescricao}
+              />
+            </View>
+
+            {/* Botões */}
+            <View style={Estilos.botoesModal}>
+              <TouchableOpacity
+                style={Estilos.botaoCancelar}
+                onPress={() => {
+                  setModalVisivel(false);
+                  setEditando(false);
+
+                  setTitulo("");
+                  setData("");
+                  setDataInterna("");
+                  setDisciplina("");
+                  setProfessor("");
+                  setPlataforma("");
+                  setDescricao("");
+                  setTipoSelecionado("");
+                }}
+              >
+                <Text
+                  style={[
+                    Estilos.textoBotao,
+                    { color: tema.textoBotao, fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Cancelar
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={Estilos.botaoConfirmar}
+                onPress={async () => {
+                  if (editando) {
+                    const sucesso = await editarTarefa();
+
+                    if (sucesso) {
+                      setModalVisivel(false);
+                    }
+                  } else {
+                    const sucesso = await adicionarTarefa();
+
+                    if (sucesso) {
+                      setModalVisivel(false);
+                    }
+                  }
+                }}
+              >
+                <Text
+                  style={[
+                    Estilos.textoBotao,
+                    { color: tema.textoBotao, fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  {textoBotao}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
 
       <ModalDetalhesTarefa

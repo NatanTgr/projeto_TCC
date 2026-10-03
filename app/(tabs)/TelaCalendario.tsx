@@ -1,4 +1,4 @@
-import { Text, View, ScrollView, TextInput, Alert, TouchableOpacity, Modal, } from 'react-native';
+import { Text, View, ScrollView, TextInput, Alert, TouchableOpacity, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 import { useState, useCallback, useEffect } from 'react';
 import { testarLogin } from "../../bd/testarAuth";
@@ -816,14 +816,24 @@ const adicionarTarefa = async (tipo: string) => {
       />
 
       <Modal
-        visible={modalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={Estilos.modalOverlay}>
-          <View style={[Estilos.cardModal, { backgroundColor: tema.modal }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+  visible={modalVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setModalVisible(false)}
+>
+  <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={Estilos.modalOverlay}
+  >
+    <ScrollView
+      style={[
+        Estilos.cardModal,
+        { backgroundColor: tema.modal, flexGrow: 0 },
+      ]}
+      contentContainerStyle={{ padding: 20 }}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
               <Text
                 style={[
                   Estilos.tituloModal,
@@ -956,7 +966,7 @@ const adicionarTarefa = async (tipo: string) => {
                     { color: tema.text, fontSize: 16 * escalaFonte },
                   ]}
                 >
-                  Plataforma de Realização
+                  Plataforma de Realização (Opcional)
                 </Text>
                 <TextInput
                   style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
@@ -971,7 +981,7 @@ const adicionarTarefa = async (tipo: string) => {
                     { color: tema.text, fontSize: 16 * escalaFonte },
                   ]}
                 >
-                  Descrição
+                  Descrição (Opcional)
                 </Text>
                 <TextInput
                   style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
@@ -1038,8 +1048,7 @@ const adicionarTarefa = async (tipo: string) => {
                 </TouchableOpacity>
               </View>
             </ScrollView>
-          </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
