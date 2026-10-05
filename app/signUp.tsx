@@ -753,6 +753,7 @@ export default function SignUp() {
   const [curso, setCurso] = useState('');
   const [turno, setTurno] = useState('');
   const [turma, setTurma] = useState('');
+  const [escolaridade, setEscolaridade] = useState('');
   const [departamento, setDepartamento] = useState('');
   const [areaAtuacao, setAreaAtuacao] = useState('');
   const [loading, setLoading] = useState(false);
@@ -760,6 +761,8 @@ export default function SignUp() {
   // Controle dos Modais de Seleção
   const [modalEstadoVisible, setModalEstadoVisible] = useState(false);
   const [modalCampusVisible, setModalCampusVisible] = useState(false);
+  const [modalTurnoVisible, setModalTurnoVisible] = useState(false);
+  const [modalEscolaridadeVisible, setModalEscolaridadeVisible] = useState(false);
 
   const selectedRole = role || 'Estudante';
 
@@ -811,9 +814,9 @@ export default function SignUp() {
 
     if (
       tipoUsuario === 'estudante' &&
-      (!curso.trim() || !turno.trim() || !turma.trim())
+      (!curso.trim() || !turno.trim() || !turma.trim() || !escolaridade.trim())
     ) {
-      Alert.alert('Atenção', 'Preencha curso, turno e turma.');
+      Alert.alert('Atenção', 'Preencha curso, turno, turma e escolaridade.');
       return;
     }
 
@@ -852,6 +855,7 @@ export default function SignUp() {
             curso: curso.trim(),
             turno: turno.trim(),
             turma: turma.trim(),
+            escolaridade: escolaridade.trim(),
 
             // Dados do professor
             areaAtuacao: areaAtuacao.trim(),
@@ -1019,13 +1023,26 @@ export default function SignUp() {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Turno</Text>
-                  <TextInput
+                  <Pressable
                     style={styles.input}
-                    placeholder="Ex.: Manhã, Tarde ou Noite"
-                    placeholderTextColor={colors.placeholder}
-                    value={turno}
-                    onChangeText={setTurno}
-                  />
+                    onPress={() => setModalTurnoVisible(true)}
+                  >
+                    <Text style={{ color: turno ? colors.text : colors.placeholder }}>
+                      {turno || 'Selecione o turno'}
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Escolaridade</Text>
+                  <Pressable
+                    style={styles.input}
+                    onPress={() => setModalEscolaridadeVisible(true)}
+                  >
+                    <Text style={{ color: escolaridade ? colors.text : colors.placeholder }}>
+                      {escolaridade || 'Selecione a escolaridade'}
+                    </Text>
+                  </Pressable>
                 </View>
 
                 <View style={styles.inputGroup}>
@@ -1161,6 +1178,76 @@ export default function SignUp() {
                   onPress={() => {
                     setCampus(item);
                     setModalCampusVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item}</Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de Seleção de Turno */}
+      <Modal
+        visible={modalTurnoVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalTurnoVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione o Turno</Text>
+              <Pressable onPress={() => setModalTurnoVisible(false)}>
+                <Text style={styles.modalCloseText}>Fechar</Text>
+              </Pressable>
+            </View>
+
+            <FlatList
+              data={['Manhã', 'Tarde', 'Noite']}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setTurno(item);
+                    setModalTurnoVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item}</Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Modal de Seleção de Escolaridade */}
+      <Modal
+        visible={modalEscolaridadeVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalEscolaridadeVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione a Escolaridade</Text>
+              <Pressable onPress={() => setModalEscolaridadeVisible(false)}>
+                <Text style={styles.modalCloseText}>Fechar</Text>
+              </Pressable>
+            </View>
+
+            <FlatList
+              data={['Ensino Médio', 'Ensino Superior']}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setEscolaridade(item);
+                    setModalEscolaridadeVisible(false);
                   }}
                 >
                   <Text style={styles.modalItemText}>{item}</Text>

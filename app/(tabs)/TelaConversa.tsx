@@ -1356,7 +1356,7 @@ const iniciarRealtime = async (meuId: string) => {
                 Conversa privada
               </Text>
             </View>
-
+             {/* EXCLUI OU DEIXA O BOTÃO ALERTA */}
             {tipoUsuarioLogado === "estudante" && (
               <View style={{ flexShrink: 0 }}>
                 <BotaoAlerta />
