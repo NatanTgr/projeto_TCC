@@ -430,6 +430,7 @@ export const styles = StyleSheet.create({
 
   chatHeaderTitleContainer: {
     flex: 1,
+    minWidth: 0,
   },
 
   chatTopRow: {

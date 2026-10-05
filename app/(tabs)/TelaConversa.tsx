@@ -8,7 +8,6 @@ import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal,
 import { SafeAreaView, useSafeAreaInsets,} from "react-native-safe-area-context";
 import AvatarImagem from '../../components/AvatarImagem';
 import { buscarAvatar } from '../../components/avatares';
-import BotaoAlerta from '../../components/BotaoAlerta';
 import { useTheme } from '../../context/ThemeContext';
 import { useFontSize } from "../../context/FontSizeContext";
 
@@ -1385,12 +1384,6 @@ const iniciarRealtime = async (meuId: string) => {
                 Conversa privada
               </Text>
             </View>
-
-            {tipoUsuarioLogado === "estudante" && (
-              <View style={{ flexShrink: 0 }}>
-                <BotaoAlerta />
-              </View>
-            )}
           </View>
         </View>
 
