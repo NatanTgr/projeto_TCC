@@ -1,20 +1,32 @@
-// Importando componentes e recursos
-import { useState,  useCallback, useEffect} from "react";
+import { useState, useCallback, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View, ScrollView, Text, TextInput, 
-  Modal, TouchableOpacity, Alert, Keyboard, KeyboardAvoidingView, Platform,} from 'react-native';
+import {
+  View,
+  ScrollView,
+  Text,
+  TextInput,
+  Modal,
+  TouchableOpacity,
+  Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
+} from "react-native";
 import { Calendar, LocaleConfig, DateData } from "react-native-calendars";
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
-import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import Estilos from "../../Estilos/TelaTarefasEstilo";
 import { supabase } from "../../bd/supabase";
 import BotaoAlerta from "../../components/BotaoAlerta";
 import ModalDetalhesTarefa from "../../components/ModalDetalhesTarefa";
 import { ptBR } from "../../Utils/configCal";
 
-// Definindo o tipo para uma tarefa
+LocaleConfig.locales["pt-br"] = ptBR;
+LocaleConfig.defaultLocale = "pt-br";
+
 type Task = {
   id: number;
   titulo: string;
@@ -26,21 +38,23 @@ type Task = {
   descricao: string;
   concluido: boolean;
   aluno_id: string;
-  criado_por : string | null;
+  criado_por: string | null;
 };
 
 export default function ListaTarefas() {
   const { alunoId } = useLocalSearchParams<{ alunoId?: string }>();
-
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
+
+  const { width, fontScale } = useWindowDimensions();
+
+  const botoesEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
+
   const [tarefas, setTarefas] = useState<Task[]>([]);
-  const [descricaoTarefa, setDescricaoTarefa] = useState("");
   const [editando, setEditando] = useState(false);
-
   const [modalVisivel, setModalVisivel] = useState(false);
-  const [tipoSelecionado, setTipoSelecionado] = useState("");
 
+  const [tipoSelecionado, setTipoSelecionado] = useState("");
   const [titulo, setTitulo] = useState("");
   const [data, setData] = useState("");
   const [disciplina, setDisciplina] = useState("");
@@ -48,9 +62,11 @@ export default function ListaTarefas() {
   const [plataforma, setPlataforma] = useState("");
   const [descricao, setDescricao] = useState("");
 
-  //modal quando clica no card
   const [modalDetalhes, setModalDetalhes] = useState(false);
   const [tarefaSelecionada, setTarefaSelecionada] = useState<Task | null>(null);
+
+  const [dataInterna, setDataInterna] = useState("");
+  const [calendarioDataAberto, setCalendarioDataAberto] = useState(false);
 
   const validarData = (data: string) => {
     const partes = data.split("-");
@@ -72,7 +88,6 @@ export default function ListaTarefas() {
     );
   };
 
-  // Adicionar uma nova tarefa
   const adicionarTarefa = async () => {
     if (
       !titulo.trim() ||
@@ -93,25 +108,20 @@ export default function ListaTarefas() {
         "Data inválida",
         "Digite uma data válida no formato dd/mm/aaaa.",
       );
-
       return false;
     }
 
-    // Data de hoje
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    // Data informada pelo usuário
     const dataEvento = converterData(dataInterna);
     dataEvento.setHours(0, 0, 0, 0);
 
-    // Impede data passada
     if (dataEvento < hoje) {
       Alert.alert(
         "Data inválida",
         "Não é possível criar um evento em uma data que já passou.",
       );
-
       return false;
     }
 
@@ -161,43 +171,38 @@ export default function ListaTarefas() {
     setTipoSelecionado("");
 
     console.log("Tarefa adicionada");
-
     return true;
   };
 
   const getCorTipo = (tipo: string) => {
     switch (tipo) {
       case "Tarefa":
-        return "#88C688"; // verde
+        return "#88C688";
+
       case "Reunião":
-        return "#94C0DF"; // azul
+        return "#94C0DF";
+
+      case "Avaliação":
+        return "#9E82C0";
+
       default:
         return "#94C0DF";
     }
   };
 
-  //Formata a data
   const formatarData = (data: string) => {
     const [ano, mes, dia] = data.split("-");
     return `${dia}/${mes}/${ano}`;
   };
 
-  //formatar data no Modal Detalhes
-  const formatarDataDetalhes = () => {
-    if (tarefaSelecionada) {
-      return formatarData(tarefaSelecionada.data);
-    }
-
-    return "";
-  };
-
-  // Renderizar cada item da lista
   const renderizarTarefas = ({ item }: { item: Task }) => (
     <TouchableOpacity
       style={[
         Estilos.cardEvento,
-        { borderColor: getCorTipo(item.tipo) },
-        { backgroundColor: tema.card },
+        {
+          borderColor: getCorTipo(item.tipo),
+          backgroundColor: tema.card,
+        },
       ]}
       onPress={() => {
         setTarefaSelecionada(item);
@@ -258,20 +263,16 @@ export default function ListaTarefas() {
     </TouchableOpacity>
   );
 
-  // Alternar o status de conclusão de uma tarefa
   const alterarStatusTarefa = async (id: number) => {
     try {
-      // Encontra a tarefa que foi selecionada
       const tarefa = tarefas.find((task) => task.id === id);
 
       if (!tarefa) {
         return;
       }
 
-      // Inverte o status atual
       const novoStatus = !tarefa.concluido;
 
-      // Atualiza a tarefa no Supabase
       const { error } = await supabase
         .from("tarefas")
         .update({
@@ -285,7 +286,6 @@ export default function ListaTarefas() {
         return;
       }
 
-      // Atualiza a lista na tela
       setTarefas(
         tarefas.map((task) =>
           task.id === id ? { ...task, concluido: novoStatus } : task,
@@ -296,7 +296,6 @@ export default function ListaTarefas() {
     }
   };
 
-  // Remover uma tarefa
   const removerTarefa = (id: number) => {
     Alert.alert(
       "Remover Tarefa",
@@ -311,7 +310,6 @@ export default function ListaTarefas() {
           style: "destructive",
           onPress: async () => {
             try {
-              // Remove a tarefa do Supabase
               const { error } = await supabase
                 .from("tarefas")
                 .delete()
@@ -323,10 +321,7 @@ export default function ListaTarefas() {
                 return;
               }
 
-              // Remove a tarefa da lista que está na tela
               setTarefas(tarefas.filter((task) => task.id !== id));
-
-              // Fecha o modal
               setModalDetalhes(false);
               setTarefaSelecionada(null);
             } catch (error) {
@@ -338,7 +333,6 @@ export default function ListaTarefas() {
     );
   };
 
-  // Contadores para estatísticas
   const totalTarefas = tarefas.length;
   const tarefasCompletas = tarefas.filter((task) => task.concluido).length;
 
@@ -380,40 +374,11 @@ export default function ListaTarefas() {
     }
   };
 
-  //converter data
   const converterData = (data: string) => {
     const [ano, mes, dia] = data.split("-");
-
     return new Date(Number(ano), Number(mes) - 1, Number(dia));
   };
 
-  //para o textInput da data funcionar
-  const alterarData = (texto: string) => {
-    let valor = texto.replace(/\D/g, "");
-
-    if (valor.length > 8) valor = valor.slice(0, 8);
-
-    if (valor.length > 4) {
-      valor =
-        valor.slice(0, 2) + "/" + valor.slice(2, 4) + "/" + valor.slice(4);
-    } else if (valor.length > 2) {
-      valor = valor.slice(0, 2) + "/" + valor.slice(2);
-    }
-
-    setData(valor);
-
-    if (valor.length === 10) {
-      const [dia, mes, ano] = valor.split("/");
-      setDataInterna(`${ano}-${mes}-${dia}`);
-    }
-  };
-
-  //o que sera salvo
-  const [dataInterna, setDataInterna] = useState("");
-
-  const [calendarioDataAberto, setCalendarioDataAberto] = useState(false);
-
-  // Usa a data local do aparelho, evitando mudança de dia pelo fuso UTC.
   const agora = new Date();
 
   const hojeCalendario = [
@@ -428,7 +393,6 @@ export default function ListaTarefas() {
   };
 
   const selecionarDataCalendario = (dia: DateData) => {
-    // Preserva a regra existente de impedir datas passadas.
     if (dia.dateString < hojeCalendario) return;
 
     const [ano, mes, diaNumero] = dia.dateString.split("-");
@@ -442,32 +406,26 @@ export default function ListaTarefas() {
     setCalendarioDataAberto(false);
   }, [modalVisivel]);
 
-  //cria a data de hoje
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  //cria os quatro arrays
   const atrasadas: Task[] = [];
   const hojeLista: Task[] = [];
   const semana: Task[] = [];
   const proximas: Task[] = [];
   const concluidas: Task[] = [];
 
-  //separar as tarefas
   tarefas.forEach((tarefa) => {
-    // Se estiver concluída, vai direto para a lista de concluídas
     if (tarefa.concluido) {
       concluidas.push(tarefa);
       return;
     }
-    const data = converterData(tarefa.data);
 
+    const data = converterData(tarefa.data);
     data.setHours(0, 0, 0, 0);
 
     const diferencaDias =
       (data.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
-
-    console.log(tarefa.data);
 
     if (diferencaDias < 0) {
       atrasadas.push(tarefa);
@@ -479,10 +437,6 @@ export default function ListaTarefas() {
       proximas.push(tarefa);
     }
   });
-
-  // ========================================
-  // FUNÇÃO PARA ABRIR A EDIÇÃO
-  // ========================================
 
   const abrirEdicao = () => {
     if (!tarefaSelecionada) return;
@@ -500,10 +454,6 @@ export default function ListaTarefas() {
     setModalDetalhes(false);
     setModalVisivel(true);
   };
-
-  // ========================================
-  // FUNÇÃO PARA SALVAR A EDIÇÃO
-  // ========================================
 
   const editarTarefa = async () => {
     if (
@@ -545,7 +495,6 @@ export default function ListaTarefas() {
     if (!tarefaSelecionada) return false;
 
     try {
-      // Atualiza a tarefa no Supabase
       const { data: tarefaAtualizada, error } = await supabase
         .from("tarefas")
         .update({
@@ -567,17 +516,14 @@ export default function ListaTarefas() {
         return false;
       }
 
-      // Atualiza a tarefa na lista da tela
       setTarefas(
         tarefas.map((task) =>
           task.id === tarefaSelecionada.id ? tarefaAtualizada : task,
         ),
       );
 
-      // Atualiza a tarefa selecionada no modal
       setTarefaSelecionada(tarefaAtualizada);
 
-      // Limpa os campos
       setTitulo("");
       setData("");
       setDataInterna("");
@@ -586,7 +532,6 @@ export default function ListaTarefas() {
       setPlataforma("");
       setDescricao("");
       setTipoSelecionado("");
-
       setEditando(false);
 
       return true;
@@ -596,7 +541,6 @@ export default function ListaTarefas() {
     }
   };
 
-  //funçao para  renderizar cada seção
   const renderizarSecao = (titulo: string, dados: Task[]) => {
     if (dados.length === 0) return null;
 
@@ -618,11 +562,7 @@ export default function ListaTarefas() {
     );
   };
 
-  let textoBotao = "Adicionar Evento";
-
-  if (editando) {
-    textoBotao = "Salvar Alterações";
-  }
+  const textoBotao = editando ? "Salvar Alterações" : "Adicionar Evento";
 
   useFocusEffect(
     useCallback(() => {
@@ -635,7 +575,6 @@ export default function ListaTarefas() {
       edges={["top", "left", "right"]}
       style={[Estilos.container, { backgroundColor: tema.background }]}
     >
-      {/* Cabeçalho */}
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
           <Text
@@ -655,8 +594,8 @@ export default function ListaTarefas() {
               alignSelf: "flex-end",
             }}
           >
-            {/* Botão ALERTA */}
             <BotaoAlerta />
+
             <TouchableOpacity
               style={Estilos.addButton}
               onPress={() => setModalVisivel(true)}
@@ -665,39 +604,34 @@ export default function ListaTarefas() {
             </TouchableOpacity>
           </View>
         </View>
+
         <Text
           style={[
             Estilos.taskCount,
-            {
-              color: tema.text,
-              fontSize: 14 * escalaFonte,
-            },
+            { color: tema.text, fontSize: 14 * escalaFonte },
           ]}
         >
           {tarefasCompletas} de {totalTarefas} concluídas
         </Text>
       </View>
 
-      {/* Area com a lista de tarefas */}
       {tarefas.length > 0 ? (
         <ScrollView
           style={Estilos.taskList}
           showsVerticalScrollIndicator={false}
         >
           {renderizarSecao("⚠️ Atrasadas", atrasadas)}
-
           {renderizarSecao("📅 Hoje", hojeLista)}
-
           {renderizarSecao("🗓️ Esta Semana", semana)}
-
           {renderizarSecao("📌 Próximas Atividades", proximas)}
-
           {renderizarSecao("✅ Concluídas", concluidas)}
         </ScrollView>
       ) : (
         <View style={Estilos.emptyState}>
           <Ionicons name="checkmark-done-outline" size={64} color="#e0e0e0" />
+
           <Text style={Estilos.emptyStateText}>Nenhuma tarefa adicionada</Text>
+
           <Text style={Estilos.emptyStateSubtext}>
             Adicione uma tarefa para começar!
           </Text>
@@ -705,21 +639,23 @@ export default function ListaTarefas() {
       )}
 
       <Modal
-        transparent={true}
+        transparent
         visible={modalVisivel}
         animationType="fade"
         onRequestClose={() => setModalVisivel(false)}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={Estilos.modalOverlay}
+          style={[Estilos.modalOverlay, { paddingVertical: 16 }]}
         >
           <ScrollView
             style={[
               Estilos.cardModal,
               { backgroundColor: tema.modal, flexGrow: 0 },
             ]}
-            contentContainerStyle={{ padding: 20 }}
+            contentContainerStyle={{
+              padding: width < 380 ? 16 : 20,
+            }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
@@ -742,7 +678,6 @@ export default function ListaTarefas() {
             </Text>
 
             <View style={Estilos.opcoesRow}>
-              {/* Opção Tarefa */}
               <TouchableOpacity
                 style={Estilos.opcaoContainer}
                 onPress={() => setTipoSelecionado("Tarefa")}
@@ -763,7 +698,6 @@ export default function ListaTarefas() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Opção Reunião */}
               <TouchableOpacity
                 style={Estilos.opcaoContainer}
                 onPress={() => setTipoSelecionado("Reunião")}
@@ -783,9 +717,28 @@ export default function ListaTarefas() {
                   Reunião
                 </Text>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={Estilos.opcaoContainer}
+                onPress={() => setTipoSelecionado("Avaliação")}
+              >
+                <View style={Estilos.radioExterno}>
+                  {tipoSelecionado === "Avaliação" && (
+                    <View style={Estilos.radioInterno} />
+                  )}
+                </View>
+
+                <Text
+                  style={[
+                    Estilos.textoOpcao,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Avaliação
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            {/*Colocar Textos*/}
             <View style={Estilos.infoTarefa}>
               <Text
                 style={[
@@ -795,6 +748,7 @@ export default function ListaTarefas() {
               >
                 Título
               </Text>
+
               <TextInput
                 style={[
                   Estilos.textosInfo,
@@ -814,6 +768,7 @@ export default function ListaTarefas() {
               >
                 Data
               </Text>
+
               <TouchableOpacity
                 onPress={abrirCalendarioData}
                 accessibilityRole="button"
@@ -909,6 +864,7 @@ export default function ListaTarefas() {
               >
                 Disciplina
               </Text>
+
               <TextInput
                 style={[
                   Estilos.textosInfo,
@@ -928,6 +884,7 @@ export default function ListaTarefas() {
               >
                 Professor
               </Text>
+
               <TextInput
                 style={[
                   Estilos.textosInfo,
@@ -947,6 +904,7 @@ export default function ListaTarefas() {
               >
                 Plataforma de Realização (Opcional)
               </Text>
+
               <TextInput
                 style={[
                   Estilos.textosInfo,
@@ -966,6 +924,7 @@ export default function ListaTarefas() {
               >
                 Descrição (Opcional)
               </Text>
+
               <TextInput
                 style={[
                   Estilos.textosInfo,
@@ -978,14 +937,25 @@ export default function ListaTarefas() {
               />
             </View>
 
-            {/* Botões */}
-            <View style={Estilos.botoesModal}>
+            <View
+              style={[
+                Estilos.botoesModal,
+                botoesEmColuna && { flexDirection: "column" },
+              ]}
+            >
               <TouchableOpacity
-                style={Estilos.botaoCancelar}
+                style={[
+                  Estilos.botaoCancelar,
+                  botoesEmColuna && {
+                    flexBasis: "auto",
+                    flexGrow: 0,
+                    flexShrink: 0,
+                    width: "100%",
+                  },
+                ]}
                 onPress={() => {
                   setModalVisivel(false);
                   setEditando(false);
-
                   setTitulo("");
                   setData("");
                   setDataInterna("");
@@ -1007,7 +977,15 @@ export default function ListaTarefas() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={Estilos.botaoConfirmar}
+                style={[
+                  Estilos.botaoConfirmar,
+                  botoesEmColuna && {
+                    flexBasis: "auto",
+                    flexGrow: 0,
+                    flexShrink: 0,
+                    width: "100%",
+                  },
+                ]}
                 onPress={async () => {
                   if (editando) {
                     const sucesso = await editarTarefa();

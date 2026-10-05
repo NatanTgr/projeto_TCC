@@ -150,6 +150,8 @@ const Estilos = StyleSheet.create({
   textoBotao: {
     fontSize: 16,
     textAlign: "center",
+    flexShrink: 1,
+    maxWidth: "100%",
   },
 
   itemTarefa: {
@@ -196,6 +198,7 @@ const Estilos = StyleSheet.create({
     maxHeight: "85%",
     backgroundColor: "#ffffff",
     borderRadius: 15,
+    overflow: "hidden",
   },
 
   tituloModal: {
@@ -207,6 +210,7 @@ const Estilos = StyleSheet.create({
   opcaoContainer: {
     flexDirection: "row",
     alignItems: "center",
+    maxWidth: "100%",
     marginRight: 20,
   },
 
@@ -230,6 +234,7 @@ const Estilos = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
+    flexShrink: 0,
   },
 
   radioInterno: {
@@ -241,34 +246,42 @@ const Estilos = StyleSheet.create({
 
   textoOpcao: {
     fontSize: 16,
+    flexShrink: 1,
   },
 
   botoesModal: {
     flexDirection: "row",
     justifyContent: "space-between",
     flexWrap: "wrap",
+    alignItems: "stretch",
     marginTop: 20,
-    marginBottom: 5,
+    gap: 12,
   },
 
   botaoCancelar: {
     backgroundColor: "#FFAA56",
+    borderRadius: 10,
+    minHeight: 48,
     paddingHorizontal: 12,
     paddingVertical: 14,
-    borderRadius: 10,
-    width: "45%",
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 140,
     alignItems: "center",
     justifyContent: "center",
   },
 
   botaoConfirmar: {
     backgroundColor: "#94C0DF",
+    borderRadius: 10,
+    minHeight: 48,
     paddingHorizontal: 12,
     paddingVertical: 14,
-    padding: 12,
-    borderRadius: 10,
-    width: "50%",
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 140,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   infoTarefa: {
@@ -281,6 +294,7 @@ const Estilos = StyleSheet.create({
     borderRadius: 10,
     minHeight: 48,
     paddingHorizontal: 12,
+    paddingVertical: 12,
   },
 
   titulosInfoTarefa: {

@@ -10,6 +10,7 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../context/ThemeContext";
 import { useFontSize } from "../context/FontSizeContext";
@@ -21,8 +22,10 @@ type Props = {
   visivel: boolean;
   avatarAtual: string | null;
   aoFechar: () => void;
-  aoSalvar: (url: string) => Promise<void>;
+  aoSalvar: (url: string | null) => Promise<void>;
 };
+
+const SEM_AVATAR = "nenhum-avatar";
 
 export default function SeletorAvatar({
   visivel,
@@ -32,18 +35,23 @@ export default function SeletorAvatar({
 }: Props) {
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
-
   const { width, fontScale } = useWindowDimensions();
 
   const [larguraGrade, setLarguraGrade] = useState(0);
+  const [avatarSelecionado, setAvatarSelecionado] =
+    useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
 
+  const salvamentoBloqueado = useRef(false);
   const espacoEntreAvatares = 8;
 
-  // Estimativa inicial; onLayout depois informa a largura real da grade.
   const larguraDisponivel =
     larguraGrade || Math.max(1, Math.min(width * 0.92, 540) - 36);
 
-  const larguraDesejada = Math.max(96, 96 * escalaFonte * fontScale);
+  const larguraDesejada = Math.max(
+    96,
+    96 * escalaFonte * fontScale,
+  );
 
   const quantidadeColunas = Math.max(
     1,
@@ -57,26 +65,29 @@ export default function SeletorAvatar({
   );
 
   const larguraOpcao = Math.floor(
-    (larguraDisponivel - espacoEntreAvatares * (quantidadeColunas - 1)) /
+    (larguraDisponivel -
+      espacoEntreAvatares * (quantidadeColunas - 1)) /
       quantidadeColunas,
   );
-
-  const [avatarSelecionado, setAvatarSelecionado] =
-    useState<string | null>(null);
-
-  const [salvando, setSalvando] = useState(false);
-
-  const salvamentoBloqueado = useRef(false);
 
   const escolhido = AVATARES.find(
     (avatar) => avatar.id === avatarSelecionado,
   );
 
+  const nenhumAvatarSelecionado =
+    avatarSelecionado === SEM_AVATAR;
+
+  const podeSalvar =
+    (nenhumAvatarSelecionado || Boolean(escolhido)) && !salvando;
+
   useEffect(() => {
     if (visivel) {
-      const avatarSalvo = buscarAvatar(avatarAtual);
-
-      setAvatarSelecionado(avatarSalvo?.id ?? null);
+      if (!avatarAtual) {
+        setAvatarSelecionado(SEM_AVATAR);
+      } else {
+        const avatarSalvo = buscarAvatar(avatarAtual);
+        setAvatarSelecionado(avatarSalvo?.id ?? null);
+      }
     }
   }, [visivel, avatarAtual]);
 
@@ -87,15 +98,22 @@ export default function SeletorAvatar({
   }
 
   async function salvarAvatar() {
-    if (!escolhido || salvamentoBloqueado.current) {
+    if (
+      salvamentoBloqueado.current ||
+      (!nenhumAvatarSelecionado && !escolhido)
+    ) {
       return;
     }
+
+    const url = nenhumAvatarSelecionado
+      ? null
+      : escolhido!.url;
 
     salvamentoBloqueado.current = true;
     setSalvando(true);
 
     try {
-      await aoSalvar(escolhido.url);
+      await aoSalvar(url);
       aoFechar();
     } catch (erro) {
       console.log("Erro ao salvar avatar:", erro);
@@ -120,12 +138,7 @@ export default function SeletorAvatar({
       <View style={estilos.fundo}>
         <View
           accessibilityViewIsModal
-          style={[
-            estilos.modal,
-            {
-              backgroundColor: tema.modal,
-            },
-          ]}
+          style={[estilos.modal, { backgroundColor: tema.modal }]}
         >
           <ScrollView
             style={{ flexGrow: 0 }}
@@ -149,12 +162,32 @@ export default function SeletorAvatar({
                 fontSize: 14 * escalaFonte,
               }}
             >
-              Escolha uma das 36 opções geradas pelo DiceBear.
+              Escolha uma das {AVATARES.length} opções ou fique sem avatar.
             </Text>
 
-            {escolhido && (
+            {(escolhido || nenhumAvatarSelecionado) && (
               <View style={estilos.previa}>
-                <AvatarImagem uri={escolhido.url} tamanho={104} />
+                {nenhumAvatarSelecionado ? (
+                  <View
+                    style={[
+                      estilos.semAvatar,
+                      {
+                        width: 104,
+                        height: 104,
+                        borderRadius: 52,
+                        backgroundColor: tema.card,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name="person-outline"
+                      size={52}
+                      color={tema.text}
+                    />
+                  </View>
+                ) : (
+                  <AvatarImagem uri={escolhido!.url} tamanho={104} />
+                )}
 
                 <Text
                   accessibilityLiveRegion="polite"
@@ -164,7 +197,9 @@ export default function SeletorAvatar({
                     textAlign: "center",
                   }}
                 >
-                  {escolhido.nome}
+                  {nenhumAvatarSelecionado
+                    ? "Nenhum avatar"
+                    : escolhido!.nome.replace(/^Avatar\s*/i, "")}
                 </Text>
               </View>
             )}
@@ -175,6 +210,56 @@ export default function SeletorAvatar({
                 setLarguraGrade(nativeEvent.layout.width);
               }}
             >
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel="Nenhum avatar"
+                accessibilityState={{
+                  selected: nenhumAvatarSelecionado,
+                  disabled: salvando,
+                }}
+                disabled={salvando}
+                onPress={() => {
+                  setAvatarSelecionado(SEM_AVATAR);
+                }}
+                style={[
+                  estilos.opcao,
+                  {
+                    width: larguraOpcao,
+                    backgroundColor: tema.card,
+                    borderColor: nenhumAvatarSelecionado
+                      ? "#4CAF50"
+                      : tema.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    estilos.semAvatar,
+                    {
+                      width: 64,
+                      height: 64,
+                      borderRadius: 32,
+                    },
+                  ]}
+                >
+                  <Ionicons name="person-outline" size={36} color={tema.text} />
+                </View>
+
+                <View style={estilos.nomeAvatar}>
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 12 * escalaFonte,
+                      fontWeight: nenhumAvatarSelecionado ? "bold" : "normal",
+                      textAlign: "center",
+                    }}
+                  >
+                    {nenhumAvatarSelecionado ? "✓ " : ""}
+                    Nenhum avatar
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
               {AVATARES.map((avatar) => {
                 const selecionado = avatar.id === avatarSelecionado;
 
@@ -212,7 +297,7 @@ export default function SeletorAvatar({
                         }}
                       >
                         {selecionado ? "✓ " : ""}
-                        {avatar.nome}
+                        {avatar.nome.replace(/^Avatar\s*/i, "")}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -233,17 +318,12 @@ export default function SeletorAvatar({
             <TouchableOpacity
               accessibilityRole="button"
               accessibilityState={{
-                disabled: !escolhido || salvando,
+                disabled: !podeSalvar,
                 busy: salvando,
               }}
-              disabled={!escolhido || salvando}
+              disabled={!podeSalvar}
               onPress={salvarAvatar}
-              style={[
-                estilos.botaoSalvar,
-                {
-                  opacity: !escolhido || salvando ? 0.5 : 1,
-                },
-              ]}
+              style={[estilos.botaoSalvar, { opacity: podeSalvar ? 1 : 0.5 }]}
             >
               {salvando ? (
                 <ActivityIndicator color="#fff" />
@@ -263,6 +343,7 @@ export default function SeletorAvatar({
 
             <TouchableOpacity
               accessibilityRole="button"
+              accessibilityState={{ disabled: salvando }}
               disabled={salvando}
               onPress={fecharModal}
               style={estilos.botaoCancelar}
@@ -310,6 +391,11 @@ const estilos = StyleSheet.create({
   previa: {
     alignItems: "center",
     gap: 8,
+  },
+
+  semAvatar: {
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   grade: {

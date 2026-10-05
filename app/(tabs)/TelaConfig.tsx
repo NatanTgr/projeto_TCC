@@ -145,9 +145,13 @@ export default function TelaConfig() {
 
   const avatarPerfil = buscarAvatar(usuario?.avatar);
 
-  async function salvarAvatar(url: string) {
-    if (!usuario || !AVATARES.some((avatar) => avatar.url === url)) {
-      throw new Error("Avatar ou perfil inválido.");
+  async function salvarAvatar(url: string | null) {
+    if (!usuario) {
+      throw new Error("Perfil inválido.");
+    }
+
+    if (url !== null && !AVATARES.some((avatar) => avatar.url === url)) {
+      throw new Error("Avatar inválido.");
     }
 
     const {
