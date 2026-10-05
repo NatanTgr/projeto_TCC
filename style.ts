@@ -434,6 +434,7 @@ export const styles = StyleSheet.create({
 
   chatTopRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
@@ -444,6 +445,7 @@ export const styles = StyleSheet.create({
   chatHeaderTitle: {
     flex: 1,
     flexShrink: 1,
+    minWidth: 0,
     fontSize: 30,
     fontWeight: "bold",
     color: colors.heading,
@@ -489,10 +491,12 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 14,
+    flexShrink: 0,
   },
 
   chatUserInfo: {
     flex: 1,
+    minWidth: 0,
     marginRight: 8,
   },
 
@@ -525,13 +529,14 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.muted,
     marginTop: 12,
+    textAlign: "center",
   },
 
   chatEmptyContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
   },
 
   chatEmptyTitle: {
@@ -547,7 +552,6 @@ export const styles = StyleSheet.create({
     color: colors.muted,
     textAlign: "center",
     marginTop: 8,
-    lineHeight: 21,
   },
 
   // --- CONVERSA ---
@@ -566,31 +570,36 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.white,
     paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    flexShrink: 0,
     elevation: 2,
   },
 
   conversationBackButton: {
-    width: 42,
-    height: 42,
+    width: 44,
+    height: 44,
     justifyContent: "center",
     alignItems: "center",
+    flexShrink: 0,
   },
 
   conversationAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     backgroundColor: colors.primary,
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 8,
+    overflow: "hidden",
+    flexShrink: 0,
   },
 
   conversationHeaderInfo: {
     flex: 1,
+    minWidth: 0,
     justifyContent: "center",
   },
 
@@ -616,7 +625,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
   },
 
   conversationEmptyTitle: {
@@ -624,6 +633,7 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
     color: colors.heading,
     marginTop: 14,
+    textAlign: "center",
   },
 
   conversationEmptyText: {
@@ -631,7 +641,6 @@ export const styles = StyleSheet.create({
     color: colors.muted,
     textAlign: "center",
     marginTop: 6,
-    lineHeight: 20,
   },
 
   chatMessageContainer: {
@@ -649,7 +658,8 @@ export const styles = StyleSheet.create({
   },
 
   chatBubble: {
-    maxWidth: "78%",
+    maxWidth: "85%",
+    minWidth: 0,
     paddingHorizontal: 13,
     paddingTop: 9,
     paddingBottom: 6,
@@ -668,7 +678,6 @@ export const styles = StyleSheet.create({
 
   chatMessageText: {
     fontSize: 15,
-    lineHeight: 20,
   },
 
   chatMessageTextMine: {
@@ -701,20 +710,23 @@ export const styles = StyleSheet.create({
     borderTopColor: colors.border,
     paddingHorizontal: 10,
     paddingVertical: 8,
+    flexShrink: 0,
   },
 
   messageInput: {
     flex: 1,
+    minWidth: 0,
     minHeight: 44,
     maxHeight: 110,
     backgroundColor: "#F5F5F5",
     borderRadius: 22,
-    paddingHorizontal: 17,
+    paddingHorizontal: 12,
     paddingTop: 11,
     paddingBottom: 10,
     fontSize: 15,
     color: colors.text,
     marginRight: 8,
+    textAlignVertical: "top",
   },
 
   sendMessageButton: {
@@ -724,6 +736,7 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.success,
     justifyContent: "center",
     alignItems: "center",
+    flexShrink: 0,
   },
 
   sendMessageButtonDisabled: {

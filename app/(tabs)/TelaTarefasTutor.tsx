@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
 import { supabase } from "../../lib/supabase";
@@ -211,11 +211,9 @@ export default function TelaTarefasTutor() {
     });
 
   return (
-    <View
-      style={[
-        Estilos.container,
-        { backgroundColor: tema.background },
-      ]}
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={[Estilos.container, { backgroundColor: tema.background }]}
     >
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
@@ -248,12 +246,7 @@ export default function TelaTarefasTutor() {
       </View>
 
       {/* Botão Filtrar no padrão da TelaChat */}
-      <View
-        style={[
-          Estilos.linhaFiltro,
-          { backgroundColor: tema.background },
-        ]}
-      >
+      <View style={[Estilos.linhaFiltro, { backgroundColor: tema.background }]}>
         <Pressable
           style={[
             Estilos.botaoFiltro,
@@ -261,17 +254,8 @@ export default function TelaTarefasTutor() {
           ]}
           onPress={() => setModalFiltroVisivel(true)}
         >
-          <Ionicons
-            name="filter"
-            size={16}
-            color={colors.textSecondary}
-          />
-          <Text
-            style={[
-              Estilos.textoFiltro,
-              { color: colors.textSecondary },
-            ]}
-          >
+          <Ionicons name="filter" size={16} color={colors.textSecondary} />
+          <Text style={[Estilos.textoFiltro, { color: colors.textSecondary }]}>
             Filtrar
           </Text>
         </Pressable>
@@ -300,10 +284,7 @@ export default function TelaTarefasTutor() {
             >
               <View style={Estilos.avatar}>
                 {avatarEscolhido ? (
-                  <AvatarImagem
-                    uri={avatarEscolhido.url}
-                    tamanho={44}
-                  />
+                  <AvatarImagem uri={avatarEscolhido.url} tamanho={44} />
                 ) : (
                   <Text
                     style={[
@@ -325,7 +306,6 @@ export default function TelaTarefasTutor() {
                       fontSize: 18 * escalaFonte,
                     },
                   ]}
-                  numberOfLines={2}
                 >
                   {aluno.nome}
                 </Text>
@@ -333,10 +313,7 @@ export default function TelaTarefasTutor() {
                 <View style={Estilos.linhaInformacoes}>
                   <View style={Estilos.tagTurma}>
                     <Text
-                      style={[
-                        Estilos.textoTag,
-                        { fontSize: 11 * escalaFonte },
-                      ]}
+                      style={[Estilos.textoTag, { fontSize: 11 * escalaFonte }]}
                     >
                       {aluno.turma}
                     </Text>
@@ -387,11 +364,7 @@ export default function TelaTarefasTutor() {
                 <Ionicons
                   name={aluno.fixado ? "bookmark" : "bookmark-outline"}
                   size={25}
-                  color={
-                    aluno.fixado
-                      ? colors.primary
-                      : colors.placeholder
-                  }
+                  color={aluno.fixado ? colors.primary : colors.placeholder}
                 />
               </Pressable>
             </TouchableOpacity>
@@ -400,11 +373,7 @@ export default function TelaTarefasTutor() {
 
         {!carregando && alunosOrdenados.length === 0 && (
           <View style={Estilos.semAlunos}>
-            <Ionicons
-              name="people-outline"
-              size={64}
-              color="#e0e0e0"
-            />
+            <Ionicons name="people-outline" size={64} color="#e0e0e0" />
             <Text
               style={[
                 Estilos.semAlunosTexto,
@@ -430,27 +399,12 @@ export default function TelaTarefasTutor() {
         onRequestClose={() => setModalFiltroVisivel(false)}
       >
         <View style={Estilos.modalOverlay}>
-          <View
-            style={[
-              Estilos.modalFiltro,
-              { backgroundColor: tema.modal },
-            ]}
-          >
-            <Text
-              style={[
-                Estilos.tituloModal,
-                { color: tema.text },
-              ]}
-            >
+          <View style={[Estilos.modalFiltro, { backgroundColor: tema.modal }]}>
+            <Text style={[Estilos.tituloModal, { color: tema.text }]}>
               Filtrar Alunos
             </Text>
 
-            <Text
-              style={[
-                Estilos.subtituloModal,
-                { color: tema.text },
-              ]}
-            >
+            <Text style={[Estilos.subtituloModal, { color: tema.text }]}>
               Selecione quais alunos deseja exibir:
             </Text>
 
@@ -469,26 +423,13 @@ export default function TelaTarefasTutor() {
                     onPress={() => alternarSelecaoFiltro(item.id)}
                   >
                     <Ionicons
-                      name={
-                        selecionado
-                          ? "checkbox"
-                          : "square-outline"
-                      }
+                      name={selecionado ? "checkbox" : "square-outline"}
                       size={22}
-                      color={
-                        selecionado
-                          ? colors.primary
-                          : colors.placeholder
-                      }
+                      color={selecionado ? colors.primary : colors.placeholder}
                       style={Estilos.iconeFiltro}
                     />
 
-                    <Text
-                      style={[
-                        Estilos.nomeFiltro,
-                        { color: tema.text },
-                      ]}
-                    >
+                    <Text style={[Estilos.nomeFiltro, { color: tema.text }]}>
                       {item.nome}
                     </Text>
                   </Pressable>
@@ -503,13 +444,11 @@ export default function TelaTarefasTutor() {
               ]}
               onPress={() => setModalFiltroVisivel(false)}
             >
-              <Text style={Estilos.textoAplicar}>
-                Aplicar Filtro
-              </Text>
+              <Text style={Estilos.textoAplicar}>Aplicar Filtro</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }

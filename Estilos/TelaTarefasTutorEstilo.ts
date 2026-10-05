@@ -7,22 +7,26 @@ const Estilos = StyleSheet.create({
   },
 
   header: {
-    paddingLeft: 15,
-    paddingRight: 15,
-    marginTop: 40,
+  width: "100%",
+  paddingHorizontal: 15,
+  marginTop: 12,
   },
 
   topRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
     gap: 8,
+    marginBottom: 12,
   },
 
   headerTitle: {
+    flex: 1,
     flexShrink: 1,
     fontSize: 30,
+    minWidth: 0,
     fontWeight: "bold",
     color: "#333",
   },

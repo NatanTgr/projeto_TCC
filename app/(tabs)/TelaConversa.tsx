@@ -4,13 +4,13 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TextInput, View,
-} from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TextInput, View, useWindowDimensions, } from "react-native";
+import { SafeAreaView, useSafeAreaInsets,} from "react-native-safe-area-context";
 import AvatarImagem from '../../components/AvatarImagem';
 import { buscarAvatar } from '../../components/avatares';
 import BotaoAlerta from '../../components/BotaoAlerta';
 import { useTheme } from '../../context/ThemeContext';
+import { useFontSize } from "../../context/FontSizeContext";
 
 import { supabase } from '../../lib/supabase';
 import { colors, styles } from '../../style';
@@ -47,6 +47,17 @@ export default function Conversa() {
   const router = useRouter();
 
   const { tema, tipoTema } = useTheme();
+
+  const { escalaFonte } = useFontSize();
+  const { width, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
+  const cabecalhoEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
+
+  const tamanhoImagem = Math.max(
+    1,
+    Math.min(230, (width - insets.left - insets.right - 24) * 0.85 - 26),
+  );
 
   const params = useLocalSearchParams<{
     usuarioId: string | string[];
@@ -950,7 +961,7 @@ const iniciarRealtime = async (meuId: string) => {
           <Text
             style={{
               color: tema.text,
-              fontSize: 11,
+              fontSize: 11 * escalaFonte,
               fontWeight: '600',
             }}
           >
@@ -989,17 +1000,14 @@ const iniciarRealtime = async (meuId: string) => {
     if (estaEditando) {
       return (
         <View
-          style={[
-            styles.chatMessageContainer,
-            styles.chatMessageContainerMine,
-          ]}
+          style={[styles.chatMessageContainer, styles.chatMessageContainerMine]}
         >
           <View
             style={{
+              width: "85%",
               backgroundColor: tema.card,
               borderRadius: 16,
               padding: 10,
-              maxWidth: '85%',
               borderWidth: 1,
               borderColor: corTema,
             }}
@@ -1011,17 +1019,21 @@ const iniciarRealtime = async (meuId: string) => {
               autoFocus
               maxLength={1000}
               style={{
+                width: "100%",
                 color: tema.text,
-                fontSize: 15,
-                minWidth: 180,
-                maxHeight: 100,
+                fontSize: 15 * escalaFonte,
+                minHeight: 48,
+                maxHeight: Math.max(100, 100 * escalaFonte * fontScale),
+                paddingVertical: 8,
+                textAlignVertical: "top",
               }}
             />
 
             <View
               style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
+                flexDirection: "row",
+                flexWrap: "wrap",
+                justifyContent: "flex-end",
                 marginTop: 8,
                 gap: 8,
               }}
@@ -1029,6 +1041,11 @@ const iniciarRealtime = async (meuId: string) => {
               <Pressable
                 onPress={cancelarEdicao}
                 style={{
+                  flexGrow: 1,
+                  flexBasis: 40,
+                  minHeight: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                   borderRadius: 15,
@@ -1038,8 +1055,9 @@ const iniciarRealtime = async (meuId: string) => {
                 <Text
                   style={{
                     color: colors.text,
-                    fontSize: 12,
-                    fontWeight: '600',
+                    fontSize: 12 * escalaFonte,
+                    textAlign: "center",
+                    fontWeight: "600",
                   }}
                 >
                   Cancelar
@@ -1054,16 +1072,20 @@ const iniciarRealtime = async (meuId: string) => {
                   paddingVertical: 6,
                   borderRadius: 15,
                   backgroundColor: corTema,
-                  opacity: textoEditado.trim()
-                    ? 1
-                    : 0.5,
+                  opacity: textoEditado.trim() ? 1 : 0.5,
+                  flexGrow: 1,
+                  flexBasis: 40,
+                  minHeight: 44,
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
               >
                 <Text
                   style={{
                     color: colors.white,
-                    fontSize: 12,
-                    fontWeight: '700',
+                    fontSize: 12 * escalaFonte,
+                    textAlign: "center",
+                    fontWeight: "700",
                   }}
                 >
                   Salvar
@@ -1131,8 +1153,8 @@ const iniciarRealtime = async (meuId: string) => {
               <Image
                 source={{ uri: mensagem.imagem_url }}
                 style={{
-                  width: 230,
-                  height: 230,
+                  width: tamanhoImagem,
+                  height: tamanhoImagem,
                   borderRadius: 12,
                   backgroundColor: colors.border,
                 }}
@@ -1148,10 +1170,8 @@ const iniciarRealtime = async (meuId: string) => {
               style={[
                 styles.chatMessageText,
                 {
-                  color:
-                    minhaMensagem && tipoTema === "forte" && "escuro"
-                      ? colors.white
-                      : tema.text,
+                  fontSize: 15 * escalaFonte,
+                  color: tema.text,
                 },
               ]}
             >
@@ -1162,15 +1182,17 @@ const iniciarRealtime = async (meuId: string) => {
           <View
             style={{
               flexDirection: "row",
+              flexWrap: "wrap",
               alignItems: "center",
               justifyContent: "flex-end",
               marginTop: 4,
+              gap: 4,
             }}
           >
             {mensagem.editada && (
               <Text
                 style={{
-                  fontSize: 9,
+                  fontSize: 9 * escalaFonte,
                   color:
                     minhaMensagem && tipoTema === "forte"
                       ? colors.white
@@ -1187,6 +1209,7 @@ const iniciarRealtime = async (meuId: string) => {
               style={[
                 styles.chatMessageTime,
                 {
+                  fontSize: 10 * escalaFonte,
                   color:
                     minhaMensagem && tipoTema === "forte"
                       ? colors.white
@@ -1290,17 +1313,7 @@ const iniciarRealtime = async (meuId: string) => {
             {
               backgroundColor: tema.card,
               borderBottomColor: tema.border,
-            },
-            {
-              paddingTop:
-                Platform.OS === "android"
-                  ? (StatusBar.currentHeight || 24) + 4
-                  : 8,
-
-              minHeight:
-                Platform.OS === "android"
-                  ? 72 + (StatusBar.currentHeight || 24)
-                  : 64,
+              paddingTop: insets.top + 8,
             },
           ]}
         >
@@ -1333,26 +1346,42 @@ const iniciarRealtime = async (meuId: string) => {
             style={[
               styles.conversationHeaderInfo,
               {
-                flex: 1,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
+                flexDirection: cabecalhoEmColuna ? "column" : "row",
+                alignItems: cabecalhoEmColuna ? "flex-start" : "center",
+                gap: 8,
                 paddingRight: 8,
               },
             ]}
           >
             <View
               style={{
-                flex: 1,
                 minWidth: 0,
-                marginRight: 8,
+                ...(cabecalhoEmColuna
+                  ? { width: "100%" as const }
+                  : { flex: 1 }),
               }}
             >
-              <Text style={[styles.conversationHeaderName, { color: tema.text }]} numberOfLines={1}>
+              <Text
+                style={[
+                  styles.conversationHeaderName,
+                  {
+                    color: tema.text,
+                    fontSize: 17 * escalaFonte,
+                  },
+                ]}
+              >
                 {nomeFormatado}
               </Text>
 
-              <Text style={[styles.conversationHeaderStatus, { color: tema.text}]}>
+              <Text
+                style={[
+                  styles.conversationHeaderStatus,
+                  {
+                    color: tema.text,
+                    fontSize: 12 * escalaFonte,
+                  },
+                ]}
+              >
                 Conversa privada
               </Text>
             </View>
@@ -1373,7 +1402,9 @@ const iniciarRealtime = async (meuId: string) => {
           <View style={styles.chatLoadingContainer}>
             <ActivityIndicator size="large" color={corTema} />
 
-            <Text style={[styles.chatLoadingText, { color: tema.text }]}>Carregando conversa...</Text>
+            <Text style={[styles.chatLoadingText, { color: tema.text, fontSize: 14 * escalaFonte }]}>
+              Carregando conversa...
+            </Text>
           </View>
         ) : mensagens.length === 0 ? (
           <View style={styles.conversationEmptyContainer}>
@@ -1383,14 +1414,19 @@ const iniciarRealtime = async (meuId: string) => {
               color={colors.placeholder}
             />
 
-            <Text style={[styles.conversationEmptyTitle, { color: tema.text }]}>Inicie a conversa</Text>
+            <Text style={[styles.conversationEmptyTitle, { color: tema.text, fontSize: 18 * escalaFonte }]}>
+              Inicie a conversa
+            </Text>
 
-            <Text style={[styles.conversationEmptyText, { color: tema.text }]}>
+            <Text style={[styles.conversationEmptyText, { color: tema.text, fontSize: 14 * escalaFonte }]}>
               Envie uma mensagem para {nomeFormatado}.
             </Text>
           </View>
         ) : (
           <FlatList
+            style={{ flex: 1 }}
+            extraData={{ escalaFonte, tipoTema, editandoId, textoEditado }}
+            keyboardShouldPersistTaps="handled"
             ref={flatListRef}
             data={criarListaComDatas()}
             keyExtractor={(item) => item.id}
@@ -1436,13 +1472,15 @@ const iniciarRealtime = async (meuId: string) => {
                     paddingHorizontal: 14,
                     paddingVertical: 8,
                     borderRadius: 18,
+                    minHeight: 44,
+                    justifyContent: "center",
                   }}
                   onPress={() => enviarMensagem(textoPredef)}
                 >
                   <Text
                     style={{
                       color: tema.text,
-                      fontSize: 13,
+                      fontSize: 13 * escalaFonte,
                       fontWeight: "500",
                     }}
                   >
@@ -1464,7 +1502,6 @@ const iniciarRealtime = async (meuId: string) => {
             {
               backgroundColor: tema.background,
               borderTopColor: tema.border,
-              paddingBottom: Platform.OS === "android" ? 40 : 8,
             },
           ]}
         >
@@ -1473,7 +1510,10 @@ const iniciarRealtime = async (meuId: string) => {
               styles.messageInput,
               {
                 backgroundColor: tema.input,
-                color: tipoTema === 'forte' ? '#000000' : tema.text,
+                color: tipoTema === "forte" ? "#000000" : tema.text,
+                fontSize: 15 * escalaFonte,
+                minHeight: Math.max(44, 24 * escalaFonte * fontScale + 20),
+                maxHeight: Math.max(110, 72 * escalaFonte * fontScale + 20),
               },
             ]}
             value={novaMensagem}
@@ -1489,9 +1529,10 @@ const iniciarRealtime = async (meuId: string) => {
 
           <Pressable
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: 21,
+              flexShrink: 0,
+              width: 44,
+              height: 44,
+              borderRadius: 22,
               backgroundColor: tema.card,
               justifyContent: "center",
               alignItems: "center",

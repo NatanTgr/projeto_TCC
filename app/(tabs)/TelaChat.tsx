@@ -3,7 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
-  Platform,
+  ScrollView,
   Pressable,
   TouchableOpacity,
   StatusBar,
@@ -356,78 +356,113 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
   const usuariosParaFiltrarNaAba = usuarios.filter((u) => u.tipo === abaAtiva);
 
   const renderUsuario = ({ item }: { item: Usuario }) => {
-    const cor = getCorTipo(item.tipo);
-    
-    return (
-      <Pressable
-        style={({ pressed }) => [
-          styles.chatUserItem,
-          {
-            backgroundColor: tema.modal,
-          },
-          pressed && styles.chatUserItemPressed,
+  const cor = getCorTipo(item.tipo);
+  const avatarEscolhido = buscarAvatar(item.avatar);
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.chatUserItem,
+        { backgroundColor: tema.modal },
+        pressed && styles.chatUserItemPressed,
+      ]}
+      onPress={() => abrirConversa(item)}
+    >
+      <View
+        style={[
+          styles.chatUserAvatar,
+          { backgroundColor: cor, overflow: "hidden" },
         ]}
-        onPress={() => abrirConversa(item)}
       >
+        {avatarEscolhido ? (
+          <AvatarImagem uri={avatarEscolhido.url} tamanho={50} />
+        ) : (
+          <Ionicons
+            name={item.tipo === "professor" ? "person" : "people"}
+            size={25}
+            color={colors.white}
+          />
+        )}
+      </View>
+
+      <View style={styles.chatUserInfo}>
         <View
-          style={[
-            styles.chatUserAvatar,
-            { backgroundColor: cor, overflow: "hidden" },
-          ]}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+          }}
         >
-          {buscarAvatar(item.avatar) ? (
-            <AvatarImagem uri={buscarAvatar(item.avatar)!.url} tamanho={50} />
-          ) : (
-            <Ionicons
-              name={item.tipo === "professor" ? "person" : "people"}
-              size={25}
-              color={colors.white}
+          <Text
+            style={[
+              styles.chatUserName,
+              {
+                color: tema.text,
+                fontSize: 16 * escalaFonte,
+                flex: 1,
+                minWidth: 0,
+              },
+            ]}
+          >
+            {formatarNome(item.nome, item.email, item.tipo)}
+          </Text>
+
+          {item.mensagemNaoLida && (
+            <View
+              accessible
+              accessibilityLabel="Mensagem não lida"
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 5,
+                backgroundColor: cor,
+                marginLeft: 8,
+                flexShrink: 0,
+              }}
             />
           )}
         </View>
-        <View style={[styles.chatUserInfo, { flex: 1 }]}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Text
-              style={[styles.chatUserName, { color: tema.text, flex: 1 }]}
-              numberOfLines={1}
-            >
-              {formatarNome(item.nome, item.email, item.tipo)}
-            </Text>
 
-            {item.mensagemNaoLida && (
-              <View
-                accessible
-                accessibilityLabel="Mensagem não lida"
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: cor,
-                  marginLeft: 8,
-                }}
-              />
-            )}
-          </View>
-
-          <Text style={[styles.chatUserType, { color: tema.text }]}>
-            {item.mensagemNaoLida ? "Nova mensagem" : "Última mensagem..."}
-          </Text>
-        </View>
-
-        {/* Botão Fixar (Bookmark) */}
-        <Pressable
-          style={{ padding: 6 }}
-          onPress={(e) => toggleFixar(item.id, e)}
+        <Text
+          style={[
+            styles.chatUserType,
+            {
+              color: tema.text,
+              fontSize: 13 * escalaFonte,
+            },
+          ]}
         >
-          <Ionicons
-            name={item.fixado ? "bookmark" : "bookmark-outline"}
-            size={25}
-            color={item.fixado ? colors.primary : colors.placeholder}
-          />
-        </Pressable>
+          {item.mensagemNaoLida
+            ? "Nova mensagem"
+            : "Última mensagem..."}
+        </Text>
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={
+          item.fixado
+            ? `Desfixar ${item.nome}`
+            : `Fixar ${item.nome}`
+        }
+        style={{
+          minWidth: 44,
+          minHeight: 44,
+          padding: 8,
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+        onPress={(event) => toggleFixar(item.id, event)}
+      >
+        <Ionicons
+          name={item.fixado ? "bookmark" : "bookmark-outline"}
+          size={25}
+          color={item.fixado ? colors.primary : colors.placeholder}
+        />
       </Pressable>
-    );
-  };
+    </Pressable>
+  );
+};
 
   return (
     <SafeAreaView
@@ -465,9 +500,9 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
       <View
         style={{
           flexDirection: "row",
-          paddingHorizontal: 16,
-          paddingTop: 2,
-          paddingBottom: 2,
+          flexWrap: "wrap",
+          paddingHorizontal: 15,
+          paddingVertical: 2,
           gap: 12,
           backgroundColor: tema.background,
         }}
@@ -481,23 +516,29 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
               activeOpacity={0.7}
               onPress={() => setAbaAtiva(aba.key)}
               style={{
-                flex: 1,
+                flexGrow: 1,
+                flexShrink: 1,
+                flexBasis: 140,
+                minHeight: 48,
+                paddingHorizontal: 12,
                 paddingVertical: 12,
                 borderRadius: 14,
                 backgroundColor: selecionada
                   ? aba.key === "professor"
-                    ? "#94C0DF" // azul
-                    : "#88C688" // verde para tutores
-                  : "#FFFFFF",
+                    ? "#94C0DF"
+                    : "#88C688"
+                  : tema.modal,
                 alignItems: "center",
+                justifyContent: "center",
                 elevation: 2,
               }}
             >
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 15 * escalaFonte,
                   fontWeight: "600",
-                  color: selecionada ? "#FFFFFF" : colors.textSecondary,
+                  textAlign: "center",
+                  color: tema.text,
                 }}
               >
                 {aba.label}
@@ -521,9 +562,12 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
           style={{
             flexDirection: "row",
             alignItems: "center",
+            justifyContent: "center",
             backgroundColor: colors.border + "50",
+            minHeight: 30,
+            maxWidth: "100%",
             paddingHorizontal: 12,
-            paddingVertical: 6,
+            paddingVertical: 8,
             borderRadius: 12,
             gap: 6,
           }}
@@ -532,9 +576,11 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
           <Ionicons name="filter" size={16} color={colors.textSecondary} />
           <Text
             style={{
-              fontSize: 13,
+              fontSize: 13 * escalaFonte,
               fontWeight: "600",
-              color: colors.textSecondary,
+              color: tema.text + 95,
+              flexShrink: 1,
+              textAlign: "center",
             }}
           >
             Filtrar
@@ -545,7 +591,14 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
       {loading ? (
         <View style={styles.chatLoadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={[styles.chatLoadingText, { color: tema.text }]}>Carregando usuários...</Text>
+          <Text
+            style={[
+              styles.chatLoadingText,
+              { color: tema.text, fontSize: 14 * escalaFonte },
+            ]}
+          >
+            Carregando usuários...
+          </Text>
         </View>
       ) : usuariosFiltrados.length === 0 ? (
         <View style={styles.chatEmptyContainer}>
@@ -554,14 +607,34 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
             size={64}
             color={colors.placeholder}
           />
-          <Text style={styles.chatEmptyTitle}>Nenhum usuário disponível</Text>
-          <Text style={styles.chatEmptyText}>
+          <Text
+            style={[
+              styles.chatEmptyTitle,
+              {
+                color: tema.text,
+                fontSize: 18 * escalaFonte,
+              },
+            ]}
+          >
+            Nenhum usuário disponível
+          </Text>
+          <Text
+            style={[
+              styles.chatEmptyText,
+              {
+                color: tema.text,
+                fontSize: 14 * escalaFonte,
+              },
+            ]}
+          >
             Ajuste os filtros para exibir conversas.
           </Text>
         </View>
       ) : (
         <FlatList
+          style={{ flex: 1 }}
           data={usuariosFiltrados}
+          extraData={escalaFonte}
           keyExtractor={(item) => item.id}
           renderItem={renderUsuario}
           contentContainerStyle={styles.chatUsersList}
@@ -573,9 +646,11 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
       <Modal
         visible={modalFiltroVisible}
         animationType="slide"
-        transparent={true}
+        transparent
+        onRequestClose={() => setModalFiltroVisible(false)}
       >
-        <View
+        <SafeAreaView
+          edges={["top", "bottom", "left", "right"]}
           style={{
             flex: 1,
             justifyContent: "flex-end",
@@ -583,105 +658,159 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
           }}
         >
           <View
+            accessibilityViewIsModal
             style={{
+              width: "100%",
+              maxWidth: 540,
+              maxHeight: "85%",
+              alignSelf: "center",
               backgroundColor: tema.modal,
-              padding: 20,
               borderTopLeftRadius: 20,
               borderTopRightRadius: 20,
-              maxHeight: "70%",
+              overflow: "hidden",
             }}
           >
-            <Text
+            {/* Cabeçalho fixo */}
+            <View
               style={{
-                fontSize: 18,
-                fontWeight: "bold",
-                marginBottom: 5,
-                color: tema.text,
+                paddingHorizontal: 20,
+                paddingTop: 20,
+                paddingBottom: 15,
+                flexShrink: 0,
               }}
             >
-              Filtrar{" "}
-              {abasPermitidas.find((a) => a.key === abaAtiva)?.label || ""}
-            </Text>
-            <Text
-              style={{
-                fontSize: 13,
-                color: tema.text,
-                marginBottom: 15,
-              }}
-            >
-              Selecione quais{" "}
-              {abasPermitidas
-                .find((a) => a.key === abaAtiva)
-                ?.label.toLowerCase() || ""}{" "}
-              deseja exibir:
-            </Text>
+              <Text
+                accessibilityRole="header"
+                style={{
+                  fontSize: 18 * escalaFonte,
+                  fontWeight: "bold",
+                  marginBottom: 5,
+                  color: tema.text,
+                }}
+              >
+                Filtrar{" "}
+                {abasPermitidas.find((aba) => aba.key === abaAtiva)?.label ||
+                  ""}
+              </Text>
 
-            <FlatList
-              data={usuariosParaFiltrarNaAba}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => {
+              <Text
+                style={{
+                  fontSize: 13 * escalaFonte,
+                  color: tema.text,
+                }}
+              >
+                Selecione quais{" "}
+                {abasPermitidas
+                  .find((aba) => aba.key === abaAtiva)
+                  ?.label.toLowerCase() || ""}{" "}
+                deseja exibir:
+              </Text>
+            </View>
+
+            {/* Somente a lista rola */}
+            <ScrollView
+              style={{
+                flexGrow: 0,
+                flexShrink: 1,
+                minHeight: 0,
+              }}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+              }}
+              showsVerticalScrollIndicator={false}
+            >
+              {usuariosParaFiltrarNaAba.map((item) => {
                 const selecionado = idsSelecionados.includes(item.id);
+
                 return (
                   <Pressable
+                    key={item.id}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: selecionado }}
+                    accessibilityLabel={formatarNome(
+                      item.nome,
+                      item.email,
+                      item.tipo,
+                    )}
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      paddingVertical: 10,
+                      minHeight: 48,
+                      paddingVertical: 12,
                       borderBottomWidth: 1,
-                      borderBottomColor: colors.border,
+                      borderBottomColor: tema.border,
                     }}
                     onPress={() => toggleSelecionFiltro(item.id)}
                   >
                     <Ionicons
                       name={selecionado ? "checkbox" : "square-outline"}
                       size={22}
-                      color={selecionado ? colors.primary : colors.placeholder}
-                      style={{ marginRight: 10 }}
+                      color={selecionado ? colors.primary : tema.text}
+                      style={{
+                        marginRight: 10,
+                        flexShrink: 0,
+                      }}
                     />
-                    <View>
+
+                    <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
                       <Text
                         style={{
-                          fontSize: 15,
+                          fontSize: 15 * escalaFonte,
                           fontWeight: "500",
                           color: tema.text,
                         }}
                       >
                         {formatarNome(item.nome, item.email, item.tipo)}
                       </Text>
+
                       <Text
-                        style={{ fontSize: 12, color: tema.text }}
+                        style={{
+                          fontSize: 12 * escalaFonte,
+                          color: tema.text,
+                        }}
                       >
                         {item.email}
                       </Text>
                     </View>
                   </Pressable>
                 );
-              }}
-            />
+              })}
+            </ScrollView>
 
-            <Pressable
+            {/* Botão fixo */}
+            <View
               style={{
-                marginTop: 15,
-                marginBottom: 40,
-                backgroundColor: colors.primary,
-                padding: 12,
-                borderRadius: 12,
-                alignItems: "center",
+                padding: 20,
+                flexShrink: 0,
               }}
-              onPress={() => setModalFiltroVisible(false)}
             >
-              <Text
+              <Pressable
+                accessibilityRole="button"
                 style={{
-                  color: colors.white,
-                  fontWeight: "bold",
-                  fontSize: 16,
+                  minHeight: 48,
+                  backgroundColor: colors.primary,
+                  paddingHorizontal: 12,
+                  paddingVertical: 14,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
+                onPress={() => setModalFiltroVisible(false)}
               >
-                Aplicar Filtro
-              </Text>
-            </Pressable>
+                <Text
+                  style={{
+                    color: colors.white,
+                    fontWeight: "bold",
+                    fontSize: 16 * escalaFonte,
+                    textAlign: "center",
+                  }}
+                >
+                  Aplicar Filtro
+                </Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
     </SafeAreaView>
   );
