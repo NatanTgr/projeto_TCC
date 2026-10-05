@@ -415,9 +415,9 @@ export const styles = StyleSheet.create({
   },
 
   chatHeader: {
-    paddingLeft: 15,
-    paddingRight: 15,
-    marginTop: 5,
+    width: "100%",
+      paddingHorizontal: 15,
+  marginTop: 8,
   },
 
   chatBackButton: {
@@ -442,6 +442,7 @@ export const styles = StyleSheet.create({
   },
 
   chatHeaderTitle: {
+    flex: 1,
     flexShrink: 1,
     fontSize: 30,
     fontWeight: "bold",

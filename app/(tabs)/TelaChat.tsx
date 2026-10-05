@@ -431,7 +431,7 @@ setIdsSelecionados(listaUsuarios.map(u => u.id));
 
   return (
     <SafeAreaView
-      edges={["left", "right"]}
+      edges={["left", "right", "top"]}
       style={[
         styles.chatContainer,
         {

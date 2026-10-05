@@ -1,5 +1,6 @@
 import { Text, View, ScrollView, TextInput, Alert, TouchableOpacity, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useCallback, useEffect } from 'react';
 import { testarLogin } from "../../bd/testarAuth";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -23,50 +24,38 @@ export default function TelaCalendario() {
   const [editando, setEditando] = useState(false);
 
   // ========================================
-// FUNÇÃO PARA VALIDAR DATA
-// ========================================
+  // FUNÇÃO PARA VALIDAR DATA
+  // ========================================
 
-const validarData = (data: string) => {
-  const partes = data.split("-");
+  const validarData = (data: string) => {
+    const partes = data.split("-");
 
-  if (partes.length !== 3) return false;
+    if (partes.length !== 3) return false;
 
-  const [ano, mes, dia] = partes;
+    const [ano, mes, dia] = partes;
 
-  if (
-    ano.length !== 4 ||
-    mes.length !== 2 ||
-    dia.length !== 2
-  ) {
-    return false;
-  }
+    if (ano.length !== 4 || mes.length !== 2 || dia.length !== 2) {
+      return false;
+    }
 
-  const dataTeste = new Date(
-    Number(ano),
-    Number(mes) - 1,
-    Number(dia)
-  );
+    const dataTeste = new Date(Number(ano), Number(mes) - 1, Number(dia));
 
-  return (
-    dataTeste.getFullYear() === Number(ano) &&
-    dataTeste.getMonth() === Number(mes) - 1 &&
-    dataTeste.getDate() === Number(dia)
-  );
-};
+    return (
+      dataTeste.getFullYear() === Number(ano) &&
+      dataTeste.getMonth() === Number(mes) - 1 &&
+      dataTeste.getDate() === Number(dia)
+    );
+  };
 
-// ========================================
-// FUNÇÃO PARA CONVERTER DATA
-// ========================================
+  // ========================================
+  // FUNÇÃO PARA CONVERTER DATA
+  // ========================================
 
-const converterData = (data: string) => {
-  const [ano, mes, dia] = data.split("-");
+  const converterData = (data: string) => {
+    const [ano, mes, dia] = data.split("-");
 
-  return new Date(
-    Number(ano),
-    Number(mes) - 1,
-    Number(dia)
-  );
-};
+    return new Date(Number(ano), Number(mes) - 1, Number(dia));
+  };
 
   // ========================================
   // FUNÇÃO PARA ABRIR A EDIÇÃO
@@ -177,7 +166,7 @@ const converterData = (data: string) => {
       console.log("Erro ao editar tarefa:", error);
       return false;
     }
-  };;
+  };
 
   const alterarData = (texto: string) => {
     let valor = texto.replace(/\D/g, "");
@@ -199,7 +188,6 @@ const converterData = (data: string) => {
     }
   };
 
-
   const [titulo, setTitulo] = useState("");
   const [data, setData] = useState("");
   const [dataInterna, setDataInterna] = useState("");
@@ -208,95 +196,95 @@ const converterData = (data: string) => {
   const [plataforma, setPlataforma] = useState("");
   const [descricao, setDescricao] = useState("");
 
-const adicionarTarefa = async (tipo: string) => {
-  // Verifica se todos os campos foram preenchidos
-  if (
-    !titulo.trim() ||
-    !dataInterna.trim() ||
-    !disciplina.trim() ||
-    !professor.trim() ||
-    !tipo.trim() ||
-    !plataforma.trim() ||
-    !descricao.trim()
-  ) {
-    Alert.alert(
-      "Campos obrigatórios",
-      "Preencha todos os campos para adicionar o evento.",
-    );
-    return false;
-  }
-
-  // Impede criar evento em data inválida
-  if (!validarData(dataInterna)) {
-    Alert.alert("Data inválida", "Digite uma data válida.");
-    return false;
-  }
-
-  // Data de hoje
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  const dataEvento = converterData(dataInterna);
-  dataEvento.setHours(0, 0, 0, 0);
-
-  // Impede criar evento em data passada
-  if (dataEvento < hoje) {
-    Alert.alert(
-      "Data inválida",
-      "Não é possível criar um evento em uma data que já passou.",
-    );
-    return false;
-  }
-
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+  const adicionarTarefa = async (tipo: string) => {
+    // Verifica se todos os campos foram preenchidos
+    if (
+      !titulo.trim() ||
+      !dataInterna.trim() ||
+      !disciplina.trim() ||
+      !professor.trim() ||
+      !tipo.trim() ||
+      !plataforma.trim() ||
+      !descricao.trim()
+    ) {
       Alert.alert(
-        "Usuário não encontrado",
-        "Não foi possível identificar o usuário logado.",
+        "Campos obrigatórios",
+        "Preencha todos os campos para adicionar o evento.",
       );
       return false;
     }
 
-    const { error } = await supabase.from("tarefas").insert({
-      titulo: titulo.trim(),
-      data: dataInterna,
-      disciplina: disciplina.trim(),
-      professor: professor.trim(),
-      tipo,
-      plataforma: plataforma.trim(),
-      descricao: descricao.trim(),
-      concluido: false,
-      aluno_id: user.id,
-    });
-
-    if (error) {
-      console.log("Erro ao adicionar tarefa:", error);
-
-      Alert.alert("Erro", "Não foi possível adicionar o evento.");
-
+    // Impede criar evento em data inválida
+    if (!validarData(dataInterna)) {
+      Alert.alert("Data inválida", "Digite uma data válida.");
       return false;
     }
 
-    await carregarEventosCalendario();
+    // Data de hoje
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
 
-    setTitulo("");
-    setDisciplina("");
-    setProfessor("");
-    setPlataforma("");
-    setDescricao("");
-    setTipoSelecionado("");
+    const dataEvento = converterData(dataInterna);
+    dataEvento.setHours(0, 0, 0, 0);
 
-    return true;
-  } catch (error) {
-    console.log("Erro ao adicionar tarefa:", error);
+    // Impede criar evento em data passada
+    if (dataEvento < hoje) {
+      Alert.alert(
+        "Data inválida",
+        "Não é possível criar um evento em uma data que já passou.",
+      );
+      return false;
+    }
 
-    Alert.alert("Erro", "Ocorreu um erro ao adicionar o evento.");
-  }
-};
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        Alert.alert(
+          "Usuário não encontrado",
+          "Não foi possível identificar o usuário logado.",
+        );
+        return false;
+      }
+
+      const { error } = await supabase.from("tarefas").insert({
+        titulo: titulo.trim(),
+        data: dataInterna,
+        disciplina: disciplina.trim(),
+        professor: professor.trim(),
+        tipo,
+        plataforma: plataforma.trim(),
+        descricao: descricao.trim(),
+        concluido: false,
+        aluno_id: user.id,
+      });
+
+      if (error) {
+        console.log("Erro ao adicionar tarefa:", error);
+
+        Alert.alert("Erro", "Não foi possível adicionar o evento.");
+
+        return false;
+      }
+
+      await carregarEventosCalendario();
+
+      setTitulo("");
+      setDisciplina("");
+      setProfessor("");
+      setPlataforma("");
+      setDescricao("");
+      setTipoSelecionado("");
+
+      return true;
+    } catch (error) {
+      console.log("Erro ao adicionar tarefa:", error);
+
+      Alert.alert("Erro", "Ocorreu um erro ao adicionar o evento.");
+    }
+  };
 
   //selecionar dia
   const [selectedDay, setSelectedDay] = useState("");
@@ -397,23 +385,23 @@ const adicionarTarefa = async (tipo: string) => {
   };
 
   const carregarEventosCalendario = async () => {
-  try {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!user) {
-      console.log("Nenhum usuário logado.");
-      setMarkedDates({});
-      return;
-    }
+      if (!user) {
+        console.log("Nenhum usuário logado.");
+        setMarkedDates({});
+        return;
+      }
 
-    console.log("Usuário encontrado no calendário:", user.id);
+      console.log("Usuário encontrado no calendário:", user.id);
 
-    const { data: tarefas, error } = await supabase
-      .from("tarefas")
-      .select("*")
-      .eq("aluno_id", user.id);
+      const { data: tarefas, error } = await supabase
+        .from("tarefas")
+        .select("*")
+        .eq("aluno_id", user.id);
 
       console.log("TAREFAS DO CALENDÁRIO:", tarefas);
       console.log("ERRO DAS TAREFAS:", error);
@@ -492,13 +480,9 @@ const adicionarTarefa = async (tipo: string) => {
   );
 
   return (
-    <View
-      style={[
-        Estilos.container,
-        {
-          backgroundColor: tema.background,
-        },
-      ]}
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={[Estilos.container, { backgroundColor: tema.background }]}
     >
       {/* Cabeçalho */}
       <View style={Estilos.header}>
@@ -519,125 +503,129 @@ const adicionarTarefa = async (tipo: string) => {
         </View>
       </View>
       <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 24 }}
-          showsVerticalScrollIndicator={false}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
       >
-      <View style={Estilos.legendaContainer}>
-        <View style={Estilos.legendaItem}>
-          <View style={[Estilos.quadrado, { backgroundColor: "#FFA64E" }]} />
+        <View style={Estilos.legendaContainer}>
+          <View style={Estilos.legendaItem}>
+            <View style={[Estilos.quadrado, { backgroundColor: "#FFA64E" }]} />
 
-          <Text
-            style={[
-              Estilos.legenda,
-              {
-                color: tema.text,
-                fontSize: 15 * escalaFonte,
-              },
-            ]}
-          >
-            Atrasada
-          </Text>
+            <Text
+              style={[
+                Estilos.legenda,
+                {
+                  color: tema.text,
+                  fontSize: 15 * escalaFonte,
+                },
+              ]}
+            >
+              Atrasada
+            </Text>
+          </View>
+
+          <View style={Estilos.legendaItem}>
+            <View style={[Estilos.quadrado, { backgroundColor: "#88C688" }]} />
+
+            <Text
+              style={[
+                Estilos.legenda,
+                {
+                  color: tema.text,
+                  fontSize: 15 * escalaFonte,
+                },
+              ]}
+            >
+              Tarefa
+            </Text>
+          </View>
+
+          <View style={Estilos.legendaItem}>
+            <View style={[Estilos.quadrado, { backgroundColor: "#94C0DF" }]} />
+
+            <Text
+              style={[
+                Estilos.legenda,
+                {
+                  color: tema.text,
+                  fontSize: 15 * escalaFonte,
+                },
+              ]}
+            >
+              Reunião
+            </Text>
+          </View>
         </View>
 
-        <View style={Estilos.legendaItem}>
-          <View style={[Estilos.quadrado, { backgroundColor: "#88C688" }]} />
-
-          <Text
-            style={[
-              Estilos.legenda,
-              {
-                color: tema.text,
-                fontSize: 15 * escalaFonte,
-              },
-            ]}
-          >
-            Tarefa
-          </Text>
-        </View>
-
-        <View style={Estilos.legendaItem}>
-          <View style={[Estilos.quadrado, { backgroundColor: "#94C0DF" }]} />
-
-          <Text
-            style={[
-              Estilos.legenda,
-              {
-                color: tema.text,
-                fontSize: 15 * escalaFonte,
-              },
-            ]}
-          >
-            Reunião
-          </Text>
-        </View>
-      </View>
-
-      <View
-        style={[
-          Estilos.calendarContainer,
-          {
-            backgroundColor: tema.card,
-          },
-        ]}
-      >
-        <Calendar
-          key={`calendario-${escalaFonte}`}
-          style={Estilos.calendar}
-          renderArrow={(direction: "right" | "left") => (
-            <Feather size={24} color="#000000" name={`chevron-${direction}`} />
-          )}
-          headerStyle={{
-            paddingBottom: 10,
-            marginBottom: 10,
-          }}
-          theme={
+        <View
+          style={[
+            Estilos.calendarContainer,
             {
-              backgroundColor: "#fff",
-              todayTextColor: "#fff",
-              todayBackgroundColor: "#836F68",
-              monthTextColor: "#000000",
-              textDayFontSize: 14 * escalaFonte,
-              textMonthFontSize: 16 * escalaFonte,
-              textDayHeaderFontSize: 12 * escalaFonte,
+              backgroundColor: tema.card,
+            },
+          ]}
+        >
+          <Calendar
+            key={`calendario-${escalaFonte}`}
+            style={Estilos.calendar}
+            renderArrow={(direction: "right" | "left") => (
+              <Feather
+                size={24}
+                color="#000000"
+                name={`chevron-${direction}`}
+              />
+            )}
+            headerStyle={{
+              paddingBottom: 10,
+              marginBottom: 10,
+            }}
+            theme={
+              {
+                backgroundColor: "#fff",
+                todayTextColor: "#fff",
+                todayBackgroundColor: "#836F68",
+                monthTextColor: "#000000",
+                textDayFontSize: 14 * escalaFonte,
+                textMonthFontSize: 16 * escalaFonte,
+                textDayHeaderFontSize: 12 * escalaFonte,
 
-              arrowStyle: {
-                margin: 0,
-                padding: 0,
-              },
-
-              "stylesheet.dot": {
-                dot: {
-                  width: 7,
-                  height: 7,
-                  borderRadius: 4,
-                  marginHorizontal: 1,
+                arrowStyle: {
+                  margin: 0,
+                  padding: 0,
                 },
-              },
 
-              ["Estilosheet.day.basic"]: {
-                base: {
-                  width: 40,
-                  height: 40,
-
-                  alignItems: "center",
-                  justifyContent: "center",
-
-                  borderWidth: 1,
-                  borderColor: "#cdcdcd85",
-
-                  borderRadius: 12,
+                "stylesheet.dot": {
+                  dot: {
+                    width: 7,
+                    height: 7,
+                    borderRadius: 4,
+                    marginHorizontal: 1,
+                  },
                 },
-              },
-            } as any
-          }
-          //minDate={new Date().toDateString()}
-          hideExtraDays={true}
-          onDayPress={handleDayPress}
-          markingType={"multi-dot"}
-          markedDates={markedDates}
-        />
-      </View>
+
+                ["Estilosheet.day.basic"]: {
+                  base: {
+                    width: 40,
+                    height: 40,
+
+                    alignItems: "center",
+                    justifyContent: "center",
+
+                    borderWidth: 1,
+                    borderColor: "#cdcdcd85",
+
+                    borderRadius: 12,
+                  },
+                },
+              } as any
+            }
+            //minDate={new Date().toDateString()}
+            hideExtraDays={true}
+            onDayPress={handleDayPress}
+            markingType={"multi-dot"}
+            markedDates={markedDates}
+          />
+        </View>
       </ScrollView>
       <Modal
         visible={modalEscolha}
@@ -816,240 +804,240 @@ const adicionarTarefa = async (tipo: string) => {
       />
 
       <Modal
-  visible={modalVisible}
-  transparent
-  animationType="fade"
-  onRequestClose={() => setModalVisible(false)}
->
-  <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    style={Estilos.modalOverlay}
-  >
-    <ScrollView
-      style={[
-        Estilos.cardModal,
-        { backgroundColor: tema.modal, flexGrow: 0 },
-      ]}
-      contentContainerStyle={{ padding: 20 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-              <Text
-                style={[
-                  Estilos.tituloModal,
-                  { color: tema.text, fontSize: 20 * escalaFonte },
-                ]}
-              >
-                {editando ? "Editar Evento" : "Novo Evento"}
-              </Text>
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={Estilos.modalOverlay}
+        >
+          <ScrollView
+            style={[
+              Estilos.cardModal,
+              { backgroundColor: tema.modal, flexGrow: 0 },
+            ]}
+            contentContainerStyle={{ padding: 20 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text
+              style={[
+                Estilos.tituloModal,
+                { color: tema.text, fontSize: 20 * escalaFonte },
+              ]}
+            >
+              {editando ? "Editar Evento" : "Novo Evento"}
+            </Text>
 
+            <Text
+              style={[
+                Estilos.tipoTexto,
+                { color: tema.text, fontSize: 16 * escalaFonte },
+              ]}
+            >
+              Tipo
+            </Text>
+
+            <View style={Estilos.opcoesRow}>
+              {/* Opção Tarefa */}
+              <TouchableOpacity
+                style={Estilos.opcaoContainer}
+                onPress={() => setTipoSelecionado("Tarefa")}
+              >
+                <View style={Estilos.radioExterno}>
+                  {tipoSelecionado === "Tarefa" && (
+                    <View style={Estilos.radioInterno} />
+                  )}
+                </View>
+
+                <Text
+                  style={[
+                    Estilos.textoOpcao,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Tarefa
+                </Text>
+              </TouchableOpacity>
+
+              {/* Opção Reunião */}
+              <TouchableOpacity
+                style={Estilos.opcaoContainer}
+                onPress={() => setTipoSelecionado("Reunião")}
+              >
+                <View style={Estilos.radioExterno}>
+                  {tipoSelecionado === "Reunião" && (
+                    <View style={Estilos.radioInterno} />
+                  )}
+                </View>
+
+                <Text
+                  style={[
+                    Estilos.textoOpcao,
+                    { color: tema.text, fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Reunião
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/*Colocar Textos*/}
+            <View style={Estilos.infoTarefa}>
               <Text
                 style={[
-                  Estilos.tipoTexto,
+                  Estilos.titulosInfoTarefa,
                   { color: tema.text, fontSize: 16 * escalaFonte },
                 ]}
               >
-                Tipo
+                Título
               </Text>
+              <TextInput
+                style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
+                placeholder="Nome do evento"
+                value={titulo}
+                onChangeText={setTitulo}
+              ></TextInput>
 
-              <View style={Estilos.opcoesRow}>
-                {/* Opção Tarefa */}
-                <TouchableOpacity
-                  style={Estilos.opcaoContainer}
-                  onPress={() => setTipoSelecionado("Tarefa")}
-                >
-                  <View style={Estilos.radioExterno}>
-                    {tipoSelecionado === "Tarefa" && (
-                      <View style={Estilos.radioInterno} />
-                    )}
-                  </View>
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Data Selecionada
+              </Text>
+              <TextInput
+                style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
+                placeholder="dd/mm/aaaa"
+                value={data}
+                onChangeText={alterarData}
+                keyboardType="numeric"
+                editable={editando}
+              ></TextInput>
 
-                  <Text
-                    style={[
-                      Estilos.textoOpcao,
-                      { color: tema.text, fontSize: 16 * escalaFonte },
-                    ]}
-                  >
-                    Tarefa
-                  </Text>
-                </TouchableOpacity>
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Disciplina
+              </Text>
+              <TextInput
+                style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
+                placeholder="Ex: Matemática"
+                value={disciplina}
+                onChangeText={setDisciplina}
+              ></TextInput>
 
-                {/* Opção Reunião */}
-                <TouchableOpacity
-                  style={Estilos.opcaoContainer}
-                  onPress={() => setTipoSelecionado("Reunião")}
-                >
-                  <View style={Estilos.radioExterno}>
-                    {tipoSelecionado === "Reunião" && (
-                      <View style={Estilos.radioInterno} />
-                    )}
-                  </View>
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Professor
+              </Text>
+              <TextInput
+                style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
+                placeholder="Nome do professor"
+                value={professor}
+                onChangeText={setProfessor}
+              ></TextInput>
 
-                  <Text
-                    style={[
-                      Estilos.textoOpcao,
-                      { color: tema.text, fontSize: 16 * escalaFonte },
-                    ]}
-                  >
-                    Reunião
-                  </Text>
-                </TouchableOpacity>
-              </View>
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Plataforma de Realização (Opcional)
+              </Text>
+              <TextInput
+                style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
+                placeholder="Ex: Google Classroom, Moodle"
+                value={plataforma}
+                onChangeText={setPlataforma}
+              ></TextInput>
 
-              {/*Colocar Textos*/}
-              <View style={Estilos.infoTarefa}>
+              <Text
+                style={[
+                  Estilos.titulosInfoTarefa,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Descrição (Opcional)
+              </Text>
+              <TextInput
+                style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
+                placeholder="Detalhes do evento"
+                value={descricao}
+                onChangeText={setDescricao}
+              ></TextInput>
+            </View>
+
+            {/* Botões */}
+            <View style={Estilos.botoesModal}>
+              <TouchableOpacity
+                style={Estilos.botaoCancelar}
+                onPress={() => {
+                  setModalVisible(false);
+                  setEditando(false);
+
+                  setTitulo("");
+                  setData("");
+                  setDataInterna("");
+                  setDisciplina("");
+                  setProfessor("");
+                  setPlataforma("");
+                  setDescricao("");
+                  setTipoSelecionado("");
+                }}
+              >
                 <Text
                   style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
+                    Estilos.textoBotao,
+                    { color: "#fff", fontSize: 16 * escalaFonte },
                   ]}
                 >
-                  Título
+                  Cancelar
                 </Text>
-                <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
-                  placeholder="Nome do evento"
-                  value={titulo}
-                  onChangeText={setTitulo}
-                ></TextInput>
+              </TouchableOpacity>
 
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Data Selecionada
-                </Text>
-                <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
-                  placeholder="dd/mm/aaaa"
-                  value={data}
-                  onChangeText={alterarData}
-                  keyboardType="numeric"
-                  editable={editando}
-                ></TextInput>
+              <TouchableOpacity
+                style={Estilos.botaoConfirmar}
+                onPress={async () => {
+                  if (editando) {
+                    const sucesso = await editarTarefa();
 
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Disciplina
-                </Text>
-                <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
-                  placeholder="Ex: Matemática"
-                  value={disciplina}
-                  onChangeText={setDisciplina}
-                ></TextInput>
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Professor
-                </Text>
-                <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
-                  placeholder="Nome do professor"
-                  value={professor}
-                  onChangeText={setProfessor}
-                ></TextInput>
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Plataforma de Realização (Opcional)
-                </Text>
-                <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
-                  placeholder="Ex: Google Classroom, Moodle"
-                  value={plataforma}
-                  onChangeText={setPlataforma}
-                ></TextInput>
-
-                <Text
-                  style={[
-                    Estilos.titulosInfoTarefa,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Descrição (Opcional)
-                </Text>
-                <TextInput
-                  style={[Estilos.textosInfo, { fontSize: 16 * escalaFonte }]}
-                  placeholder="Detalhes do evento"
-                  value={descricao}
-                  onChangeText={setDescricao}
-                ></TextInput>
-              </View>
-
-              {/* Botões */}
-              <View style={Estilos.botoesModal}>
-                <TouchableOpacity
-                  style={Estilos.botaoCancelar}
-                  onPress={() => {
-                    setModalVisible(false);
-                    setEditando(false);
-
-                    setTitulo("");
-                    setData("");
-                    setDataInterna("");
-                    setDisciplina("");
-                    setProfessor("");
-                    setPlataforma("");
-                    setDescricao("");
-                    setTipoSelecionado("");
-                  }}
-                >
-                  <Text
-                    style={[
-                      Estilos.textoBotao,
-                      { color: "#fff", fontSize: 16 * escalaFonte },
-                    ]}
-                  >
-                    Cancelar
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={Estilos.botaoConfirmar}
-                  onPress={async () => {
-                    if (editando) {
-                      const sucesso = await editarTarefa();
-
-                      if (sucesso) {
-                        setModalVisible(false);
-                      }
-                    } else {
-                      const sucesso = await adicionarTarefa(tipoSelecionado);
-
-                      if (sucesso) {
-                        setModalVisible(false);
-                      }
+                    if (sucesso) {
+                      setModalVisible(false);
                     }
-                  }}
+                  } else {
+                    const sucesso = await adicionarTarefa(tipoSelecionado);
+
+                    if (sucesso) {
+                      setModalVisible(false);
+                    }
+                  }
+                }}
+              >
+                <Text
+                  style={[
+                    Estilos.textoBotao,
+                    { color: "#fff", fontSize: 16 * escalaFonte },
+                  ]}
                 >
-                  <Text
-                    style={[
-                      Estilos.textoBotao,
-                      { color: "#fff", fontSize: 16 * escalaFonte },
-                    ]}
-                  >
-                    {editando ? "Salvar Alterações" : "Adicionar Evento"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
+                  {editando ? "Salvar Alterações" : "Adicionar Evento"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }

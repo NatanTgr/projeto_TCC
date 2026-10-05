@@ -8,7 +8,7 @@ const Estilos = StyleSheet.create({
 
   header: {
     paddingHorizontal: 15,
-    marginTop: 40,
+    marginTop: 12,
     width: "100%",
   },
 
@@ -19,11 +19,13 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     gap: 8,
+    marginBottom: 15,
   },
 
   headerTitle: {
     flexGrow: 1,
     flexShrink: 1,
+    minWidth: 0,
     fontSize: 30,
     fontWeight: "bold",
     color: "#333",

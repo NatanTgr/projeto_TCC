@@ -2,22 +2,22 @@ import { StyleSheet } from "react-native";
 
 const Estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFDD0" },
-  header: { paddingLeft: 15, paddingRight: 15, marginTop: 15 },
+  header: { width: "100%", paddingHorizontal: 15, marginTop: 12 },
   topRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     alignItems: "center",
     width: "100%",
-    marginBottom: 0,
+    marginBottom: 12,
     gap: 8,
   },
   headerTitle: {
+    flex: 1,
     flexShrink: 1,
     fontSize: 30,
     fontWeight: "bold",
     minWidth: 0,
-    flexGrow: 1,
   },
   taskCount: { fontSize: 14, color: "#666", marginBottom: 10 },
   inputContainer: {

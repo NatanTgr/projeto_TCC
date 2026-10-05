@@ -6,7 +6,7 @@ const Estilos = StyleSheet.create({
   header: {
     width: "100%",
     paddingHorizontal: 15,
-    marginTop: 8,
+    marginTop: 12,
   },
 
   topRow: {
