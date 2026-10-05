@@ -754,6 +754,7 @@ export default function SignUp() {
   const [turno, setTurno] = useState('');
   const [turma, setTurma] = useState('');
   const [escolaridade, setEscolaridade] = useState('');
+  const [pronome, setPronome] = useState('');
   const [departamento, setDepartamento] = useState('');
   const [areaAtuacao, setAreaAtuacao] = useState('');
   const [loading, setLoading] = useState(false);
@@ -763,6 +764,7 @@ export default function SignUp() {
   const [modalCampusVisible, setModalCampusVisible] = useState(false);
   const [modalTurnoVisible, setModalTurnoVisible] = useState(false);
   const [modalEscolaridadeVisible, setModalEscolaridadeVisible] = useState(false);
+  const [modalPronomeVisible, setModalPronomeVisible] = useState(false);
 
   const selectedRole = role || 'Estudante';
 
@@ -816,12 +818,12 @@ export default function SignUp() {
       tipoUsuario === 'estudante' &&
       (!curso.trim() || !turno.trim() || !turma.trim() || !escolaridade.trim())
     ) {
-      Alert.alert('Atenção', 'Preencha curso, turno, turma e escolaridade.');
+      Alert.alert('Atenção', 'Preencha curso, turno, turma, escolaridade e pronome.');
       return;
     }
 
-    if (tipoUsuario === 'tutor' && !departamento.trim()) {
-      Alert.alert('Atenção', 'Preencha o departamento do tutor.');
+    if (tipoUsuario === 'tutor' && (!departamento.trim() || !pronome.trim())) {
+      Alert.alert('Atenção', 'Preencha o departamento e o pronome.');
       return;
     }
 
@@ -850,12 +852,14 @@ export default function SignUp() {
             estado: selectedEstado,
             campus: campus.trim(),
             role: tipoUsuario,
+            pronome: pronome.trim(),
 
             // Dados do estudante
             curso: curso.trim(),
             turno: turno.trim(),
             turma: turma.trim(),
             escolaridade: escolaridade.trim(),
+            
 
             // Dados do professor
             areaAtuacao: areaAtuacao.trim(),
@@ -909,13 +913,10 @@ export default function SignUp() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.background}
-      />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <ScrollView
@@ -924,7 +925,7 @@ export default function SignUp() {
         >
           <View style={styles.logoContainer}>
             <Image
-              source={require('../assets/images/logo_PAED.png')}
+              source={require("../assets/images/logo_PAED.png")}
               style={styles.logoImage}
               resizeMode="contain"
             />
@@ -973,7 +974,21 @@ export default function SignUp() {
                 onChangeText={setPassword}
               />
             </View>
+            {/* Seleção de Pronome */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Pronome</Text>
 
+              <Pressable
+                style={styles.input}
+                onPress={() => setModalPronomeVisible(true)}
+              >
+                <Text
+                  style={{ color: pronome ? colors.text : colors.placeholder }}
+                >
+                  {pronome || "Selecione o pronome"}
+                </Text>
+              </Pressable>
+            </View>
             {/* Seleção de Estado */}
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Estado (UF)</Text>
@@ -981,10 +996,14 @@ export default function SignUp() {
                 style={styles.input}
                 onPress={() => setModalEstadoVisible(true)}
               >
-                <Text style={{ color: selectedEstado ? colors.text : colors.placeholder }}>
+                <Text
+                  style={{
+                    color: selectedEstado ? colors.text : colors.placeholder,
+                  }}
+                >
                   {selectedEstado
                     ? `${ESTADOS_CAMPUS[selectedEstado].nome} (${selectedEstado})`
-                    : 'Selecione o estado'}
+                    : "Selecione o estado"}
                 </Text>
               </Pressable>
             </View>
@@ -996,19 +1015,24 @@ export default function SignUp() {
                 style={[styles.input, !selectedEstado && { opacity: 0.5 }]}
                 onPress={() => {
                   if (!selectedEstado) {
-                    Alert.alert('Atenção', 'Selecione um estado primeiro.');
+                    Alert.alert("Atenção", "Selecione um estado primeiro.");
                     return;
                   }
                   setModalCampusVisible(true);
                 }}
               >
-                <Text style={{ color: campus ? colors.text : colors.placeholder }}>
-                  {campus || (selectedEstado ? 'Selecione o campus' : 'Selecione o estado primeiro')}
+                <Text
+                  style={{ color: campus ? colors.text : colors.placeholder }}
+                >
+                  {campus ||
+                    (selectedEstado
+                      ? "Selecione o campus"
+                      : "Selecione o estado primeiro")}
                 </Text>
               </Pressable>
             </View>
 
-            {tipoUsuario === 'estudante' && (
+            {tipoUsuario === "estudante" && (
               <>
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Curso</Text>
@@ -1027,8 +1051,12 @@ export default function SignUp() {
                     style={styles.input}
                     onPress={() => setModalTurnoVisible(true)}
                   >
-                    <Text style={{ color: turno ? colors.text : colors.placeholder }}>
-                      {turno || 'Selecione o turno'}
+                    <Text
+                      style={{
+                        color: turno ? colors.text : colors.placeholder,
+                      }}
+                    >
+                      {turno || "Selecione o turno"}
                     </Text>
                   </Pressable>
                 </View>
@@ -1039,8 +1067,27 @@ export default function SignUp() {
                     style={styles.input}
                     onPress={() => setModalEscolaridadeVisible(true)}
                   >
-                    <Text style={{ color: escolaridade ? colors.text : colors.placeholder }}>
-                      {escolaridade || 'Selecione a escolaridade'}
+                    <Text
+                      style={{
+                        color: escolaridade ? colors.text : colors.placeholder,
+                      }}
+                    >
+                      {escolaridade || "Selecione a escolaridade"}
+                    </Text>
+                  </Pressable>
+                </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Pronome </Text>
+                  <Pressable
+                    style={styles.input}
+                    onPress={() => setModalPronomeVisible(true)}
+                  >
+                    <Text
+                      style={{
+                        color: pronome ? colors.text : colors.placeholder,
+                      }}
+                    >
+                      {pronome || "Selecione o pronome"}
                     </Text>
                   </Pressable>
                 </View>
@@ -1058,7 +1105,7 @@ export default function SignUp() {
               </>
             )}
 
-            {tipoUsuario === 'tutor' && (
+            {tipoUsuario === "tutor" && (
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Departamento</Text>
                 <TextInput
@@ -1071,7 +1118,7 @@ export default function SignUp() {
               </View>
             )}
 
-            {tipoUsuario === 'professor' && (
+            {tipoUsuario === "professor" && (
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Área de atuação</Text>
                 <TextInput
@@ -1139,7 +1186,7 @@ export default function SignUp() {
                   style={styles.modalItem}
                   onPress={() => {
                     setSelectedEstado(item.uf);
-                    setCampus(''); // Reseta o campus quando troca o estado
+                    setCampus(""); // Reseta o campus quando troca o estado
                     setModalEstadoVisible(false);
                   }}
                 >
@@ -1205,7 +1252,7 @@ export default function SignUp() {
             </View>
 
             <FlatList
-              data={['Manhã', 'Tarde', 'Noite']}
+              data={["Manhã", "Tarde", "Noite"]}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <Pressable
@@ -1240,7 +1287,7 @@ export default function SignUp() {
             </View>
 
             <FlatList
-              data={['Ensino Médio', 'Ensino Superior']}
+              data={["Ensino Médio", "Ensino Superior"]}
               keyExtractor={(item) => item}
               renderItem={({ item }) => (
                 <Pressable
@@ -1248,6 +1295,39 @@ export default function SignUp() {
                   onPress={() => {
                     setEscolaridade(item);
                     setModalEscolaridadeVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalItemText}>{item}</Text>
+                </Pressable>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={modalPronomeVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalPronomeVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione o Pronome</Text>
+              <Pressable onPress={() => setModalPronomeVisible(false)}>
+                <Text style={styles.modalCloseText}>Fechar</Text>
+              </Pressable>
+            </View>
+
+            <FlatList
+              data={["Ele/Dele", "Ela/Dela"]}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.modalItem}
+                  onPress={() => {
+                    setPronome(item);
+                    setModalPronomeVisible(false);
                   }}
                 >
                   <Text style={styles.modalItemText}>{item}</Text>

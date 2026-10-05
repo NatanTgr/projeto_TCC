@@ -81,7 +81,7 @@ export default function Welcome() {
             </View>
 
             <View style={styles.cardTextContainer}>
-              <Text style={styles.welcomeCardTitle}>Professor</Text>
+              <Text style={styles.welcomeCardTitle}>Professor(a)</Text>
               <Text style={styles.cardSubtitle}>Gerencie alunos</Text>
             </View>
           </Pressable>
@@ -103,7 +103,7 @@ export default function Welcome() {
             </View>
 
             <View style={styles.cardTextContainer}>
-              <Text style={styles.welcomeCardTitle}>Tutor</Text>
+              <Text style={styles.welcomeCardTitle}>Tutor(a)</Text>
               <Text style={styles.cardSubtitle}>Apoie alunos</Text>
             </View>
           </Pressable>
