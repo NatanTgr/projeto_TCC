@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import * as Notifications from 'expo-notifications';
 import { registrarPushChat } from '../components/notificacoesChat';
@@ -222,37 +223,25 @@ export default function RootLayout() {
   }, []);
 
   const handleNavigation = async (session: Session | null) => {
-    if (!session) {
-      router.replace("/welcome");
-      return;
-    }
+  // ---------------------------------------------------------
+  // Verifica se o usuário já viu a tela "Quem somos?"
+  // ---------------------------------------------------------
+  const quemSomosVisto = await AsyncStorage.getItem(
+    '@meu_app:quem_somos_visto'
+  );
 
-    if (Platform.OS !== "web") {
-      const resposta = await Notifications.getLastNotificationResponseAsync();
+  if (quemSomosVisto !== 'true') {
+    router.replace('/quem-somos');
+    return;
+  }
 
-      const dados = resposta?.notification.request.content.data;
-
-      if (dados?.tipo === "mensagem" && typeof dados.remetenteId === "string") {
-        await Notifications.clearLastNotificationResponseAsync();
-
-        router.replace({
-          pathname: "/TelaConversa" as any,
-          params: {
-            usuarioId: dados.remetenteId,
-            usuarioNome:
-              typeof dados.remetenteNome === "string"
-                ? dados.remetenteNome
-                : "Usuário",
-            usuarioTipo:
-              typeof dados.remetenteTipo === "string"
-                ? dados.remetenteTipo
-                : "estudante",
-          },
-        });
-
-        return;
-      }
-    }
+  // ---------------------------------------------------------
+  // Usuário não está logado
+  // ---------------------------------------------------------
+  if (!session) {
+    router.replace('/welcome');
+    return;
+  }
 
     const { data: usuario, error } = await supabase
       .from("usuarios")
