@@ -41,6 +41,12 @@ type Task = {
   criado_por: string | null;
 };
 
+type CriadorEvento = {
+  id: string;
+  nome: string;
+  tipo: string;
+};
+
 export default function ListaTarefas() {
   const { alunoId } = useLocalSearchParams<{ alunoId?: string }>();
   const { tema } = useTheme();
@@ -50,6 +56,12 @@ export default function ListaTarefas() {
 
   const botoesEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
 
+  const [criadores, setCriadores] = useState<Record<string, CriadorEvento>>({});
+
+  const [reforcoPositivo, setReforcoPositivo] = useState<{
+    tarefaId: number;
+    titulo: string;
+  } | null>(null);
   const [tarefas, setTarefas] = useState<Task[]>([]);
   const [editando, setEditando] = useState(false);
   const [modalVisivel, setModalVisivel] = useState(false);
@@ -161,6 +173,7 @@ export default function ListaTarefas() {
     }
 
     setTarefas((tarefasAtuais) => [...tarefasAtuais, tarefaSalva]);
+    await getData();
 
     setTitulo("");
     setData("");
@@ -193,6 +206,32 @@ export default function ListaTarefas() {
   const formatarData = (data: string) => {
     const [ano, mes, dia] = data.split("-");
     return `${dia}/${mes}/${ano}`;
+  };
+
+  const identificarCriador = (tarefa: Task) => {
+    if (!tarefa.criado_por) {
+      return "Não informado";
+    }
+    if (tarefa.criado_por === tarefa.aluno_id) {
+      return "Você";
+    }
+
+    const criador = criadores[tarefa.criado_por];
+
+    if (!criador) {
+      return "Nome indisponível";
+    }
+
+    const papel =
+      criador.tipo === "tutor"
+        ? "Tutor"
+        : criador.tipo === "estudante"
+          ? "Estudante"
+          : criador.tipo === "professor"
+            ? "Professor"
+            : "";
+
+    return papel ? `${criador.nome} (${papel})` : criador.nome;
   };
 
   const renderizarTarefas = ({ item }: { item: Task }) => (
@@ -260,6 +299,26 @@ export default function ListaTarefas() {
       >
         👨‍🏫 Prof. {item.professor}
       </Text>
+      <View style={Estilos.rodapeCriador}>
+        <Ionicons
+          name="person-outline"
+          size={16 * escalaFonte}
+          color={tema.text}
+          accessible={false}
+        />
+
+        <Text
+          style={[
+            Estilos.textoCriador,
+            {
+              color: tema.text,
+              fontSize: 12 * escalaFonte,
+            },
+          ]}
+        >
+          Criado por: {identificarCriador(item)}
+        </Text>
+      </View>
     </TouchableOpacity>
   );
 
@@ -267,32 +326,51 @@ export default function ListaTarefas() {
     try {
       const tarefa = tarefas.find((task) => task.id === id);
 
-      if (!tarefa) {
-        return;
-      }
+      if (!tarefa) return;
 
       const novoStatus = !tarefa.concluido;
 
-      const { error } = await supabase
-        .from("tarefas")
-        .update({
-          concluido: novoStatus,
-        })
-        .eq("id", id);
+      // Usa a data local, permitindo concluir durante todo o dia do prazo.
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
 
-      if (error) {
+      const prazo = converterData(tarefa.data);
+      prazo.setHours(0, 0, 0, 0);
+
+      const dentroDoPrazo =
+        validarData(tarefa.data) && prazo.getTime() >= hoje.getTime();
+
+      const { data: tarefaAtualizada, error } = await supabase
+        .from("tarefas")
+        .update({ concluido: novoStatus })
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error || !tarefaAtualizada) {
         console.log("Erro ao alterar status da tarefa:", error);
         Alert.alert("Erro", "Não foi possível alterar o status da tarefa.");
         return;
       }
 
-      setTarefas(
-        tarefas.map((task) =>
-          task.id === id ? { ...task, concluido: novoStatus } : task,
-        ),
+      setTarefas((tarefasAtuais) =>
+        tarefasAtuais.map((task) => (task.id === id ? tarefaAtualizada : task)),
       );
+
+      if (novoStatus && dentroDoPrazo) {
+        setReforcoPositivo({
+          tarefaId: id,
+          titulo: tarefa.titulo,
+        });
+      } else {
+        // Remove a mensagem se a conclusão dessa tarefa for desfeita.
+        setReforcoPositivo((mensagemAtual) =>
+          mensagemAtual?.tarefaId === id ? null : mensagemAtual,
+        );
+      }
     } catch (error) {
       console.log("Erro ao alterar status da tarefa:", error);
+      Alert.alert("Erro", "Não foi possível alterar o status da tarefa.");
     }
   };
 
@@ -343,19 +421,12 @@ export default function ListaTarefas() {
         error: authError,
       } = await supabase.auth.getUser();
 
-      if (authError) {
+      if (authError || !user) {
         console.log("Erro ao obter usuário logado:", authError);
         setTarefas([]);
+        setCriadores({});
         return;
       }
-
-      if (!user) {
-        console.log("Nenhum usuário está logado.");
-        setTarefas([]);
-        return;
-      }
-
-      console.log("Carregando tarefas do usuário:", user.id);
 
       const { data: tarefasSalvas, error } = await supabase
         .from("tarefas")
@@ -368,7 +439,35 @@ export default function ListaTarefas() {
         return;
       }
 
-      setTarefas(tarefasSalvas || []);
+      const listaTarefas: Task[] = tarefasSalvas || [];
+
+      const idsCriadores = [
+        ...new Set(
+          listaTarefas
+            .map((tarefa) => tarefa.criado_por)
+            .filter((id): id is string => Boolean(id)),
+        ),
+      ];
+
+      const mapaCriadores: Record<string, CriadorEvento> = {};
+
+      if (idsCriadores.length > 0) {
+        const { data: usuariosCriadores, error: erroCriadores } = await supabase
+          .from("usuarios")
+          .select("id, nome, tipo")
+          .in("id", idsCriadores);
+
+        if (erroCriadores) {
+          console.log("Erro ao carregar criadores dos eventos:", erroCriadores);
+        } else {
+          for (const criador of usuariosCriadores || []) {
+            mapaCriadores[criador.id] = criador;
+          }
+        }
+      }
+
+      setCriadores(mapaCriadores);
+      setTarefas(listaTarefas);
     } catch (error) {
       console.log("Erro ao carregar tarefas:", error);
     }
@@ -589,18 +688,23 @@ export default function ListaTarefas() {
           <View
             style={{
               flexDirection: "row",
+              flexWrap: "wrap",
               alignItems: "center",
+              justifyContent: "flex-end",
               gap: 8,
               alignSelf: "flex-end",
+              maxWidth: "100%",
             }}
           >
             <BotaoAlerta />
 
             <TouchableOpacity
               style={Estilos.addButton}
+              accessibilityRole="button"
+              accessibilityLabel="Adicionar evento"
               onPress={() => setModalVisivel(true)}
             >
-              <Ionicons name="add" size={24} color="white" />
+              <Ionicons name="add" size={24 * escalaFonte} color="white" />
             </TouchableOpacity>
           </View>
         </View>
@@ -1027,6 +1131,78 @@ export default function ListaTarefas() {
           }
         }}
       />
+      <Modal
+        visible={reforcoPositivo !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setReforcoPositivo(null)}
+      >
+        <View style={Estilos.overlayReforco}>
+          <View
+            style={[Estilos.modalReforco, { backgroundColor: tema.card }]}
+            accessibilityViewIsModal
+          >
+            <ScrollView
+              style={{ width: "100%" }}
+              contentContainerStyle={Estilos.conteudoReforco}
+            >
+              <Ionicons
+                name="checkmark-circle-outline"
+                size={56 * escalaFonte}
+                color={tema.text}
+                accessible={false}
+              />
+
+              <Text
+                accessibilityRole="header"
+                style={[
+                  Estilos.tituloReforco,
+                  { color: tema.text, fontSize: 24 * escalaFonte },
+                ]}
+              >
+                Parabéns!
+              </Text>
+
+              <Text
+                style={[
+                  Estilos.textoReforco,
+                  { color: tema.text, fontSize: 18 * escalaFonte },
+                ]}
+              >
+                Você concluiu “{reforcoPositivo?.titulo}” dentro do prazo!
+              </Text>
+
+              <Text
+                style={[
+                  Estilos.textoReforco,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
+              >
+                Cada passo conta. Você está avançando!
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  Estilos.botaoContinuarReforco,
+                  { borderColor: tema.text },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Continuar e fechar mensagem de parabéns"
+                onPress={() => setReforcoPositivo(null)}
+              >
+                <Text
+                  style={[
+                    Estilos.textoBotaoReforco,
+                    { color: tema.text, fontSize: 18 * escalaFonte },
+                  ]}
+                >
+                  Continuar
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

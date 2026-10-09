@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -37,6 +40,16 @@ type Tutor = {
   nome: string;
 };
 
+const LOCAIS_PREDEFINIDOS = [
+  "Bloco Didático",
+  "Bloco Administrativo",
+  "Sala",
+  "Banheiro",
+  "Biblioteca",
+  "Refeitório",
+  "Quadra",
+];
+
 export default function ModalAlerta({
   visivel,
   aoFechar,
@@ -51,13 +64,22 @@ export default function ModalAlerta({
   const [tutorSelecionado, setTutorSelecionado] =
     useState<string | null>(null);
 
+  const [modalTutores, setModalTutores] = useState(false);
+
+  const nomeTutorSelecionado = tutores.find(
+    (tutor) => tutor.id === tutorSelecionado,
+  )?.nome;
+
   const [localCampus, setLocalCampus] = useState("");
+  const [localSelecionado, setLocalSelecionado] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
   const limparFormulario = () => {
     setTutorSelecionado(null);
     setLocalCampus("");
+    setLocalSelecionado(null);
+    setModalTutores(false);
   };
 
   const fecharModal = () => {
@@ -183,15 +205,19 @@ export default function ModalAlerta({
       return;
     }
 
-    const localTratado = localCampus.trim();
+    const complemento = localCampus.trim();
 
-    if (localTratado.length < 2) {
+    if (!localSelecionado && complemento.length < 2) {
       Alert.alert(
         "Local obrigatório",
-        "Informe onde você está no campus.",
+        "Selecione um local ou escreva onde você está no campus.",
       );
       return;
     }
+
+    const localTratado = [localSelecionado, complemento]
+      .filter(Boolean)
+      .join(" — ");
 
     try {
       setEnviando(true);
@@ -247,9 +273,19 @@ export default function ModalAlerta({
       visible={visivel}
       transparent
       animationType="fade"
-      onRequestClose={fecharModal}
+      onRequestClose={() => {
+        if (modalTutores) {
+          setModalTutores(false);
+          return;
+        }
+
+        fecharModal();
+      }}
     >
-      <View style={estilos.fundo}>
+      <KeyboardAvoidingView
+        style={estilos.fundo}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View
           style={[
             estilos.modal,
@@ -259,12 +295,111 @@ export default function ModalAlerta({
             },
           ]}
         >
-          {carregando ? (
+          {modalTutores ? (
+            <ScrollView
+              style={estilos.scrollModal}
+              contentContainerStyle={estilos.conteudoModal}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              <Text
+                accessibilityRole="header"
+                style={[
+                  estilos.titulo,
+                  {
+                    color: tema.text,
+                    fontSize: 22 * escalaFonte,
+                    marginBottom: 8,
+                  },
+                ]}
+              >
+                Selecionar tutor
+              </Text>
+
+              <Text
+                style={{
+                  color: tema.text,
+                  fontSize: 14 * escalaFonte,
+                  marginBottom: 20,
+                }}
+              >
+                Escolha quem receberá seu pedido de ajuda.
+              </Text>
+
+              <View style={estilos.listaTutores}>
+                {tutores.map((tutor) => {
+                  const selecionado = tutorSelecionado === tutor.id;
+
+                  return (
+                    <TouchableOpacity
+                      key={tutor.id}
+                      accessibilityRole="radio"
+                      accessibilityLabel={tutor.nome}
+                      accessibilityState={{ selected: selecionado }}
+                      onPress={() => {
+                        setTutorSelecionado(tutor.id);
+                        setModalTutores(false);
+                      }}
+                      style={[
+                        estilos.tutor,
+                        {
+                          backgroundColor: tema.card,
+                          borderColor: selecionado ? tema.text : tema.border,
+                          borderWidth: selecionado ? 2 : 1,
+                          gap: 12,
+                          minHeight: 48,
+                        },
+                      ]}
+                    >
+                      <Feather name="user" size={22} color={tema.text} />
+
+                      <Text
+                        style={[
+                          estilos.nomeTutor,
+                          {
+                            color: tema.text,
+                            fontSize: 16 * escalaFonte,
+                            fontWeight: selecionado ? "bold" : "500",
+                          },
+                        ]}
+                      >
+                        {tutor.nome}
+                      </Text>
+
+                      {selecionado && (
+                        <Feather name="check" size={22} color={tema.text} />
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => setModalTutores(false)}
+                style={[
+                  estilos.voltarTutores,
+                  {
+                    backgroundColor: tema.card,
+                    borderColor: tema.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={{
+                    color: tema.text,
+                    fontSize: 16 * escalaFonte,
+                    fontWeight: "bold",
+                    textAlign: "center",
+                  }}
+                >
+                  Voltar
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          ) : carregando ? (
             <View style={estilos.carregando}>
-              <ActivityIndicator
-                size="large"
-                color="#FF8C42"
-              />
+              <ActivityIndicator size="large" color="#FF8C42" />
 
               <Text
                 style={[
@@ -280,16 +415,18 @@ export default function ModalAlerta({
             </View>
           ) : (
             <ScrollView
+              style={estilos.scrollModal}
+              contentContainerStyle={estilos.conteudoModal}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={
+                Platform.OS === "ios" ? "interactive" : "on-drag"
+              }
+              automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
             >
               <View style={estilos.cabecalho}>
                 <View style={estilos.iconeAlerta}>
-                  <Feather
-                    name="alert-triangle"
-                    size={25}
-                    color="#FFFFFF"
-                  />
+                  <Feather name="alert-triangle" size={25} color="#FFFFFF" />
                 </View>
 
                 <View style={{ flex: 1 }}>
@@ -415,71 +552,48 @@ export default function ModalAlerta({
                 Escolha um tutor
               </Text>
 
-              {tutores.length === 0 ? (
+              <TouchableOpacity
+                disabled={enviando || tutores.length === 0}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  nomeTutorSelecionado
+                    ? `Tutor selecionado: ${nomeTutorSelecionado}. Toque para alterar.`
+                    : "Selecionar tutor"
+                }
+                accessibilityState={{
+                  disabled: enviando || tutores.length === 0,
+                }}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setModalTutores(true);
+                }}
+                style={[
+                  estilos.seletorTutor,
+                  {
+                    backgroundColor: tema.card,
+                    borderColor: tutorSelecionado ? tema.text : tema.border,
+                  },
+                  (enviando || tutores.length === 0) && estilos.desabilitado,
+                ]}
+              >
+                <Feather name="user" size={22} color={tema.text} />
+
                 <Text
                   style={[
-                    estilos.semTutor,
+                    estilos.nomeTutor,
                     {
                       color: tema.text,
-                      fontSize: 15 * escalaFonte,
+                      fontSize: 16 * escalaFonte,
                     },
                   ]}
                 >
-                  Nenhum tutor disponível no seu campus.
+                  {tutores.length === 0
+                    ? "Nenhum tutor disponível no seu campus"
+                    : nomeTutorSelecionado || "Selecionar tutor"}
                 </Text>
-              ) : (
-                <View style={estilos.listaTutores}>
-                  {tutores.map((tutor) => {
-                    const selecionado =
-                      tutorSelecionado === tutor.id;
 
-                    return (
-                      <TouchableOpacity
-                        key={tutor.id}
-                        style={[
-                          estilos.tutor,
-                          {
-                            backgroundColor: selecionado
-                              ? "#94C0DF"
-                              : tema.card,
-                            borderColor: selecionado
-                              ? "#4B6CB7"
-                              : tema.border,
-                          },
-                        ]}
-                        onPress={() =>
-                          setTutorSelecionado(tutor.id)
-                        }
-                      >
-                        <View
-                          style={[
-                            estilos.radioExterno,
-                            selecionado && {
-                              borderColor: "#4B6CB7",
-                            },
-                          ]}
-                        >
-                          {selecionado && (
-                            <View style={estilos.radioInterno} />
-                          )}
-                        </View>
-
-                        <Text
-                          style={[
-                            estilos.nomeTutor,
-                            {
-                              color: tema.text,
-                              fontSize: 16 * escalaFonte,
-                            },
-                          ]}
-                        >
-                          {tutor.nome}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
-              )}
+                <Feather name="chevron-right" size={22} color={tema.text} />
+              </TouchableOpacity>
 
               <Text
                 style={[
@@ -493,11 +607,84 @@ export default function ModalAlerta({
                 Onde você está?
               </Text>
 
+              <View style={estilos.listaLocais}>
+                {LOCAIS_PREDEFINIDOS.map((local) => {
+                  const selecionado = localSelecionado === local;
+
+                  return (
+                    <TouchableOpacity
+                      key={local}
+                      disabled={enviando}
+                      accessibilityRole="button"
+                      accessibilityLabel={local}
+                      accessibilityState={{
+                        selected: selecionado,
+                        disabled: enviando,
+                      }}
+                      onPress={() =>
+                        setLocalSelecionado((atual) =>
+                          atual === local ? null : local,
+                        )
+                      }
+                      style={[
+                        estilos.botaoLocal,
+                        local === "Bloco Administrativo" && {
+                          flexBasis: 190,
+                        },
+                        {
+                          backgroundColor: tema.card,
+                          borderColor: selecionado ? tema.text : tema.border,
+                          borderWidth: selecionado ? 2 : 1,
+                        },
+                        enviando && estilos.desabilitado,
+                      ]}
+                    >
+                      <Feather
+                        name={selecionado ? "check-circle" : "map-pin"}
+                        size={18 * escalaFonte}
+                        color={tema.text}
+                      />
+
+                      <Text
+                        style={[
+                          estilos.textoLocal,
+                          {
+                            color: tema.text,
+                            fontSize: 16 * escalaFonte,
+                            fontWeight: selecionado ? "bold" : "500",
+                          },
+                        ]}
+                      >
+                        {local === "Bloco Administrativo"
+                          ? "Bloco\nAdministrativo"
+                          : local === "Bloco Didático"
+                            ? "Bloco\nDidático"
+                            : local}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <Text
+                style={[
+                  estilos.tituloCampo,
+                  {
+                    color: tema.text,
+                    fontSize: 16 * escalaFonte,
+                  },
+                ]}
+              >
+                Especifique o local (opcional)
+              </Text>
+
               <TextInput
                 value={localCampus}
                 onChangeText={setLocalCampus}
-                placeholder="Ex.: Biblioteca, sala B12, pátio..."
-                placeholderTextColor="#888"
+                editable={!enviando}
+                accessibilityLabel="Especifique o local, opcional"
+                placeholder="Ex.: sala B12, próximo à entrada..."
+                placeholderTextColor={tema.text}
                 maxLength={150}
                 multiline
                 style={[
@@ -521,10 +708,7 @@ export default function ModalAlerta({
                   disabled={enviando}
                 >
                   <Text
-                    style={[
-                      estilos.textoBotao,
-                      { fontSize: 16 * escalaFonte },
-                    ]}
+                    style={[estilos.textoBotao, { fontSize: 16 * escalaFonte }]}
                   >
                     Cancelar
                   </Text>
@@ -533,30 +717,22 @@ export default function ModalAlerta({
                 <TouchableOpacity
                   style={[
                     estilos.botaoEnviar,
-                    (enviando || tutores.length === 0) &&
-                      estilos.desabilitado,
+                    (enviando || tutores.length === 0) && estilos.desabilitado,
                   ]}
                   onPress={enviarAlerta}
-                  disabled={
-                    enviando || tutores.length === 0
-                  }
+                  disabled={enviando || tutores.length === 0}
                 >
                   <Text
-                    style={[
-                      estilos.textoBotao,
-                      { fontSize: 16 * escalaFonte },
-                    ]}
+                    style={[estilos.textoBotao, { fontSize: 16 * escalaFonte }]}
                   >
-                    {enviando
-                      ? "Enviando..."
-                      : "Enviar alerta"}
+                    {enviando ? "Enviando..." : "Enviar alerta"}
                   </Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
           )}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -718,5 +894,60 @@ const estilos = StyleSheet.create({
 
   desabilitado: {
     opacity: 0.5,
+  },
+
+  listaLocais: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 20,
+  },
+
+  botaoLocal: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderRadius: 12,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 140,
+    maxWidth: "100%",
+  },
+
+  textoLocal: {
+    flexShrink: 1,
+    textAlign: "center",
+  },
+
+  scrollModal: {
+    flexShrink: 1,
+  },
+
+  conteudoModal: {
+    paddingBottom: 20,
+  },
+
+  seletorTutor: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 20,
+  },
+
+  voltarTutores: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 14,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

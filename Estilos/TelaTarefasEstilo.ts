@@ -40,11 +40,14 @@ const Estilos = StyleSheet.create({
   addButton: {
     backgroundColor: "#94C0DF",
     borderRadius: 8,
-    width: 38,
-    height: 38,
+    minWidth: 38,
+    minHeight: 38,
     justifyContent: "center",
     alignItems: "center",
-    padding: 5,
+    paddingHorizontal: 5,
+    paddingVertical: 5,
+    flexShrink: 0,
+    elevation: 3,
   },
   taskList: {
     flex: 1,
@@ -258,6 +261,80 @@ const Estilos = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
     justifyContent: "center",
+  },
+
+  fecharReforco: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  overlayReforco: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+
+  modalReforco: {
+    width: "100%",
+    maxWidth: 420,
+    maxHeight: "85%",
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#88C688",
+    overflow: "hidden",
+  },
+
+  conteudoReforco: {
+    padding: 24,
+    alignItems: "center",
+    gap: 16,
+  },
+
+  tituloReforco: {
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  textoReforco: {
+    textAlign: "center",
+    width: "100%",
+  },
+
+  botaoContinuarReforco: {
+    width: "100%",
+    backgroundColor: "#88C688",
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginTop: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  textoBotaoReforco: {
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+
+  rodapeCriador: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 6,
+    marginTop: 12,
+    width: "100%",
+  },
+
+  textoCriador: {
+    flexShrink: 1,
+    textAlign: "right",
   },
 });
 export default Estilos;

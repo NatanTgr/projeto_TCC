@@ -14,6 +14,14 @@ import { AVATARES, buscarAvatar, } from "../../components/avatares";
 import BotaoAlerta from "../../components/BotaoAlerta";
 import { removerPushChatDesteAparelho } from "../../components/notificacoesChat";
 
+type PrazoLimpeza = 3 | 6 | 12;
+
+const OPCOES_LIMPEZA: { meses: PrazoLimpeza; label: string }[] = [
+  { meses: 3, label: "3 meses" },
+  { meses: 6, label: "6 meses" },
+  { meses: 12, label: "1 ano" },
+];
+
 export default function TelaConfig() {
 
   type Usuario = {
@@ -54,6 +62,80 @@ export default function TelaConfig() {
 
   const [chatAtivo, setChatAtivo] = useState(true);
   const [tarefasAtivas, setTarefasAtivas] = useState(true);
+
+  const [prazoLimpeza, setPrazoLimpeza] = useState<PrazoLimpeza | null>(null);
+
+  const [modalLimpeza, setModalLimpeza] = useState(false);
+  const [salvandoLimpeza, setSalvandoLimpeza] = useState(false);
+  const [carregandoLimpeza, setCarregandoLimpeza] = useState(true);
+  const [erroLimpeza, setErroLimpeza] = useState(false);
+
+  const labelPrazoLimpeza =
+    OPCOES_LIMPEZA.find((opcao) => opcao.meses === prazoLimpeza)?.label ??
+    "Não configurada";
+
+  async function carregarPreferenciaLimpeza(usuarioId: string) {
+    setCarregandoLimpeza(true);
+    setErroLimpeza(false);
+    setPrazoLimpeza(null);
+
+    try {
+      const { data, error } = await supabase
+        .from("preferencias_limpeza_tarefas")
+        .select("meses")
+        .eq("usuario_id", usuarioId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data) {
+        if (![3, 6, 12].includes(data.meses)) {
+          throw new Error("Prazo de limpeza inválido.");
+        }
+
+        setPrazoLimpeza(data.meses as PrazoLimpeza);
+      }
+    } catch (erro) {
+      console.error("Erro ao carregar limpeza de tarefas:", erro);
+      setErroLimpeza(true);
+    } finally {
+      setCarregandoLimpeza(false);
+    }
+  }
+
+  async function salvarPrazoLimpeza(meses: PrazoLimpeza) {
+    if (usuario?.tipo !== "estudante" || salvandoLimpeza) return;
+
+    try {
+      setSalvandoLimpeza(true);
+
+      const { data, error } = await supabase
+        .from("preferencias_limpeza_tarefas")
+        .upsert(
+          {
+            usuario_id: usuario.id,
+            meses,
+          },
+          { onConflict: "usuario_id" },
+        )
+        .select("meses")
+        .single();
+
+      if (error) throw error;
+      if (data?.meses !== meses) {
+        throw new Error("O banco não confirmou a configuração.");
+      }
+
+      setPrazoLimpeza(meses);
+      setModalLimpeza(false);
+    } catch (erro) {
+      console.error("Erro ao salvar limpeza de tarefas:", erro);
+      Alert.alert("Erro", "Não foi possível salvar o prazo de limpeza.");
+    } finally {
+      setSalvandoLimpeza(false);
+    }
+  }
+
   const [salvandoNotificacao, setSalvandoNotificacao] = useState(false);
 
   async function alterarNotificacao(tipo: "chat" | "tarefas", ativa: boolean) {
@@ -221,6 +303,10 @@ export default function TelaConfig() {
       }
 
       setUsuario(dadosUsuario);
+
+      if (dadosUsuario.tipo === "estudante") {
+        await carregarPreferenciaLimpeza(user.id);
+      }
 
       const { data: preferencias, error: erroPreferencias } = await supabase
         .from("preferencias_notificacoes")
@@ -761,6 +847,59 @@ export default function TelaConfig() {
               <Feather name="chevron-right" size={24} color={tema.text} />
             </TouchableOpacity>
 
+            {usuario?.tipo === "estudante" && (
+              <TouchableOpacity
+                style={[
+                  Estilos.cardOpcoes,
+                  {
+                    backgroundColor: tema.card,
+                    opacity: carregandoLimpeza || salvandoLimpeza ? 0.5 : 1,
+                  },
+                ]}
+                disabled={carregandoLimpeza || salvandoLimpeza}
+                accessibilityRole="button"
+                accessibilityLabel="Configurar limpeza de tarefas concluídas"
+                onPress={() => {
+                  if (erroLimpeza) {
+                    void carregarPreferenciaLimpeza(usuario.id);
+                    return;
+                  }
+
+                  setModalLimpeza(true);
+                }}
+              >
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 18 * escalaFonte,
+                      fontWeight: "600",
+                    }}
+                  >
+                    Limpeza de tarefas concluídas
+                  </Text>
+
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 14 * escalaFonte,
+                      marginTop: 6,
+                    }}
+                  >
+                    {carregandoLimpeza
+                      ? "Carregando..."
+                      : erroLimpeza
+                        ? "Não foi possível carregar. Toque para tentar novamente."
+                        : prazoLimpeza
+                          ? `Excluir após ${labelPrazoLimpeza} da conclusão`
+                          : "Escolha quando excluir automaticamente"}
+                  </Text>
+                </View>
+
+                <Feather name="chevron-right" size={24} color={tema.text} />
+              </TouchableOpacity>
+            )}
+
             <View
               style={[Estilos.cardNotiChat, { backgroundColor: tema.card }]}
             >
@@ -984,7 +1123,10 @@ export default function TelaConfig() {
           style={Estilos.fundoModal}
         >
           <ScrollView
-            style={[Estilos.modalSenha, { backgroundColor: tema.modal, flexGrow: 0, }]}
+            style={[
+              Estilos.modalSenha,
+              { backgroundColor: tema.modal, flexGrow: 0 },
+            ]}
             contentContainerStyle={{ padding: 20 }}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
@@ -1084,6 +1226,128 @@ export default function TelaConfig() {
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
+      </Modal>
+      <Modal
+        visible={modalLimpeza && usuario?.tipo === "estudante"}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!salvandoLimpeza) setModalLimpeza(false);
+        }}
+      >
+        <View style={Estilos.fundoModal}>
+          <ScrollView
+            style={{
+              width: "92%",
+              maxWidth: 520,
+              maxHeight: "85%",
+              flexGrow: 0,
+              borderRadius: 15,
+              backgroundColor: tema.modal,
+            }}
+            contentContainerStyle={{ padding: 20 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <Text
+              style={{
+                color: tema.text,
+                fontSize: 21 * escalaFonte,
+                fontWeight: "bold",
+                marginBottom: 10,
+              }}
+            >
+              Limpeza de tarefas concluídas
+            </Text>
+
+            <Text
+              style={{
+                color: tema.text,
+                fontSize: 14 * escalaFonte,
+                marginBottom: 18,
+              }}
+            >
+              Cada tarefa será excluída automaticamente após o prazo escolhido,
+              contado a partir da sua conclusão. A exclusão é permanente. Ao
+              mudar o prazo, ele também será aplicado às tarefas já concluídas.
+            </Text>
+
+            {OPCOES_LIMPEZA.map((opcao) => {
+              const selecionada = prazoLimpeza === opcao.meses;
+
+              return (
+                <TouchableOpacity
+                  key={opcao.meses}
+                  disabled={salvandoLimpeza}
+                  accessibilityRole="radio"
+                  accessibilityState={{
+                    selected: selecionada,
+                    disabled: salvandoLimpeza,
+                  }}
+                  onPress={() => salvarPrazoLimpeza(opcao.meses)}
+                  style={{
+                    minHeight: 48,
+                    padding: 15,
+                    marginBottom: 10,
+                    borderRadius: 10,
+                    borderWidth: selecionada ? 2 : 1,
+                    borderColor: tema.text,
+                    backgroundColor: tema.card,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    opacity: salvandoLimpeza ? 0.5 : 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      flex: 1,
+                      flexShrink: 1,
+                      color: tema.text,
+                      fontSize: 16 * escalaFonte,
+                      fontWeight: selecionada ? "bold" : "normal",
+                    }}
+                  >
+                    Após {opcao.label}
+                  </Text>
+
+                  {selecionada && (
+                    <Feather name="check" size={22} color={tema.text} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+
+            {salvandoLimpeza && (
+              <Text
+                accessibilityLiveRegion="polite"
+                style={{
+                  color: tema.text,
+                  fontSize: 14 * escalaFonte,
+                  textAlign: "center",
+                  marginTop: 5,
+                }}
+              >
+                Salvando...
+              </Text>
+            )}
+
+            <TouchableOpacity
+              disabled={salvandoLimpeza}
+              onPress={() => setModalLimpeza(false)}
+              style={Estilos.botaoCancelarSenha}
+            >
+              <Text
+                style={{
+                  color: tema.text,
+                  fontSize: 16 * escalaFonte,
+                  fontWeight: "bold",
+                }}
+              >
+                Fechar
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
       </Modal>
     </SafeAreaView>
   );
