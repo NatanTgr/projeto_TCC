@@ -14,7 +14,6 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { useTheme } from "../context/ThemeContext";
 import { useFontSize } from "../context/FontSizeContext";
-
 import AvatarImagem from "./AvatarImagem";
 import { AVATARES, buscarAvatar } from "./avatares";
 
@@ -38,8 +37,9 @@ export default function SeletorAvatar({
   const { width, fontScale } = useWindowDimensions();
 
   const [larguraGrade, setLarguraGrade] = useState(0);
-  const [avatarSelecionado, setAvatarSelecionado] =
-    useState<string | null>(null);
+  const [avatarSelecionado, setAvatarSelecionado] = useState<string | null>(
+    null,
+  );
   const [salvando, setSalvando] = useState(false);
 
   const salvamentoBloqueado = useRef(false);
@@ -48,10 +48,7 @@ export default function SeletorAvatar({
   const larguraDisponivel =
     larguraGrade || Math.max(1, Math.min(width * 0.92, 540) - 36);
 
-  const larguraDesejada = Math.max(
-    96,
-    96 * escalaFonte * fontScale,
-  );
+  const larguraDesejada = Math.max(96, 96 * escalaFonte * fontScale);
 
   const quantidadeColunas = Math.max(
     1,
@@ -74,8 +71,7 @@ export default function SeletorAvatar({
     (avatar) => avatar.id === avatarSelecionado,
   );
 
-  const nenhumAvatarSelecionado =
-    avatarSelecionado === SEM_AVATAR;
+  const nenhumAvatarSelecionado = avatarSelecionado === SEM_AVATAR;
 
   const podeSalvar =
     (nenhumAvatarSelecionado || Boolean(escolhido)) && !salvando;
@@ -105,9 +101,7 @@ export default function SeletorAvatar({
       return;
     }
 
-    const url = nenhumAvatarSelecionado
-      ? null
-      : escolhido!.url;
+    const url = nenhumAvatarSelecionado ? null : escolhido!.url;
 
     salvamentoBloqueado.current = true;
     setSalvando(true);
@@ -117,7 +111,6 @@ export default function SeletorAvatar({
       aoFechar();
     } catch (erro) {
       console.log("Erro ao salvar avatar:", erro);
-
       Alert.alert(
         "Não foi possível salvar",
         "Verifique sua conexão e tente novamente.",
@@ -147,20 +140,19 @@ export default function SeletorAvatar({
           >
             <Text
               accessibilityRole="header"
-              style={{
-                color: tema.text,
-                fontSize: 22 * escalaFonte,
-                fontWeight: "bold",
-              }}
+              style={[
+                estilos.titulo,
+                { color: tema.text, fontSize: 22 * escalaFonte },
+              ]}
             >
               Escolha seu avatar
             </Text>
 
             <Text
-              style={{
-                color: tema.text,
-                fontSize: 14 * escalaFonte,
-              }}
+              style={[
+                estilos.texto,
+                { color: tema.text, fontSize: 14 * escalaFonte },
+              ]}
             >
               Escolha uma das {AVATARES.length} opções ou fique sem avatar.
             </Text>
@@ -191,11 +183,10 @@ export default function SeletorAvatar({
 
                 <Text
                   accessibilityLiveRegion="polite"
-                  style={{
-                    color: tema.text,
-                    fontSize: 14 * escalaFonte,
-                    textAlign: "center",
-                  }}
+                  style={[
+                    estilos.textoCentralizado,
+                    { color: tema.text, fontSize: 14 * escalaFonte },
+                  ]}
                 >
                   {nenhumAvatarSelecionado
                     ? "Nenhum avatar"
@@ -218,9 +209,7 @@ export default function SeletorAvatar({
                   disabled: salvando,
                 }}
                 disabled={salvando}
-                onPress={() => {
-                  setAvatarSelecionado(SEM_AVATAR);
-                }}
+                onPress={() => setAvatarSelecionado(SEM_AVATAR)}
                 style={[
                   estilos.opcao,
                   {
@@ -235,24 +224,22 @@ export default function SeletorAvatar({
                 <View
                   style={[
                     estilos.semAvatar,
-                    {
-                      width: 64,
-                      height: 64,
-                      borderRadius: 32,
-                    },
+                    { width: 64, height: 64, borderRadius: 32 },
                   ]}
                 >
-                  <Ionicons name="person-outline" size={36} color={tema.text} />
+                  <Ionicons
+                    name="person-outline"
+                    size={36}
+                    color={tema.text}
+                  />
                 </View>
 
                 <View style={estilos.nomeAvatar}>
                   <Text
-                    style={{
-                      color: tema.text,
-                      fontSize: 12 * escalaFonte,
-                      fontWeight: nenhumAvatarSelecionado ? "bold" : "normal",
-                      textAlign: "center",
-                    }}
+                    style={[
+                      estilos.textoCentralizado,
+                      { color: tema.text, fontSize: 12 * escalaFonte },
+                    ]}
                   >
                     {nenhumAvatarSelecionado ? "✓ " : ""}
                     Nenhum avatar
@@ -273,9 +260,7 @@ export default function SeletorAvatar({
                       disabled: salvando,
                     }}
                     disabled={salvando}
-                    onPress={() => {
-                      setAvatarSelecionado(avatar.id);
-                    }}
+                    onPress={() => setAvatarSelecionado(avatar.id)}
                     style={[
                       estilos.opcao,
                       {
@@ -289,12 +274,10 @@ export default function SeletorAvatar({
 
                     <View style={estilos.nomeAvatar}>
                       <Text
-                        style={{
-                          color: tema.text,
-                          fontSize: 12 * escalaFonte,
-                          fontWeight: selecionado ? "bold" : "normal",
-                          textAlign: "center",
-                        }}
+                        style={[
+                          estilos.textoCentralizado,
+                          { color: tema.text, fontSize: 12 * escalaFonte },
+                        ]}
                       >
                         {selecionado ? "✓ " : ""}
                         {avatar.nome.replace(/^Avatar\s*/i, "")}
@@ -306,11 +289,10 @@ export default function SeletorAvatar({
             </View>
 
             <Text
-              style={{
-                color: tema.text,
-                fontSize: 12 * escalaFonte,
-                textAlign: "center",
-              }}
+              style={[
+                estilos.textoCentralizado,
+                { color: tema.text, fontSize: 12 * escalaFonte },
+              ]}
             >
               Avatares gerados por DiceBear
             </Text>
@@ -323,18 +305,19 @@ export default function SeletorAvatar({
               }}
               disabled={!podeSalvar}
               onPress={salvarAvatar}
-              style={[estilos.botaoSalvar, { opacity: podeSalvar ? 1 : 0.5 }]}
+              style={[
+                estilos.botaoSalvar,
+                { opacity: podeSalvar ? 1 : 0.5 },
+              ]}
             >
               {salvando ? (
                 <ActivityIndicator color="#fff" />
               ) : (
                 <Text
-                  style={{
-                    color: "#fff",
-                    fontWeight: "bold",
-                    fontSize: 16 * escalaFonte,
-                    textAlign: "center",
-                  }}
+                  style={[
+                    estilos.textoCentralizado,
+                    { color: "#fff", fontSize: 16 * escalaFonte },
+                  ]}
                 >
                   Salvar avatar
                 </Text>
@@ -349,11 +332,10 @@ export default function SeletorAvatar({
               style={estilos.botaoCancelar}
             >
               <Text
-                style={{
-                  color: tema.text,
-                  fontSize: 16 * escalaFonte,
-                  textAlign: "center",
-                }}
+                style={[
+                  estilos.textoCentralizado,
+                  { color: tema.text, fontSize: 16 * escalaFonte },
+                ]}
               >
                 Cancelar
               </Text>
@@ -386,6 +368,19 @@ const estilos = StyleSheet.create({
   conteudo: {
     padding: 18,
     gap: 16,
+  },
+
+  titulo: {
+    fontFamily: "FredokaMedium",
+  },
+
+  texto: {
+    fontFamily: "FredokaLight",
+  },
+
+  textoCentralizado: {
+    fontFamily: "FredokaLight",
+    textAlign: "center",
   },
 
   previa: {

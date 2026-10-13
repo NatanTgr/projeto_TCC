@@ -225,6 +225,6 @@ const estilos = StyleSheet.create({
 
   texto: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
   },
 });

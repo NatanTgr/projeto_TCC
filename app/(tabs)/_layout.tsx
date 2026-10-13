@@ -103,7 +103,7 @@ export default function TabLayout() {
             borderTopColor: tema.border,
 
             height: 70 + 20 * (escalaFonte - 1) + insets.bottom,
-
+            
             paddingBottom: 8 + insets.bottom,
             paddingTop: 8,
           },
@@ -114,6 +114,7 @@ export default function TabLayout() {
           tabBarLabelStyle: {
             fontSize: 12 * escalaFonte,
             fontWeight: "500",
+            fontFamily: "FredokaLight",
           },
         }}
       >

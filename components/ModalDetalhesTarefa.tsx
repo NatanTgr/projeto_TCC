@@ -62,6 +62,7 @@ export default function ModalDetalhesTarefa({
     : atrasada
       ? "Atrasada"
       : "Pendente";
+
   const corStatus = tarefa.concluido
     ? "#388E3C"
     : atrasada
@@ -87,6 +88,7 @@ export default function ModalDetalhesTarefa({
         >
           {rotulo}
         </Text>
+
         <Text
           style={[
             styles.valor,
@@ -146,7 +148,10 @@ export default function ModalDetalhesTarefa({
             <View style={styles.etiquetas}>
               <View style={[styles.etiqueta, { backgroundColor: corTipo }]}>
                 <Text
-                  style={[styles.textoEtiqueta, { fontSize: 13 * escalaFonte }]}
+                  style={[
+                    styles.textoEtiqueta,
+                    { fontSize: 13 * escalaFonte },
+                  ]}
                 >
                   {tarefa.tipo}
                 </Text>
@@ -180,13 +185,19 @@ export default function ModalDetalhesTarefa({
               )}
             </View>
 
-            <View style={[styles.blocoDescricao, { backgroundColor: tema.card }]}>
+            <View
+              style={[
+                styles.blocoDescricao,
+                { backgroundColor: tema.card },
+              ]}
+            >
               <View style={styles.tituloDescricao}>
                 <Ionicons
                   name="document-text-outline"
                   size={19}
                   color={tema.text}
                 />
+
                 <Text
                   style={[
                     styles.rotuloDescricao,
@@ -209,11 +220,15 @@ export default function ModalDetalhesTarefa({
 
             <View style={styles.acoes}>
               <TouchableOpacity
-                style={[styles.botaoPrincipal, { backgroundColor: corTipo }]}
+                style={[
+                  styles.botaoPrincipal,
+                  { backgroundColor: corTipo },
+                ]}
                 onPress={onEdit}
                 accessibilityRole="button"
               >
                 <Ionicons name="create-outline" size={20} color="#17232B" />
+
                 <Text
                   style={[
                     styles.textoPrincipal,
@@ -230,6 +245,7 @@ export default function ModalDetalhesTarefa({
                 accessibilityRole="button"
               >
                 <Ionicons name="trash-outline" size={19} color="#C64141" />
+
                 <Text
                   style={[
                     styles.textoExcluir,
@@ -255,6 +271,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
+
   modal: {
     width: "100%",
     maxWidth: 440,
@@ -262,59 +279,70 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: "hidden",
   },
+
   conteudo: {
     padding: 20,
     paddingBottom: 24,
   },
+
   cabecalho: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 12,
   },
+
   sobretitulo: {
-    fontWeight: "700",
+    fontFamily: "FredokaMedium",
     letterSpacing: 1,
     opacity: 0.7,
     flexShrink: 1,
   },
+
   fechar: {
     width: 36,
     height: 36,
     alignItems: "center",
     justifyContent: "center",
   },
+
   faixa: {
     width: 44,
     height: 5,
     borderRadius: 5,
     marginBottom: 14,
   },
+
   titulo: {
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     lineHeight: 30,
     marginBottom: 14,
   },
+
   etiquetas: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
     marginBottom: 20,
   },
+
   etiqueta: {
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 6,
   },
+
   textoEtiqueta: {
     color: "#17232B",
-    fontWeight: "700",
+    fontFamily: "FredokaLight",
   },
+
   bloco: {
     borderRadius: 16,
     paddingHorizontal: 16,
     marginBottom: 12,
   },
+
   linha: {
     flexDirection: "row",
     alignItems: "center",
@@ -322,6 +350,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     gap: 12,
   },
+
   icone: {
     width: 38,
     height: 38,
@@ -329,36 +358,47 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   conteudoLinha: {
     flex: 1,
   },
+
   rotulo: {
+    fontFamily: "FredokaLight",
     opacity: 0.7,
     marginBottom: 3,
   },
+
   valor: {
-    fontWeight: "600",
+    fontFamily: "FredokaLight",
   },
+
   blocoDescricao: {
     borderRadius: 16,
     padding: 16,
   },
+
   tituloDescricao: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
     marginBottom: 10,
   },
+
   rotuloDescricao: {
-    fontWeight: "700",
+    fontFamily: "FredokaMedium",
   },
+
   descricao: {
+    fontFamily: "FredokaLight",
     lineHeight: 24,
   },
+
   acoes: {
     gap: 10,
     marginTop: 20,
   },
+
   botaoPrincipal: {
     minHeight: 48,
     borderRadius: 12,
@@ -368,10 +408,12 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 10,
   },
+
   textoPrincipal: {
     color: "#17232B",
-    fontWeight: "700",
+    fontFamily: "FredokaLight",
   },
+
   botaoExcluir: {
     minHeight: 46,
     borderRadius: 12,
@@ -382,8 +424,9 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 10,
   },
+
   textoExcluir: {
     color: "#C64141",
-    fontWeight: "700",
+    fontFamily: "FredokaLight",
   },
 });

@@ -1,267 +1,555 @@
 import { StyleSheet } from "react-native";
-const Estilos = StyleSheet.create({
-  container: { flex: 1 },
-  tela: { gap: 20, padding: 15 },
+import type { useTheme } from "../context/ThemeContext";
 
-  header: {
-    width: "100%",
-    paddingHorizontal: 15,
-    marginTop: 12,
-  },
+type Tema = ReturnType<typeof useTheme>["tema"];
 
-  topRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    gap: 8,
-    marginBottom: 15,
-  },
+export default function criarEstilos(
+  tema: Tema,
+  escalaFonte: number,
+) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: tema.background,
+    },
 
-  headerTitle: {
-    flex: 1,
-    flexShrink: 1,
-    minWidth: 0,
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#333",
-  },
+    tela: {
+      gap: 20,
+      padding: 15,
+    },
 
-  cardPerfil: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 20,
-    flexDirection: "column",
-    elevation: 5,
-  },
+    header: {
+      width: "100%",
+      paddingHorizontal: 15,
+      marginTop: 12,
+    },
 
-  cardConta: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 20,
-    flexDirection: "column",
-    elevation: 5,
-  },
+    topRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      alignItems: "center",
+      width: "100%",
+      gap: 8,
+      marginBottom: 15,
+    },
 
-  cardTutorial: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 5,
-  },
+    headerTitle: {
+      flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
+      fontSize: 30 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      color: tema.text,
+    },
 
-  cardConfig: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 20,
-    gap: 10,
-    flexDirection: "column",
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 5,
-  },
-  cardTema: {
-    backgroundColor: "#FFFDD0",
-    borderRadius: 15,
-    padding: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 5,
-  },
-  cardOpcoes: {
-    backgroundColor: "#FFFDD0",
-    borderRadius: 15,
-    width: "100%",
-    padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-    elevation: 5,
-  },
-  cardNotiChat: {
-    backgroundColor: "#FFFDD0",
-    borderRadius: 15,
-    padding: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 5,
-  },
-  cardLembrete: {
-    backgroundColor: "#FFFDD0",
-    borderRadius: 15,
-    width: "100%",
-    padding: 16,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 12,
-    elevation: 5,
-  },
-  botaoSair: {
-    backgroundColor: "#fe0505",
-    borderRadius: 15,
-    padding: 20,
-    justifyContent: "space-between",
-    alignItems: "center",
-    elevation: 5,
-  },
-  textoBotaoSair: { color: "#fff", fontSize: 18 },
-  texto: { fontSize: 18 },
-  texto2: { fontSize: 18 },
-  textoConfiguracoes: {},
-  navbar: { marginBottom: 50, alignItems: "center" },
-  perfilTopo: { flexDirection: "row", alignItems: "center", gap: 16 },
-  avatarContainer: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: "#94C0DF",
-    justifyContent: "center",
-    alignItems: "center",
-    flexShrink: 0,
-  },
-  avatarTexto: { fontSize: 42 },
-  informacoesPerfil: { flex: 1, gap: 4 },
-  nomePerfil: { fontWeight: "bold" },
-  tipoPerfil: { fontWeight: "600" },
-  detalhesPerfil: { marginTop: 2 },
-  botaoAvatar: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 18,
-  },
-  textoBotaoAvatar: { fontWeight: "600", flexShrink: 1, textAlign: "center" },
-  botoesTema: { flexDirection: "row", gap: 8, width: "100%", flexWrap: "wrap" },
-  botaoTema: {
-    minHeight: 48,
-    flexGrow: 1,
-    flexBasis: 120,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    cardPerfil: {
+      backgroundColor: tema.modal,
+      borderRadius: 15,
+      padding: 20,
+      flexDirection: "column",
+      elevation: 5,
+    },
 
-  botaoAlerta: {
-    backgroundColor: "#FF8C42",
-    paddingHorizontal: 12,
-    paddingVertical: 9,
-    borderRadius: 8,
-    elevation: 3,
-  },
+    cardConta: {
+      backgroundColor: tema.modal,
+      borderRadius: 15,
+      padding: 20,
+      flexDirection: "column",
+      elevation: 5,
+    },
 
-  textoAlerta: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
+    cardTutorial: {
+      backgroundColor: tema.modal,
+      borderRadius: 15,
+      padding: 20,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      elevation: 5,
+    },
 
-  tituloConta: {
-    fontWeight: "bold",
-    marginBottom: 18,
-  },
+    conteudoTutorial: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
 
-  informacaoConta: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 18,
-  },
+    textoTutorial: {
+      color: tema.text,
+      fontSize: 18 * escalaFonte,
+      fontFamily: "FredokaLight",
+      flexShrink: 1,
+    },
 
-  iconeConta: {
-    width: 40,
-    alignItems: "center",
-  },
+    cardConfig: {
+      backgroundColor: tema.modal,
+      borderRadius: 15,
+      padding: 20,
+      gap: 10,
+      flexDirection: "column",
+      justifyContent: "space-between",
+      alignItems: "center",
+      elevation: 5,
+    },
 
-  labelConta: {
-    opacity: 0.7,
-    marginBottom: 3,
-  },
+    cardOpcoes: {
+      backgroundColor: tema.card,
+      borderRadius: 15,
+      width: "100%",
+      padding: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+      elevation: 5,
+    },
 
-  valorConta: {
-    fontWeight: "500",
-  },
+    conteudoOpcao: {
+      flex: 1,
+      minWidth: 0,
+    },
 
-  botaoAlterarSenha: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 4,
-  },
+    tituloOpcao: {
+      color: tema.text,
+      fontSize: 18 * escalaFonte,
+      fontFamily: "FredokaMedium",
+    },
 
-  textoAlterarSenha: {
-    fontWeight: "600",
-    flexShrink: 1,
-    textAlign: "center",
-  },
+    textoTamanhoAtual: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      marginTop: 5,
+      textAlign: "center",
+    },
 
-  fundoModal: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
+    textoResumoLimpeza: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      marginTop: 6,
+    },
 
-  modalSenha: {
-    width: "92%",
-    maxWidth: 520,
-    maxHeight: "85%",
-    padding: 20,
-    borderRadius: 15,
-  },
+    cardNotiChat: {
+      backgroundColor: tema.card,
+      borderRadius: 15,
+      padding: 20,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      elevation: 5,
+    },
 
-  tituloModalSenha: {
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
+    cardLembrete: {
+      backgroundColor: tema.card,
+      borderRadius: 15,
+      width: "100%",
+      padding: 16,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: 12,
+      elevation: 5,
+    },
 
-  textoModalSenha: {
-    opacity: 0.7,
-    marginBottom: 20,
-  },
+    textoNotificacao: {
+      flex: 1,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
 
-  inputSenha: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
+    botaoSair: {
+      backgroundColor: "#fe0505",
+      borderRadius: 15,
+      padding: 20,
+      justifyContent: "space-between",
+      alignItems: "center",
+      elevation: 5,
+    },
 
-  botaoConfirmarSenha: {
-    backgroundColor: "#4CAF50",
-    padding: 14,
-    borderRadius: 10,
-    alignItems: "center",
-    marginTop: 5,
-  },
+    textoBotaoSair: {
+      color: "#fff",
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
 
-  textoConfirmarSenha: {
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
+    perfilTopo: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 16,
+    },
 
-  botaoCancelarSenha: {
-    padding: 14,
-    alignItems: "center",
-    marginTop: 5,
-  },
-});
-export default Estilos;
+    perfilTopoEmColuna: {
+      flexDirection: "column",
+      alignItems: "flex-start",
+    },
+
+    avatarContainer: {
+      width: 90,
+      height: 90,
+      borderRadius: 45,
+      backgroundColor: "#94C0DF",
+      justifyContent: "center",
+      alignItems: "center",
+      flexShrink: 0,
+    },
+
+    avatarTexto: {
+      fontSize: 42,
+      fontFamily: "FredokaLight",
+    },
+
+    informacoesPerfil: {
+      flex: 1,
+      gap: 4,
+    },
+
+    informacoesPerfilEmColuna: {
+      flex: 0,
+      width: "100%",
+    },
+
+    nomePerfil: {
+      color: tema.text,
+      fontSize: 21 * escalaFonte,
+      fontFamily: "FredokaMedium",
+    },
+
+    tipoPerfil: {
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
+
+    detalhesPerfil: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      marginTop: 2,
+    },
+
+    botaoAvatar: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 12,
+      marginTop: 18,
+    },
+
+    textoBotaoAvatar: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaLight",
+      flexShrink: 1,
+      textAlign: "center",
+    },
+
+    secaoTema: {
+      width: "100%",
+    },
+
+    tituloTema: {
+      color: tema.text,
+      fontSize: 20 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 10,
+      textAlign: "center",
+    },
+
+    botoesTema: {
+      flexDirection: "row",
+      gap: 8,
+      width: "100%",
+      flexWrap: "wrap",
+    },
+
+    botaoTema: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      minHeight: 48,
+      flexGrow: 1,
+      flexBasis: 120,
+      padding: 12,
+      borderRadius: 10,
+      borderWidth: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    botaoTemaSelecionado: {
+      backgroundColor: "#94C0DF",
+    },
+
+    botaoTemaForteSelecionado: {
+      backgroundColor: "#FF6B00",
+    },
+
+    textoBotaoTema: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
+
+    tituloConta: {
+      color: tema.text,
+      fontSize: 20 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 18,
+    },
+
+    informacaoConta: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 18,
+    },
+
+    iconeConta: {
+      width: 40,
+      alignItems: "center",
+    },
+
+    conteudoConta: {
+      flex: 1,
+    },
+
+    labelConta: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      opacity: 0.7,
+      marginBottom: 3,
+    },
+
+    valorConta: {
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
+
+    botaoAlterarSenha: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 12,
+      marginTop: 4,
+    },
+
+    textoAlterarSenha: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaLight",
+      flexShrink: 1,
+      textAlign: "center",
+    },
+
+    fundoModal: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.5)",
+    },
+
+    modalTamanhoFonte: {
+      width: "85%",
+      padding: 20,
+      borderRadius: 15,
+      backgroundColor: tema.modal,
+    },
+
+    tituloModalFonte: {
+      color: tema.text,
+      fontSize: 22 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 20,
+    },
+
+    opcaoTamanhoFonte: {
+      padding: 15,
+      borderRadius: 10,
+      marginBottom: 10,
+      backgroundColor: tema.card,
+      borderWidth: 1,
+      borderColor: tema.border,
+    },
+
+    opcaoTamanhoSelecionada: {
+      backgroundColor: "#94C0DF",
+    },
+
+    textoOpcaoTamanho: {
+      color: tema.text,
+      fontFamily: "FredokaLight",
+    },
+
+    pequeno: {
+      fontSize: 14 * escalaFonte,
+    },
+
+    normal: {
+      fontSize: 16 * escalaFonte,
+    },
+
+    grande: {
+      fontSize: 18 * escalaFonte,
+    },
+
+    muitoGrande: {
+      fontSize: 20 * escalaFonte,
+    },
+
+    botaoFecharFonte: {
+      padding: 15,
+      borderRadius: 10,
+      marginTop: 5,
+      alignItems: "center",
+    },
+
+    textoFechar: {
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
+
+    modalSenha: {
+      width: "92%",
+      maxWidth: 520,
+      maxHeight: "85%",
+      padding: 20,
+      borderRadius: 15,
+      backgroundColor: tema.modal,
+      flexGrow: 0,
+    },
+
+    conteudoModal: {
+      padding: 20,
+    },
+
+    tituloModalSenha: {
+      color: tema.text,
+      fontSize: 21 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 5,
+    },
+
+    textoModalSenha: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      opacity: 0.7,
+      marginBottom: 20,
+    },
+
+    inputSenha: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      marginBottom: 12,
+    },
+
+    botaoConfirmarSenha: {
+      backgroundColor: "#4CAF50",
+      padding: 14,
+      borderRadius: 10,
+      alignItems: "center",
+      marginTop: 5,
+    },
+
+    textoConfirmarSenha: {
+      color: "#fff",
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+      textAlign: "center",
+    },
+
+    botaoCancelarSenha: {
+      padding: 14,
+      alignItems: "center",
+      marginTop: 5,
+    },
+
+    textoCancelarSenha: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
+
+    modalLimpeza: {
+      width: "92%",
+      maxWidth: 520,
+      maxHeight: "85%",
+      flexGrow: 0,
+      borderRadius: 15,
+      backgroundColor: tema.modal,
+    },
+
+    tituloModalLimpeza: {
+      color: tema.text,
+      fontSize: 21 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 10,
+    },
+
+    textoModalLimpeza: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      marginBottom: 18,
+    },
+
+    opcaoLimpeza: {
+      minHeight: 48,
+      padding: 15,
+      marginBottom: 10,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: tema.text,
+      backgroundColor: tema.card,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+
+    opcaoLimpezaSelecionada: {
+      borderWidth: 2,
+    },
+
+    textoOpcaoLimpeza: {
+      flex: 1,
+      flexShrink: 1,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
+
+    textoSalvando: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      textAlign: "center",
+      marginTop: 5,
+    },
+
+    desabilitado: {
+      opacity: 0.5,
+    },
+  });
+}

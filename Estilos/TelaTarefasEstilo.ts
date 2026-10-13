@@ -3,6 +3,7 @@ import { StyleSheet } from "react-native";
 const Estilos = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFDD0" },
   header: { width: "100%", paddingHorizontal: 15, marginTop: 12 },
+
   topRow: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -12,14 +13,22 @@ const Estilos = StyleSheet.create({
     marginBottom: 12,
     gap: 8,
   },
+
   headerTitle: {
     flex: 1,
     flexShrink: 1,
     fontSize: 30,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     minWidth: 0,
   },
-  taskCount: { fontSize: 14, color: "#666", marginBottom: 10 },
+
+  taskCount: {
+    fontSize: 14,
+    fontFamily: "FredokaLight",
+    color: "#666",
+    marginBottom: 10,
+  },
+
   inputContainer: {
     flexDirection: "row",
     padding: 16,
@@ -27,6 +36,7 @@ const Estilos = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
+
   input: {
     flex: 1,
     borderWidth: 1,
@@ -36,7 +46,9 @@ const Estilos = StyleSheet.create({
     paddingVertical: 12,
     marginRight: 12,
     fontSize: 16,
+    fontFamily: "FredokaLight",
   },
+
   addButton: {
     backgroundColor: "#94C0DF",
     borderRadius: 8,
@@ -49,6 +61,7 @@ const Estilos = StyleSheet.create({
     flexShrink: 0,
     elevation: 3,
   },
+
   taskList: {
     flex: 1,
     paddingLeft: 15,
@@ -56,6 +69,7 @@ const Estilos = StyleSheet.create({
     paddingBottom: 0,
     paddingTop: 0,
   },
+
   cardEvento: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -68,36 +82,60 @@ const Estilos = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+
   checkbox: { marginRight: 4 },
-  taskText: { flex: 1, fontSize: 16, color: "#333" },
-  completedTaskText: { textDecorationLine: "line-through", color: "#999" },
+
+  taskText: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: "FredokaLight",
+    color: "#333",
+  },
+
+  completedTaskText: {
+    textDecorationLine: "line-through",
+    color: "#999",
+  },
+
   deleteButton: { padding: 8 },
+
   emptyState: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 40,
   },
+
   emptyStateText: {
     fontSize: 18,
-    fontWeight: "500",
+    fontFamily: "FredokaLight",
     color: "#999",
     marginTop: 16,
     textAlign: "center",
   },
+
   emptyStateSubtext: {
     fontSize: 14,
+    fontFamily: "FredokaLight",
     color: "#999",
     marginTop: 8,
     textAlign: "center",
   },
-  /*Parte feita com IA até o BotaoConfirmar*/ modalOverlay: {
+
+  /* Parte feita com IA até o BotaoConfirmar */
+  modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
-  scrollModal: { flexGrow: 1, justifyContent: "center", alignItems: "center" },
+
+  scrollModal: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   cardModal: {
     width: "92%",
     maxWidth: 520,
@@ -105,19 +143,27 @@ const Estilos = StyleSheet.create({
     borderRadius: 15,
     overflow: "hidden",
   },
-  tituloModal: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
+
+  tituloModal: {
+    fontSize: 20,
+    fontFamily: "FredokaMedium",
+    marginBottom: 20,
+  },
+
   opcaoContainer: {
     flexDirection: "row",
     alignItems: "center",
     maxWidth: "100%",
     marginRight: 20,
   },
+
   opcoesRow: {
     flexDirection: "row",
     marginBottom: 15,
     flexWrap: "wrap",
     gap: 12,
   },
+
   radioExterno: {
     width: 24,
     height: 24,
@@ -129,16 +175,20 @@ const Estilos = StyleSheet.create({
     marginRight: 10,
     flexShrink: 0,
   },
+
   radioInterno: {
     width: 12,
     height: 12,
     borderRadius: 6,
     backgroundColor: "#4B6CB7",
   },
+
   textoOpcao: {
     fontSize: 16,
+    fontFamily: "FredokaLight",
     flexShrink: 1,
   },
+
   botoesModal: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -147,6 +197,7 @@ const Estilos = StyleSheet.create({
     marginTop: 20,
     gap: 12,
   },
+
   botaoCancelar: {
     backgroundColor: "#FFAA56",
     borderRadius: 10,
@@ -159,6 +210,7 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   botaoConfirmar: {
     backgroundColor: "#94C0DF",
     borderRadius: 10,
@@ -171,13 +223,17 @@ const Estilos = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
   textoBotao: {
     fontSize: 16,
+    fontFamily: "FredokaLight",
     textAlign: "center",
     flexShrink: 1,
     maxWidth: "100%",
   },
+
   infoTarefa: { gap: 10 },
+
   textosInfo: {
     borderWidth: 1,
     borderColor: "#dbdbdb",
@@ -185,9 +241,16 @@ const Estilos = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 12,
     paddingVertical: 12,
+    fontFamily: "FredokaLight",
   },
-  titulosInfoTarefa: { marginTop: 20 },
+
+  titulosInfoTarefa: {
+    marginTop: 20,
+    fontFamily: "FredokaMedium",
+  },
+
   buttons: { marginBottom: 50, alignItems: "center" },
+
   topoCard: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -196,9 +259,10 @@ const Estilos = StyleSheet.create({
     marginBottom: 10,
     gap: 8,
   },
+
   tituloEvento: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     flexGrow: 1,
     flexShrink: 1,
     minWidth: "55%",
@@ -212,9 +276,19 @@ const Estilos = StyleSheet.create({
     alignSelf: "flex-start",
   },
 
-  textoTipo: { color: "#fff", fontWeight: "bold" },
-  textoTipoAdicionar: { paddingBottom: 15 },
-  textodataEvento: {},
+  textoTipo: {
+    color: "#fff",
+    fontFamily: "FredokaLight",
+  },
+
+  textoTipoAdicionar: {
+    paddingBottom: 15,
+    fontFamily: "FredokaLight",
+  },
+
+  textodataEvento: {
+    fontFamily: "FredokaLight",
+  },
 
   botaoAlerta: {
     backgroundColor: "#FF8C42",
@@ -227,15 +301,16 @@ const Estilos = StyleSheet.create({
   textoAlerta: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "FredokaLight",
   },
 
   tituloSecao: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     marginBottom: 10,
     marginLeft: 5,
   },
+
   modalContent: {},
 
   campoData: {
@@ -270,6 +345,7 @@ const Estilos = StyleSheet.create({
     justifyContent: "center",
     flexShrink: 0,
   },
+
   overlayReforco: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -296,11 +372,12 @@ const Estilos = StyleSheet.create({
   },
 
   tituloReforco: {
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     textAlign: "center",
   },
 
   textoReforco: {
+    fontFamily: "FredokaLight",
     textAlign: "center",
     width: "100%",
   },
@@ -319,22 +396,25 @@ const Estilos = StyleSheet.create({
   },
 
   textoBotaoReforco: {
-    fontWeight: "bold",
+    fontFamily: "FredokaLight",
     textAlign: "center",
   },
 
   rodapeCriador: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     gap: 6,
     marginTop: 12,
     width: "100%",
   },
 
   textoCriador: {
+    flex: 1,
     flexShrink: 1,
-    textAlign: "right",
+    fontFamily: "FredokaLight",
+    textAlign: "left",
   },
 });
+
 export default Estilos;

@@ -7,9 +7,9 @@ const Estilos = StyleSheet.create({
   },
 
   header: {
-  width: "100%",
-  paddingHorizontal: 15,
-  marginTop: 12,
+    width: "100%",
+    paddingHorizontal: 15,
+    marginTop: 12,
   },
 
   topRow: {
@@ -27,12 +27,13 @@ const Estilos = StyleSheet.create({
     flexShrink: 1,
     fontSize: 30,
     minWidth: 0,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     color: "#333",
   },
 
   studentCount: {
     fontSize: 14,
+    fontFamily: "FredokaLight",
     color: "#666",
     marginBottom: 10,
   },
@@ -75,7 +76,7 @@ const Estilos = StyleSheet.create({
   avatarTexto: {
     fontSize: 20,
     color: "#FFFFFF",
-    fontWeight: "500",
+    fontFamily: "FredokaLight",
   },
 
   informacoes: {
@@ -85,7 +86,7 @@ const Estilos = StyleSheet.create({
 
   nomeAluno: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     marginBottom: 6,
   },
 
@@ -106,6 +107,7 @@ const Estilos = StyleSheet.create({
   textoTag: {
     color: "#7DAED1",
     fontSize: 11,
+    fontFamily: "FredokaLight",
   },
 
   tagTurno: {
@@ -118,10 +120,12 @@ const Estilos = StyleSheet.create({
   textoTagTurno: {
     color: "#83B77A",
     fontSize: 11,
+    fontFamily: "FredokaLight",
   },
 
   tarefasPendentes: {
     fontSize: 14,
+    fontFamily: "FredokaLight",
     marginTop: 7,
   },
 
@@ -142,6 +146,7 @@ const Estilos = StyleSheet.create({
 
   semAlunosTexto: {
     marginTop: 16,
+    fontFamily: "FredokaLight",
     textAlign: "center",
   },
 
@@ -163,7 +168,7 @@ const Estilos = StyleSheet.create({
 
   textoFiltro: {
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: "FredokaLight",
   },
 
   modalOverlay: {
@@ -181,12 +186,13 @@ const Estilos = StyleSheet.create({
 
   tituloModal: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     marginBottom: 5,
   },
 
   subtituloModal: {
     fontSize: 13,
+    fontFamily: "FredokaLight",
     marginBottom: 15,
   },
 
@@ -204,7 +210,7 @@ const Estilos = StyleSheet.create({
   nomeFiltro: {
     flex: 1,
     fontSize: 15,
-    fontWeight: "500",
+    fontFamily: "FredokaLight",
   },
 
   botaoAplicar: {
@@ -217,7 +223,7 @@ const Estilos = StyleSheet.create({
 
   textoAplicar: {
     color: "#FFFFFF",
-    fontWeight: "bold",
+    fontFamily: "FredokaLight",
     fontSize: 16,
   },
 });

@@ -519,7 +519,7 @@ export default function TelaCalendario() {
           style={[Estilos.calendarContainer, { backgroundColor: tema.card }]}
         >
           <Calendar
-            key={`calendario-${escalaFonte}`}
+            key={`calendario-fredoka-medium-light-${escalaFonte}`}
             style={Estilos.calendar}
             renderArrow={(direction: "right" | "left") => (
               <Feather
@@ -545,6 +545,13 @@ export default function TelaCalendario() {
                   margin: 0,
                   padding: 0,
                 },
+                textMonthFontFamily: "FredokaMedium",
+                textDayFontFamily: "FredokaLight",
+                textDayHeaderFontFamily: "FredokaLight",
+
+                textMonthFontWeight: "normal",
+                textDayFontWeight: "normal",
+                textDayHeaderFontWeight: "normal",
                 "stylesheet.dot": {
                   dot: {
                     width: 7,
@@ -553,7 +560,7 @@ export default function TelaCalendario() {
                     marginHorizontal: 1,
                   },
                 },
-                ["Estilosheet.day.basic"]: {
+                ["stylesheet.day.basic"]: {
                   base: {
                     width: 40,
                     height: 40,

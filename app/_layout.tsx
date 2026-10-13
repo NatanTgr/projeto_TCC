@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
+import { useFonts } from "expo-font";
 
 import * as Notifications from 'expo-notifications';
 import { registrarPushChat } from '../components/notificacoesChat';
@@ -21,6 +22,14 @@ import { FontSizeProvider } from '../context/FontSizeContext';
 
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);
+
+  const [fontesCarregadas, erroFontes] = useFonts({
+    FredokaLight: require("../assets/fonts/Fredoka-Light.ttf"),
+    FredokaMedium: require("../assets/fonts/Fredoka-Medium.ttf"),
+  });
+
+  console.log("Fontes carregadas:", fontesCarregadas);
+  console.log("Erro nas fontes:", erroFontes);
 
   useEffect(() => {
     let currentSession: Session | null = null;
@@ -293,6 +302,10 @@ export default function RootLayout() {
         />
       </View>
     );
+  }
+
+  if (!fontesCarregadas && !erroFontes) {
+    return null;
   }
 
   return (

@@ -27,7 +27,7 @@ const Estilos = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
     fontSize: 30,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     color: "#333",
   },
 
@@ -57,12 +57,13 @@ const Estilos = StyleSheet.create({
 
   titulo: {
     fontSize: 30,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     textAlign: "left",
   },
 
   legenda: {
     fontSize: 15,
+    fontFamily: "FredokaLight",
   },
 
   legendaItem: {
@@ -112,7 +113,7 @@ const Estilos = StyleSheet.create({
 
   tituloModalLista: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     marginBottom: 20,
   },
 
@@ -127,7 +128,7 @@ const Estilos = StyleSheet.create({
   textoBotaoEscolha: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "FredokaLight",
   },
 
   botaoCancelarEscolha: {
@@ -140,15 +141,17 @@ const Estilos = StyleSheet.create({
 
   tituloDetalhe: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
   },
 
   textoDetalhe: {
     fontSize: 16,
+    fontFamily: "FredokaLight",
   },
 
   textoBotao: {
     fontSize: 16,
+    fontFamily: "FredokaLight",
     textAlign: "center",
     flexShrink: 1,
     maxWidth: "100%",
@@ -163,12 +166,13 @@ const Estilos = StyleSheet.create({
 
   tituloTarefa: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
   },
 
   tipoTarefa: {
     marginTop: 5,
     fontSize: 14,
+    fontFamily: "FredokaLight",
   },
 
   botaoConfirmarDetalhes: {
@@ -203,7 +207,7 @@ const Estilos = StyleSheet.create({
 
   tituloModal: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "FredokaMedium",
     marginBottom: 20,
   },
 
@@ -223,14 +227,15 @@ const Estilos = StyleSheet.create({
 
   tipoTexto: {
     paddingBottom: 15,
+    fontFamily: "FredokaLight",
   },
 
   radioExterno: {
     width: 24,
     height: 24,
-    borderRadius: 12,
     borderWidth: 2,
     borderColor: "#4B6CB7",
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
@@ -246,6 +251,7 @@ const Estilos = StyleSheet.create({
 
   textoOpcao: {
     fontSize: 16,
+    fontFamily: "FredokaLight",
     flexShrink: 1,
   },
 
@@ -295,16 +301,20 @@ const Estilos = StyleSheet.create({
     minHeight: 48,
     paddingHorizontal: 12,
     paddingVertical: 12,
+    fontFamily: "FredokaLight",
   },
 
   titulosInfoTarefa: {
     marginTop: 20,
+    fontFamily: "FredokaMedium",
   },
 
   modalDate: {
     fontSize: 18,
+    fontFamily: "FredokaLight",
     marginBottom: 20,
   },
+
   cabecalhoCalendario: {
     width: "100%",
     flexDirection: "row",
@@ -323,7 +333,7 @@ const Estilos = StyleSheet.create({
   textoAlerta: {
     color: "#fff",
     fontSize: 14,
-    fontWeight: "bold",
+    fontFamily: "FredokaLight",
   },
 });
 
