@@ -8,40 +8,58 @@ import {
   View,
 } from 'react-native';
 import { router } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FontAwesome } from '@expo/vector-icons';
-import { colors } from '../style';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function QuemSomos() {
-  const continuar = async () => {
-    try {
-      await AsyncStorage.setItem('@meu_app:quem_somos_visto', 'true');
-      router.replace('/welcome');
-    } catch (error) {
-      console.error('Erro ao salvar apresentação:', error);
-      router.replace('/welcome');
-    }
-  };
+import { colors } from '../../style';
 
+export default function TelaSobrePaed() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+
+      {/* Cabeçalho */}
+      <View style={styles.header}>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+          hitSlop={10}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={27}
+            color={colors.text}
+          />
+        </Pressable>
+
+        <Text style={styles.headerTitle}>
+          Sobre o PAED
+        </Text>
+
+        <View style={styles.headerSpacer} />
+      </View>
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+
         {/* Logo */}
         <Image
-          source={require('../assets/images/logo_PAED.png')}
+          source={require('../../assets/images/logo_PAED.png')}
           style={styles.logo}
           resizeMode="contain"
         />
 
         {/* Título */}
-        <Text style={styles.title}>Sobre o PAED</Text>
+        <Text style={styles.title}>
+          Sobre o PAED
+        </Text>
 
         {/* Sobre o projeto */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Sobre o projeto</Text>
+          <Text style={styles.cardTitle}>
+            Sobre o projeto
+          </Text>
 
           <Text style={styles.text}>
             O PAED é um aplicativo desenvolvido no IFPR – Campus Pinhais,
@@ -59,7 +77,9 @@ export default function QuemSomos() {
 
         {/* Nossa missão */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🎯 Nossa missão</Text>
+          <Text style={styles.cardTitle}>
+            🎯 Nossa missão
+          </Text>
 
           <Text style={styles.text}>
             Tornar a rotina escolar mais organizada, acessível e acolhedora,
@@ -69,70 +89,105 @@ export default function QuemSomos() {
         </View>
 
         {/* Equipe */}
-        <Text style={styles.sectionTitle}>Nossa equipe</Text>
+        <Text style={styles.sectionTitle}>
+          Nossa equipe
+        </Text>
 
-        <Text style={styles.subsectionTitle}>Integrantes</Text>
+        <Text style={styles.subsectionTitle}>
+          Integrantes
+        </Text>
 
         <View style={styles.teamRow}>
+
           {/* Natan */}
           <View style={styles.member}>
             <Image
-              source={require('../assets/images/equipe/sabido.jpg')}
+              source={require('../../assets/images/equipe/sabido.jpg')}
               style={styles.avatar}
             />
 
-            <Text style={styles.memberName}>Natan </Text>
-            <Text style={styles.memberRole}>Desenvolvimento</Text>
+            <Text style={styles.memberName}>
+              Natan
+            </Text>
+
+            <Text style={styles.memberRole}>
+              Desenvolvimento
+            </Text>
           </View>
 
           {/* João */}
           <View style={styles.member}>
             <Image
-              source={require('../assets/images/equipe/sabido.jpg')}
+              source={require('../../assets/images/equipe/sabido.jpg')}
               style={styles.avatar}
             />
 
-            <Text style={styles.memberName}>João</Text>
-            <Text style={styles.memberRole}>Desenvolvimento</Text>
+            <Text style={styles.memberName}>
+              João
+            </Text>
+
+            <Text style={styles.memberRole}>
+              Desenvolvimento
+            </Text>
           </View>
 
           {/* Maria */}
           <View style={styles.member}>
             <Image
-              source={require('../assets/images/equipe/sabido.jpg')}
+              source={require('../../assets/images/equipe/sabido.jpg')}
               style={styles.avatar}
             />
 
-            <Text style={styles.memberName}>Maria </Text>
-            <Text style={styles.memberRole}>Desenvolvimento</Text>
+            <Text style={styles.memberName}>
+              Maria
+            </Text>
+
+            <Text style={styles.memberRole}>
+              Desenvolvimento
+            </Text>
           </View>
+
         </View>
 
         {/* Orientadoras */}
-        <Text style={styles.subsectionTitle}>Orientadoras</Text>
+        <Text style={styles.subsectionTitle}>
+          Orientadoras
+        </Text>
 
         <View style={styles.teamRow}>
-          {/* Orientadora 1 */}
+
+          {/* Paula */}
           <View style={styles.member}>
             <Image
-              source={require('../assets/images/equipe/sabido.jpg')}
+              source={require('../../assets/images/equipe/sabido.jpg')}
               style={styles.avatar}
             />
 
-            <Text style={styles.memberName}>Paula Cristina Stopa</Text>
-            <Text style={styles.memberRole}>Orientadora</Text>
+            <Text style={styles.memberName}>
+              Paula Cristina Stopa
+            </Text>
+
+            <Text style={styles.memberRole}>
+              Orientadora
+            </Text>
           </View>
 
-          {/* Orientadora 2 */}
+          {/* Lauriana */}
           <View style={styles.member}>
             <Image
-              source={require('../assets/images/equipe/sabido.jpg')}
+              source={require('../../assets/images/equipe/sabido.jpg')}
               style={styles.avatar}
             />
 
-            <Text style={styles.memberName}>Lauriana Paludo</Text>
-            <Text style={styles.memberRole}>Coorientadora</Text>
+            <Text style={styles.memberName}>
+              Lauriana Paludo
+            </Text>
+
+            <Text style={styles.memberRole}>
+              Coorientadora
+            </Text>
           </View>
+
         </View>
 
         {/* Instituição */}
@@ -148,26 +203,24 @@ export default function QuemSomos() {
 
         {/* Instagram */}
         <View style={styles.instagramContainer}>
-  <FontAwesome
-    name="instagram"
-    size={22}
-    color='#836F68'
-  />
-  <Text style={styles.instagram}>@paed.tcc</Text>
-</View>
+          <FontAwesome
+            name="instagram"
+            size={22}
+            color="#836F68"
+          />
+
+          <Text style={styles.instagram}>
+            @paed.tcc
+          </Text>
+        </View>
 
         {/* Versão */}
-        <Text style={styles.version}>PAED v1.0.0</Text>
-      </ScrollView>
+        <Text style={styles.version}>
+          PAED v1.0.0
+        </Text>
 
-      {/* Botão */}
-      <Pressable
-        style={styles.button}
-        onPress={continuar}
-      >
-        <Text style={styles.buttonText}>Continuar</Text>
-      </Pressable>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -175,13 +228,50 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingHorizontal: 30,
-    paddingTop: 20,
   },
+
+  // ---------------------------------------------------------
+  // CABEÇALHO
+  // ---------------------------------------------------------
+
+  header: {
+    height: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E2D5',
+    backgroundColor: colors.background,
+  },
+
+  backButton: {
+    width: 42,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+  },
+
+  headerSpacer: {
+    width: 42,
+  },
+
+  // ---------------------------------------------------------
+  // CONTEÚDO
+  // ---------------------------------------------------------
 
   scrollContent: {
     alignItems: 'center',
-    paddingBottom: 25,
+    paddingHorizontal: 30,
+    paddingTop: 10,
+    paddingBottom: 30,
   },
 
   logo: {
@@ -199,6 +289,10 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     textAlign: 'left',
   },
+
+  // ---------------------------------------------------------
+  // CARDS
+  // ---------------------------------------------------------
 
   card: {
     width: '100%',
@@ -224,6 +318,10 @@ const styles = StyleSheet.create({
     textAlign: 'justify',
     marginBottom: 10,
   },
+
+  // ---------------------------------------------------------
+  // EQUIPE
+  // ---------------------------------------------------------
 
   sectionTitle: {
     fontSize: 22,
@@ -263,15 +361,7 @@ const styles = StyleSheet.create({
     height: 98,
     borderRadius: 49,
     backgroundColor: '#FFAA56',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 8,
-  },
-
-  avatarText: {
-    color: '#FFFFFF',
-    fontSize: 26,
-    fontWeight: '700',
   },
 
   memberName: {
@@ -287,6 +377,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 3,
   },
+
+  // ---------------------------------------------------------
+  // INSTITUIÇÃO
+  // ---------------------------------------------------------
 
   institutionCard: {
     width: '100%',
@@ -314,38 +408,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  instagramContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 8,
-  marginBottom: 10,
-},
+  // ---------------------------------------------------------
+  // INSTAGRAM
+  // ---------------------------------------------------------
 
-instagram: {
-  color: colors.text,
-  fontSize: 16,
-  fontWeight: '600',
-},
+  instagramContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+
+  instagram: {
+    color: colors.text,
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // ---------------------------------------------------------
+  // VERSÃO
+  // ---------------------------------------------------------
 
   version: {
     color: colors.text,
     fontSize: 13,
     marginBottom: 5,
-  },
-
-  button: {
-    width: '100%',
-    backgroundColor: '#FFAA56',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
   },
 });

@@ -107,6 +107,30 @@ export default function Welcome() {
               <Text style={styles.cardSubtitle}>Apoie alunos</Text>
             </View>
           </Pressable>
+          
+          <Pressable
+  style={({ pressed }) => [
+    styles.welcomeCard,
+    pressed && styles.cardPressed,
+    ]}
+  onPress={() => handleSelectRole('NAPNE')}
+    >
+  <View
+    style={[
+      styles.iconCircle,
+      { backgroundColor: colors.purple },
+    ]}
+  >
+    <Ionicons name="heart" size={28} color={colors.white} />
+  </View>
+
+      <View style={styles.cardTextContainer}>
+    <Text style={styles.welcomeCardTitle}>NAPNE</Text>
+    <Text style={styles.cardSubtitle}>
+      Apoie a inclusão dos alunos
+    </Text>
+  </View>
+</Pressable>
         </View>
 
         <View style={styles.footer}>
@@ -114,6 +138,7 @@ export default function Welcome() {
             <Text style={styles.loginLink}>Já tem uma conta? Entre aqui</Text>
           </Pressable>
         </View>
+        
       </ScrollView>
     </SafeAreaView>
   );
