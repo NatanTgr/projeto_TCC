@@ -779,6 +779,10 @@ export default function SignUp() {
       return 'professor';
     }
 
+    if (tipo.includes('napne')) {
+      return 'napne';
+    }
+
     if (tipo.includes('tutor')) {
       return 'tutor';
     }
@@ -822,8 +826,16 @@ export default function SignUp() {
       return;
     }
 
-    if (tipoUsuario === 'tutor' && (!departamento.trim() || !pronome.trim())) {
-      Alert.alert('Atenção', 'Preencha o departamento e o pronome.');
+    if (
+      (tipoUsuario === 'tutor' || tipoUsuario === 'napne') &&
+      !departamento.trim()
+    ) {
+      Alert.alert('Atenção', 'Preencha o departamento ou setor.');
+      return;
+    }
+
+    if (tipoUsuario === 'tutor' && !pronome.trim()) {
+      Alert.alert('Atenção', 'Preencha o pronome.');
       return;
     }
 
@@ -864,7 +876,7 @@ export default function SignUp() {
             // Dados do professor
             areaAtuacao: areaAtuacao.trim(),
 
-            // Dados do tutor
+            // Dados do tutor ou NAPNE
             departamento: departamento.trim(),
           },
         },
@@ -882,6 +894,7 @@ export default function SignUp() {
       // o usuário ainda não terá uma sessão autenticada neste momento.
       // O trigger do banco cria automaticamente o perfil nas tabelas
       // usuarios, alunos, professores ou tutores.
+      // Para NAPNE, o trigger do Supabase também precisa aceitar o tipo 'napne'.
       Alert.alert(
         'Cadastro realizado!',
         'Sua conta foi criada. Enviamos um e-mail de confirmação para o endereço informado. Confirme seu e-mail antes de fazer login.',
@@ -1105,9 +1118,9 @@ export default function SignUp() {
               </>
             )}
 
-            {tipoUsuario === "tutor" && (
+            {(tipoUsuario === 'tutor' || tipoUsuario === 'napne') && (
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Departamento</Text>
+                <Text style={styles.label}>Departamento / setor</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Ex.: NAPNE, Seção Pedagógica..."

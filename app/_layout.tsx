@@ -5,11 +5,11 @@ import {
   StatusBar,
   StyleSheet,
   Linking,
-  Platform,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
-import { useFonts } from "expo-font";
+import { useFonts } from 'expo-font';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import * as Notifications from 'expo-notifications';
 import { registrarPushChat } from '../components/notificacoesChat';
@@ -19,6 +19,9 @@ import { styles as globalStyles, colors } from '../style';
 
 import { ThemeProvider } from '../context/ThemeContext';
 import { FontSizeProvider } from '../context/FontSizeContext';
+
+const VERSAO_TERMO = '1.0';
+const TERMO_STORAGE_KEY = '@paed:termo_autorizacao';
 
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);
@@ -35,30 +38,17 @@ export default function RootLayout() {
     let currentSession: Session | null = null;
     let isPasswordRecovery = false;
 
-    // ---------------------------------------------------------
-    // Processa o link de recuperação de senha
-    // ---------------------------------------------------------
     const handleRecoveryUrl = async (url: string | null) => {
       if (!url) return;
 
-      // Verifica se é o link da redefinição de senha
-      if (!url.startsWith('meuapp://reset-password')) {
-        return;
-      }
+      if (!url.startsWith('meuapp://reset-password')) return;
 
       try {
-        // O Supabase envia os tokens depois do "#"
-        //
-        // Exemplo:
-        // meuapp://reset-password#access_token=...&refresh_token=...
         const hashIndex = url.indexOf('#');
 
-        if (hashIndex === -1) {
-          return;
-        }
+        if (hashIndex === -1) return;
 
         const hash = url.substring(hashIndex + 1);
-
         const params: Record<string, string> = {};
 
         hash.split('&').forEach((item) => {
@@ -67,7 +57,6 @@ export default function RootLayout() {
           if (!key) return;
 
           const value = valueParts.join('=');
-
           params[key] = decodeURIComponent(value);
         });
 
@@ -81,7 +70,6 @@ export default function RootLayout() {
           return;
         }
 
-        // Cria a sessão de recuperação no Supabase
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -96,9 +84,6 @@ export default function RootLayout() {
         }
 
         isPasswordRecovery = true;
-
-        // A sessão de recuperação foi criada.
-        // Agora podemos abrir a tela para criar a nova senha.
         setLoading(false);
 
         router.replace('/reset-password');
@@ -110,16 +95,10 @@ export default function RootLayout() {
       }
     };
 
-    // ---------------------------------------------------------
-    // Verifica se o aplicativo foi aberto pelo link
-    // ---------------------------------------------------------
     Linking.getInitialURL().then((url) => {
       handleRecoveryUrl(url);
     });
 
-    // ---------------------------------------------------------
-    // Detecta link quando o aplicativo já está aberto
-    // ---------------------------------------------------------
     const linkingSubscription = Linking.addEventListener(
       'url',
       ({ url }) => {
@@ -127,20 +106,29 @@ export default function RootLayout() {
       }
     );
 
-    // ---------------------------------------------------------
-    // Timer original do seu projeto
-    // ---------------------------------------------------------
     const timer = setTimeout(async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
-        if (error) console.log('Erro ao recuperar sessão:', error);
+
+        if (error) {
+          console.log(
+            'Erro ao recuperar sessão:',
+            error
+          );
+        }
+
         currentSession = data.session;
+
         if (!isPasswordRecovery) {
           handleNavigation(currentSession);
           setLoading(false);
         }
       } catch (error) {
-        console.log('Erro ao recuperar sessão:', error);
+        console.log(
+          'Erro ao recuperar sessão:',
+          error
+        );
+
         if (!isPasswordRecovery) {
           handleNavigation(null);
           setLoading(false);
@@ -148,24 +136,18 @@ export default function RootLayout() {
       }
     }, 1100);
 
-    // ---------------------------------------------------------
-    // Ouve alterações de autenticação
-    // ---------------------------------------------------------
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
       (event, session: Session | null) => {
         currentSession = session;
 
-        if (session?.user && event === "SIGNED_IN") {
+        if (session?.user && event === 'SIGNED_IN') {
           registrarPushChat(session.user.id);
         }
 
-        // O Supabase também pode informar diretamente
-        // que a sessão é de recuperação de senha.
         if (event === 'PASSWORD_RECOVERY') {
           isPasswordRecovery = true;
-
           setLoading(false);
 
           router.replace('/reset-password');
@@ -185,107 +167,196 @@ export default function RootLayout() {
 
     registrarUsuarioAtual();
 
-    const notificacaoRecebida = Notifications.addNotificationReceivedListener(
-      () => {
-        // O sistema mostra a notificação; a conversa já usa Realtime.
-      },
-    );
+    const notificacaoRecebida =
+      Notifications.addNotificationReceivedListener(() => {});
 
     const notificacaoTocada =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        const dados = response.notification.request.content.data;
+      Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          const dados =
+            response.notification.request.content.data;
 
-        if (
-          dados?.tipo !== "mensagem" ||
-          typeof dados.remetenteId !== "string"
-        ) {
-          return;
+          if (
+            dados?.tipo !== 'mensagem' ||
+            typeof dados.remetenteId !== 'string'
+          ) {
+            return;
+          }
+
+          router.push({
+            pathname: '/TelaConversa' as any,
+            params: {
+              usuarioId: dados.remetenteId,
+
+              usuarioNome:
+                typeof dados.remetenteNome === 'string'
+                  ? dados.remetenteNome
+                  : 'Usuário',
+
+              usuarioTipo:
+                typeof dados.remetenteTipo === 'string'
+                  ? dados.remetenteTipo
+                  : 'estudante',
+            },
+          });
         }
+      );
 
-        router.push({
-          pathname: "/TelaConversa" as any,
-          params: {
-            usuarioId: dados.remetenteId,
-            usuarioNome:
-              typeof dados.remetenteNome === "string"
-                ? dados.remetenteNome
-                : "Usuário",
-            usuarioTipo:
-              typeof dados.remetenteTipo === "string"
-                ? dados.remetenteTipo
-                : "estudante",
-          },
-        });
-      });
-
-    // ---------------------------------------------------------
-    // Limpeza
-    // ---------------------------------------------------------
     return () => {
       clearTimeout(timer);
+
       subscription.unsubscribe();
+
       linkingSubscription.remove();
+
       notificacaoRecebida.remove();
+
       notificacaoTocada.remove();
     };
   }, []);
 
-  const handleNavigation = async (session: Session | null) => {
-    if (!session) {
-      router.replace("/welcome");
-      return;
-    }
+  const verificarTermoLocal = async (): Promise<boolean> => {
+    try {
+      const termoSalvo =
+        await AsyncStorage.getItem(TERMO_STORAGE_KEY);
 
-    if (Platform.OS !== "web") {
-      const resposta = await Notifications.getLastNotificationResponseAsync();
-
-      const dados = resposta?.notification.request.content.data;
-
-      if (dados?.tipo === "mensagem" && typeof dados.remetenteId === "string") {
-        await Notifications.clearLastNotificationResponseAsync();
-
-        router.replace({
-          pathname: "/TelaConversa" as any,
-          params: {
-            usuarioId: dados.remetenteId,
-            usuarioNome:
-              typeof dados.remetenteNome === "string"
-                ? dados.remetenteNome
-                : "Usuário",
-            usuarioTipo:
-              typeof dados.remetenteTipo === "string"
-                ? dados.remetenteTipo
-                : "estudante",
-          },
-        });
-
-        return;
+      if (!termoSalvo) {
+        return false;
       }
-    }
 
-    const { data: usuario, error } = await supabase
-      .from("usuarios")
-      .select("tipo")
-      .eq("id", session.user.id)
-      .single();
+      const termo = JSON.parse(termoSalvo);
 
-    if (error || !usuario) {
-      console.log("Erro ao buscar tipo do usuário:", error);
-      return;
-    }
+      return (
+        termo?.aceito === true &&
+        termo?.versao === VERSAO_TERMO
+      );
+    } catch (error) {
+      console.error(
+        'Erro ao verificar aceite do termo:',
+        error
+      );
 
-    if (usuario.tipo === "tutor") {
-      router.replace("/(tabs)/TelaTarefasTutor");
-    } else if (usuario.tipo === "professor") {
-      router.replace("/(tabs)/TelaChat");
-    } else {
-      router.replace("/(tabs)/TelaTarefas");
+      return false;
     }
   };
 
-  // ---------------------------------------------------------
-  // SplashScreen enquanto carrega
-  // ---------------------------------------------------------
+  const registrarAceiteNoSupabase = async (
+    session: Session
+  ) => {
+    try {
+      const { data: aceiteExistente, error: erroConsulta } =
+        await supabase
+          .from('aceites_termos')
+          .select('id')
+          .eq('usuario_id', session.user.id)
+          .eq('versao_termo', VERSAO_TERMO)
+          .maybeSingle();
+
+      if (erroConsulta) {
+        console.log(
+          'Erro ao verificar aceite do termo:',
+          erroConsulta
+        );
+
+        return;
+      }
+
+      if (!aceiteExistente) {
+        const { error } = await supabase
+          .from('aceites_termos')
+          .insert({
+            usuario_id: session.user.id,
+            versao_termo: VERSAO_TERMO,
+          });
+
+        if (error) {
+          console.log(
+            'Erro ao registrar aceite do termo:',
+            error
+          );
+        }
+      }
+    } catch (error) {
+      console.error(
+        'Erro ao registrar aceite no Supabase:',
+        error
+      );
+    }
+  };
+
+  const handleNavigation = async (
+    session: Session | null
+  ) => {
+    /*
+     * Primeiro verificamos se o usuário já aceitou
+     * a versão atual do termo.
+     *
+     * Não existe mais nenhuma referência à tela
+     * "quem-somos".
+     */
+    const termoAceito = await verificarTermoLocal();
+
+    if (!termoAceito) {
+      router.replace('/TelaTermo');
+      return;
+    }
+
+    /*
+     * Se o termo já foi aceito, mas não existe
+     * sessão, o usuário vai para a tela inicial.
+     */
+    if (!session) {
+      router.replace('/welcome');
+      return;
+    }
+
+    /*
+     * Usuário autenticado:
+     * registramos o aceite no Supabase.
+     */
+    await registrarAceiteNoSupabase(session);
+
+    /*
+     * Buscamos o tipo do usuário para definir
+     * qual tela deve abrir.
+     */
+    const { data: usuario, error } = await supabase
+      .from('usuarios')
+      .select('tipo')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !usuario) {
+      console.log(
+        'Erro ao buscar tipo do usuário:',
+        error
+      );
+
+      return;
+    }
+
+    /*
+     * Tutor
+     */
+    if (usuario.tipo === 'tutor') {
+      router.replace('/(tabs)/TelaTarefasTutor');
+    }
+
+    /*
+     * Professor
+     */
+    else if (usuario.tipo === 'professor') {
+      router.replace('/(tabs)/TelaChat');
+    }
+
+    /*
+     * Estudante
+     */
+    else {
+      router.replace('/(tabs)/TelaTarefas');
+    }
+  };
+
   if (loading) {
     return (
       <View style={localStyles.splashContainer}>
@@ -314,8 +385,9 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
+
             contentStyle: {
-            backgroundColor: colors.background,
+              backgroundColor: colors.background,
             },
           }}
         >

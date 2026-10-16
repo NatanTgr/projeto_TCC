@@ -33,7 +33,7 @@ export default function Welcome() {
         {/* Bloco do logo atualizado para exibir a imagem */}
         <View style={styles.logoContainerWelcome}>
           <Image
-            source={require('../assets/images/logo_PAED.png')}
+            source={require("../assets/images/logo_PAED.png")}
             style={styles.logoImage}
             resizeMode="contain"
           />
@@ -47,13 +47,10 @@ export default function Welcome() {
               styles.welcomeCard,
               pressed && styles.cardPressed,
             ]}
-            onPress={() => handleSelectRole('Estudante')}
+            onPress={() => handleSelectRole("Estudante")}
           >
             <View
-              style={[
-                styles.iconCircle,
-                { backgroundColor: colors.student },
-              ]}
+              style={[styles.iconCircle, { backgroundColor: colors.student }]}
             >
               <Ionicons name="school" size={28} color={colors.white} />
             </View>
@@ -69,13 +66,10 @@ export default function Welcome() {
               styles.welcomeCard,
               pressed && styles.cardPressed,
             ]}
-            onPress={() => handleSelectRole('Professor')}
+            onPress={() => handleSelectRole("Professor")}
           >
             <View
-              style={[
-                styles.iconCircle,
-                { backgroundColor: colors.professor },
-              ]}
+              style={[styles.iconCircle, { backgroundColor: colors.professor }]}
             >
               <Ionicons name="person" size={28} color={colors.white} />
             </View>
@@ -91,13 +85,10 @@ export default function Welcome() {
               styles.welcomeCard,
               pressed && styles.cardPressed,
             ]}
-            onPress={() => handleSelectRole('Tutor')}
+            onPress={() => handleSelectRole("Tutor")}
           >
             <View
-              style={[
-                styles.iconCircle,
-                { backgroundColor: colors.tutor },
-              ]}
+              style={[styles.iconCircle, { backgroundColor: colors.tutor }]}
             >
               <Ionicons name="people" size={28} color={colors.white} />
             </View>
@@ -107,10 +98,30 @@ export default function Welcome() {
               <Text style={styles.cardSubtitle}>Apoie alunos</Text>
             </View>
           </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              styles.welcomeCard,
+              pressed && styles.cardPressed,
+            ]}
+            onPress={() => handleSelectRole("NAPNE")}
+          >
+            <View
+              style={[styles.iconCircle, { backgroundColor: colors.purple }]}
+            >
+              <Ionicons name="heart" size={28} color={colors.white} />
+            </View>
+
+            <View style={styles.cardTextContainer}>
+              <Text style={styles.welcomeCardTitle}>NAPNE</Text>
+              <Text style={styles.cardSubtitle}>
+                Apoie a inclusão dos alunos
+              </Text>
+            </View>
+          </Pressable>
         </View>
 
         <View style={styles.footer}>
-          <Pressable onPress={() => router.push('/login')}>
+          <Pressable onPress={() => router.push("/login")}>
             <Text style={styles.loginLink}>Já tem uma conta? Entre aqui</Text>
           </Pressable>
         </View>
