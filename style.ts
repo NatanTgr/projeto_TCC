@@ -917,4 +917,397 @@ export const styles = StyleSheet.create({
     fontFamily: "FredokaLight",
     color: colors.muted,
   },
+  
+    // --- RESPONSIVIDADE DA WELCOME ---
+
+  welcomeLayout: {
+    flex: 1,
+    minHeight: 0,
+    width: "100%",
+    maxWidth: 480,
+    alignSelf: "center",
+  },
+
+  welcomeHeader: {
+    flexShrink: 0,
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+
+  welcomeHeaderCompact: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 10,
+  },
+
+  welcomeLogoResponsive: {
+    width: "100%",
+    maxWidth: 400,
+    height: 120,
+    marginBottom: 20,
+  },
+
+  welcomeLogoCompact: {
+    height: 80,
+    marginBottom: 12,
+  },
+
+  welcomeLogoLandscape: {
+    height: 48,
+    marginBottom: 6,
+  },
+
+  welcomeTitleResponsive: {
+    width: "100%",
+    marginBottom: 0,
+  },
+
+  welcomeCardsScroll: {
+    flex: 1,
+    minHeight: 0,
+    width: "100%",
+  },
+
+  welcomeCardsContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+
+  welcomeCardsContentCompact: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+
+  welcomeCardResponsive: {
+    width: "100%",
+  },
+
+  welcomeCardCompact: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+
+  welcomeCardColumn: {
+    flexDirection: "column",
+    gap: 10,
+  },
+
+  welcomeIconResponsive: {
+    flexShrink: 0,
+  },
+
+  welcomeIconColumn: {
+    marginRight: 0,
+  },
+
+  welcomeTextResponsive: {
+    minWidth: 0,
+  },
+
+  welcomeTextColumn: {
+    flex: 0,
+    width: "100%",
+  },
+
+  welcomeTextCentered: {
+    textAlign: "center",
+  },
+
+  welcomeFooterFixed: {
+    flexShrink: 0,
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
+
+  welcomeFooterCompact: {
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+
+  welcomeLoginButton: {
+    minHeight: 48,
+    maxWidth: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+});
+
+export const signUpStyles = StyleSheet.create({
+  keyboard: {
+    flex: 1,
+    minHeight: 0,
+  },
+
+  logoContainer: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    alignItems: "center",
+    flexShrink: 0,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+
+  logoContainerCompacto: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+
+  logo: {
+    width: "100%",
+    maxWidth: 400,
+    height: 100,
+  },
+
+  logoCompacto: {
+    height: 70,
+  },
+
+  logoPequeno: {
+    height: 40,
+  },
+
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 24,
+  },
+
+  scrollContentCompacto: {
+    paddingHorizontal: 12,
+    paddingBottom: 16,
+  },
+
+  card: {
+    width: "100%",
+    maxWidth: 480,
+    minWidth: 0,
+  },
+
+  cardCompacto: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+
+  input: {
+    height: "auto",
+    paddingVertical: 12,
+  },
+
+  seletorTexto: {
+    fontSize: 15,
+    color: colors.text,
+    flexShrink: 1,
+  },
+
+  placeholder: {
+    color: colors.placeholder,
+  },
+
+  dicaEmail: {
+    color: colors.text,
+    fontSize: 12,
+    marginTop: 5,
+  },
+
+  botoesEmColuna: {
+    flexDirection: "column",
+  },
+
+  botao: {
+    height: "auto",
+    minHeight: 48,
+    minWidth: 0,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+
+  botaoEmColuna: {
+    flex: 0,
+    width: "100%",
+  },
+
+  botaoTexto: {
+    flexShrink: 1,
+    textAlign: "center",
+  },
+
+  desativado: {
+    opacity: 0.5,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalContainer: {
+    width: "100%",
+    maxWidth: 480,
+    maxHeight: "100%",
+    flexShrink: 1,
+  },
+
+  modalCompacto: {
+    padding: 16,
+  },
+
+  modalHeader: {
+    gap: 8,
+    flexShrink: 0,
+  },
+
+  modalHeaderEmColuna: {
+    flexDirection: "column",
+    alignItems: "stretch",
+  },
+
+  modalTitulo: {
+    flexShrink: 1,
+    minWidth: 0,
+  },
+
+  modalFechar: {
+    minHeight: 44,
+    justifyContent: "center",
+    alignSelf: "flex-end",
+    paddingHorizontal: 8,
+  },
+
+  listaModal: {
+    flexGrow: 0,
+    flexShrink: 1,
+    minHeight: 0,
+  },
+
+  modalItem: {
+    minHeight: 48,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+
+  modalItemSelecionado: {
+    backgroundColor: "#F3EDF8",
+  },
+});
+export const esqueciSenhaStyles = StyleSheet.create({
+  keyboard: {
+    flex: 1,
+    minHeight: 0,
+  },
+
+  logoContainer: {
+    width: "100%",
+    maxWidth: 520,
+    alignSelf: "center",
+    alignItems: "center",
+    flexShrink: 0,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+  },
+
+  logoContainerCompacto: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
+
+  logo: {
+    width: "100%",
+    maxWidth: 400,
+    height: 100,
+  },
+
+  logoCompacto: {
+    height: 70,
+  },
+
+  logoPequeno: {
+    height: 40,
+  },
+
+  scroll: {
+    flex: 1,
+    minHeight: 0,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+
+  scrollContentCompacto: {
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+
+  card: {
+    width: "100%",
+    maxWidth: 480,
+    minWidth: 0,
+  },
+
+  cardCompacto: {
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+
+  descricao: {
+    textAlign: "center",
+    marginBottom: 20,
+  },
+
+  input: {
+    height: "auto",
+    paddingVertical: 12,
+  },
+
+  botao: {
+    height: "auto",
+    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
+  botaoVoltar: {
+    minHeight: 48,
+    maxWidth: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+
+  textoCentralizado: {
+    textAlign: "center",
+    flexShrink: 1,
+  },
+
+  desativado: {
+    opacity: 0.5,
+  },
 });

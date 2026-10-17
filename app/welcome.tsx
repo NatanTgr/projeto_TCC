@@ -1,131 +1,189 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
   Pressable,
   StatusBar,
   ScrollView,
-  Image, // Import do componente Image
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { styles, colors } from '../style';
+  Image,
+  useWindowDimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { styles, colors } from "../style";
+
+const PERFIS = [
+  {
+    role: "Estudante",
+    titulo: "Estudante",
+    descricao: "Organize suas tarefas",
+    icone: "school",
+    cor: colors.student,
+  },
+  {
+    role: "Professor",
+    titulo: "Professor(a)",
+    descricao: "Gerencie alunos",
+    icone: "person",
+    cor: colors.professor,
+  },
+  {
+    role: "Tutor",
+    titulo: "Tutor(a)",
+    descricao: "Apoie alunos",
+    icone: "people",
+    cor: colors.tutor,
+  },
+  {
+    role: "NAPNE",
+    titulo: "NAPNE",
+    descricao: "Apoie a inclusão dos alunos",
+    icone: "heart",
+    cor: colors.purple,
+  },
+] satisfies {
+  role: string;
+  titulo: string;
+  descricao: string;
+  icone: React.ComponentProps<typeof Ionicons>["name"];
+  cor: string;
+}[];
 
 export default function Welcome() {
   const router = useRouter();
+  const { width, height, fontScale } = useWindowDimensions();
+
+  const telaCompacta = width < 360 || height < 700;
+  const telaBaixa = height < 500;
+  const cartaoEmColuna = width < 320 || fontScale >= 1.5;
 
   const handleSelectRole = (role: string) => {
     router.push({
-      pathname: '/signUp',
+      pathname: "/signUp",
       params: { role },
     });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={colors.background}
+      />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Bloco do logo atualizado para exibir a imagem */}
-        <View style={styles.logoContainerWelcome}>
+      <View style={styles.welcomeLayout}>
+        <View
+          style={[
+            styles.welcomeHeader,
+            telaCompacta && styles.welcomeHeaderCompact,
+          ]}
+        >
           <Image
             source={require("../assets/images/logo_PAED.png")}
-            style={styles.logoImage}
+            style={[
+              styles.welcomeLogoResponsive,
+              telaCompacta && styles.welcomeLogoCompact,
+              telaBaixa && styles.welcomeLogoLandscape,
+            ]}
             resizeMode="contain"
+            accessible
+            accessibilityLabel="PAED"
           />
+
+          <Text style={[styles.title, styles.welcomeTitleResponsive]}>
+            Como você vai usar o PAED?
+          </Text>
         </View>
 
-        <Text style={styles.title}>Como você vai usar o PAED?</Text>
+        <ScrollView
+          style={styles.welcomeCardsScroll}
+          contentContainerStyle={[
+            styles.welcomeCardsContent,
+            telaCompacta && styles.welcomeCardsContentCompact,
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.cardsContainer}>
+            {PERFIS.map((perfil) => (
+              <Pressable
+                key={perfil.role}
+                accessibilityRole="button"
+                accessibilityLabel={`${perfil.titulo}. ${perfil.descricao}`}
+                onPress={() => handleSelectRole(perfil.role)}
+                style={({ pressed }) => [
+                  styles.welcomeCard,
+                  styles.welcomeCardResponsive,
+                  telaCompacta && styles.welcomeCardCompact,
+                  cartaoEmColuna && styles.welcomeCardColumn,
+                  pressed && styles.cardPressed,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.iconCircle,
+                    styles.welcomeIconResponsive,
+                    { backgroundColor: perfil.cor },
+                    cartaoEmColuna && styles.welcomeIconColumn,
+                  ]}
+                >
+                  <Ionicons
+                    name={perfil.icone}
+                    size={28}
+                    color={colors.white}
+                  />
+                </View>
 
-        <View style={styles.cardsContainer}>
+                <View
+                  style={[
+                    styles.cardTextContainer,
+                    styles.welcomeTextResponsive,
+                    cartaoEmColuna && styles.welcomeTextColumn,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.welcomeCardTitle,
+                      cartaoEmColuna && styles.welcomeTextCentered,
+                    ]}
+                  >
+                    {perfil.titulo}
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.cardSubtitle,
+                      cartaoEmColuna && styles.welcomeTextCentered,
+                    ]}
+                  >
+                    {perfil.descricao}
+                  </Text>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
+
+        <View
+          style={[
+            styles.welcomeFooterFixed,
+            telaCompacta && styles.welcomeFooterCompact,
+          ]}
+        >
           <Pressable
+            accessibilityRole="button"
+            onPress={() => router.push("/login")}
             style={({ pressed }) => [
-              styles.welcomeCard,
-              pressed && styles.cardPressed,
+              styles.welcomeLoginButton,
+              pressed && styles.buttonPressed,
             ]}
-            onPress={() => handleSelectRole("Estudante")}
           >
-            <View
-              style={[styles.iconCircle, { backgroundColor: colors.student }]}
-            >
-              <Ionicons name="school" size={28} color={colors.white} />
-            </View>
-
-            <View style={styles.cardTextContainer}>
-              <Text style={styles.welcomeCardTitle}>Estudante</Text>
-              <Text style={styles.cardSubtitle}>Organize suas tarefas</Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.welcomeCard,
-              pressed && styles.cardPressed,
-            ]}
-            onPress={() => handleSelectRole("Professor")}
-          >
-            <View
-              style={[styles.iconCircle, { backgroundColor: colors.professor }]}
-            >
-              <Ionicons name="person" size={28} color={colors.white} />
-            </View>
-
-            <View style={styles.cardTextContainer}>
-              <Text style={styles.welcomeCardTitle}>Professor(a)</Text>
-              <Text style={styles.cardSubtitle}>Gerencie alunos</Text>
-            </View>
-          </Pressable>
-
-          <Pressable
-            style={({ pressed }) => [
-              styles.welcomeCard,
-              pressed && styles.cardPressed,
-            ]}
-            onPress={() => handleSelectRole("Tutor")}
-          >
-            <View
-              style={[styles.iconCircle, { backgroundColor: colors.tutor }]}
-            >
-              <Ionicons name="people" size={28} color={colors.white} />
-            </View>
-
-            <View style={styles.cardTextContainer}>
-              <Text style={styles.welcomeCardTitle}>Tutor(a)</Text>
-              <Text style={styles.cardSubtitle}>Apoie alunos</Text>
-            </View>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [
-              styles.welcomeCard,
-              pressed && styles.cardPressed,
-            ]}
-            onPress={() => handleSelectRole("NAPNE")}
-          >
-            <View
-              style={[styles.iconCircle, { backgroundColor: colors.purple }]}
-            >
-              <Ionicons name="heart" size={28} color={colors.white} />
-            </View>
-
-            <View style={styles.cardTextContainer}>
-              <Text style={styles.welcomeCardTitle}>NAPNE</Text>
-              <Text style={styles.cardSubtitle}>
-                Apoie a inclusão dos alunos
-              </Text>
-            </View>
+            <Text style={[styles.loginLink, styles.welcomeTextCentered]}>
+              Já tem uma conta? Entre aqui
+            </Text>
           </Pressable>
         </View>
-
-        <View style={styles.footer}>
-          <Pressable onPress={() => router.push("/login")}>
-            <Text style={styles.loginLink}>Já tem uma conta? Entre aqui</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
