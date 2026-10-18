@@ -172,8 +172,11 @@ export default function TelaSobrePaed() {
         </View>
 
         {/* Equipe */}
+
+        <View style={styles.card}>
         <Text style={styles.sectionTitle}>Quem faz o PAED</Text>
 
+        <View style={tema.modal} />
         <Text style={styles.subsectionTitle}>Desenvolvimento</Text>
 
         <View style={styles.teamRow}>
@@ -187,7 +190,7 @@ export default function TelaSobrePaed() {
               <AvatarImagem uri={AVATARES_EQUIPE.maria} tamanho={90} />
             </View>
 
-            <Text style={styles.memberName}>Maria</Text>
+            <Text style={styles.memberName}>Maria Eduarda Miotti</Text>
           </View>
 
           {/* Natan */}
@@ -200,7 +203,7 @@ export default function TelaSobrePaed() {
               <AvatarImagem uri={AVATARES_EQUIPE.natan} tamanho={90} />
             </View>
 
-            <Text style={styles.memberName}>Natan</Text>
+            <Text style={styles.memberName}>Natan Rodrigues</Text>
           </View>
 
           {/* João */}
@@ -213,9 +216,10 @@ export default function TelaSobrePaed() {
               <AvatarImagem uri={AVATARES_EQUIPE.joao} tamanho={90} />
             </View>
 
-            <Text style={styles.memberName}>João</Text>
+            <Text style={styles.memberName}>João Odimar Gonçalves</Text>
           </View>
         </View>
+        
 
         {/* Orientadoras */}
         <Text style={styles.subsectionTitle}>Orientadoras</Text>
@@ -250,6 +254,7 @@ export default function TelaSobrePaed() {
 
             <Text style={styles.memberRole}>Coorientadora</Text>
           </View>
+        </View>
         </View>
 
         {/* Instituição */}
