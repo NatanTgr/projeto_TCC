@@ -52,6 +52,57 @@ export default function ListaTarefas() {
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
 
+  const [alunoTitulo, setAlunoTitulo] = useState<{
+    id: string;
+    nome: string;
+  } | null>(null);
+
+  useEffect(() => {
+    let ativo = true;
+
+    setAlunoTitulo(null);
+
+    if (!alunoId) return;
+
+    const carregarNomeAluno = async () => {
+      try {
+        const { data: aluno, error } = await supabase
+          .from("usuarios")
+          .select("nome")
+          .eq("id", alunoId)
+          .single();
+
+        if (!ativo) return;
+
+        if (error) {
+          console.log("Erro ao carregar nome do aluno:", error);
+          return;
+        }
+
+        setAlunoTitulo({
+          id: alunoId,
+          nome: aluno.nome,
+        });
+      } catch (error) {
+        if (ativo) {
+          console.log("Erro ao carregar nome do aluno:", error);
+        }
+      }
+    };
+
+    void carregarNomeAluno();
+
+    return () => {
+      ativo = false;
+    };
+  }, [alunoId]);
+
+  const tituloTela = alunoId
+    ? alunoTitulo?.id === alunoId
+      ? `Tarefas de ${alunoTitulo.nome}`
+      : "Tarefas do aluno"
+    : "Minhas Tarefas";
+
   const { width, fontScale } = useWindowDimensions();
 
   const botoesEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
@@ -225,11 +276,13 @@ export default function ListaTarefas() {
     const papel =
       criador.tipo === "tutor"
         ? "Tutor"
-        : criador.tipo === "estudante"
-          ? "Estudante"
-          : criador.tipo === "professor"
-            ? "Professor"
-            : "";
+        : criador.tipo === "napne"
+          ? "NAPNE"
+          : criador.tipo === "estudante"
+            ? "Estudante"
+            : criador.tipo === "professor"
+              ? "Professor"
+              : "";
 
     return papel ? `${criador.nome} (${papel})` : criador.nome;
   };
@@ -666,7 +719,7 @@ export default function ListaTarefas() {
   useFocusEffect(
     useCallback(() => {
       getData();
-    }, []),
+    }, [alunoId]),
   );
 
   return (
@@ -682,7 +735,7 @@ export default function ListaTarefas() {
               { color: tema.text, fontSize: 30 * escalaFonte },
             ]}
           >
-            Minhas Tarefas
+            {tituloTela}
           </Text>
 
           <View

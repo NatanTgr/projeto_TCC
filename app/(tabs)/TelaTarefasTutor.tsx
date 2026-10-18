@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -121,14 +121,22 @@ export default function TelaTarefasTutor() {
 
       // Mantém as escolhas do filtro ao voltar para esta tela.
       // Alunos novos começam selecionados, como acontece na TelaChat.
-      setIdsSelecionados((selecionadosAtuais) => {
-        if (selecionadosAtuais.length === 0) {
-          return listaAlunos.map((aluno) => aluno.id);
-        }
+      const idsAnteriores = idsAlunosConhecidosRef.current;
+      const idsAtuais = new Set(listaAlunos.map((aluno) => aluno.id));
 
-        const idsAtuais = new Set(listaAlunos.map((aluno) => aluno.id));
-        return selecionadosAtuais.filter((id) => idsAtuais.has(id));
+      setIdsSelecionados((selecionadosAtuais) => {
+        const selecoesMantidas = selecionadosAtuais.filter((id) =>
+          idsAtuais.has(id),
+        );
+
+        const novosAlunos = listaAlunos
+          .filter((aluno) => !idsAnteriores.has(aluno.id))
+          .map((aluno) => aluno.id);
+
+        return [...new Set([...selecoesMantidas, ...novosAlunos])];
       });
+
+      idsAlunosConhecidosRef.current = idsAtuais;
     } catch (error) {
       console.log("Erro ao carregar alunos:", error);
       Alert.alert("Erro", "Não foi possível carregar os alunos.");
@@ -136,6 +144,8 @@ export default function TelaTarefasTutor() {
       setCarregando(false);
     }
   };
+
+  const idsAlunosConhecidosRef = useRef<Set<string>>(new Set());
 
   useFocusEffect(
     useCallback(() => {
@@ -192,6 +202,16 @@ export default function TelaTarefasTutor() {
       atuais.includes(alunoId)
         ? atuais.filter((id) => id !== alunoId)
         : [...atuais, alunoId]
+    );
+  };
+
+  const todosSelecionados =
+    alunos.length > 0 &&
+    alunos.every((aluno) => idsSelecionados.includes(aluno.id));
+
+  const selecionarTodosAlunos = () => {
+    setIdsSelecionados(
+      todosSelecionados ? [] : alunos.map((aluno) => aluno.id),
     );
   };
 
@@ -254,8 +274,8 @@ export default function TelaTarefasTutor() {
           ]}
           onPress={() => setModalFiltroVisivel(true)}
         >
-          <Ionicons name="filter" size={16} color={colors.textSecondary} />
-          <Text style={[Estilos.textoFiltro, { color: colors.textSecondary }]}>
+          <Ionicons name="filter" size={16} color={tema.secondaryText} />
+          <Text style={[Estilos.textoFiltro, { color: tema.text}]}>
             Filtrar
           </Text>
         </Pressable>
@@ -393,62 +413,162 @@ export default function TelaTarefasTutor() {
 
       {/* Filtro no padrão da TelaChat */}
       <Modal
-        visible={modalFiltroVisivel}
-        animationType="slide"
-        transparent
-        onRequestClose={() => setModalFiltroVisivel(false)}
-      >
-        <View style={Estilos.modalOverlay}>
-          <View style={[Estilos.modalFiltro, { backgroundColor: tema.modal }]}>
-            <Text style={[Estilos.tituloModal, { color: tema.text }]}>
-              Filtrar Alunos
-            </Text>
+  visible={modalFiltroVisivel}
+  animationType="slide"
+  transparent
+  onRequestClose={() => setModalFiltroVisivel(false)}
+>
+  <SafeAreaView
+    edges={["top", "bottom", "left", "right"]}
+    style={Estilos.modalOverlay}
+  >
+    <View
+      accessibilityViewIsModal
+      style={[
+        Estilos.modalFiltro,
+        { backgroundColor: tema.modal },
+      ]}
+    >
+      {/* Cabeçalho fixo */}
+      <View style={Estilos.cabecalhoFiltro}>
+        <View style={Estilos.linhaTituloFiltro}>
+          <Text
+            accessibilityRole="header"
+            style={[
+              Estilos.tituloModal,
+              {
+                color: tema.text,
+                fontSize: 18 * escalaFonte,
+              },
+            ]}
+          >
+            Filtrar Alunos
+          </Text>
 
-            <Text style={[Estilos.subtituloModal, { color: tema.text }]}>
-              Selecione quais alunos deseja exibir:
-            </Text>
-
-            <FlatList
-              data={alunos}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => {
-                const selecionado = idsSelecionados.includes(item.id);
-
-                return (
-                  <Pressable
-                    style={[
-                      Estilos.itemFiltro,
-                      { borderBottomColor: colors.border },
-                    ]}
-                    onPress={() => alternarSelecaoFiltro(item.id)}
-                  >
-                    <Ionicons
-                      name={selecionado ? "checkbox" : "square-outline"}
-                      size={22}
-                      color={selecionado ? colors.primary : colors.placeholder}
-                      style={Estilos.iconeFiltro}
-                    />
-
-                    <Text style={[Estilos.nomeFiltro, { color: tema.text }]}>
-                      {item.nome}
-                    </Text>
-                  </Pressable>
-                );
-              }}
+          <Pressable
+            accessibilityRole="checkbox"
+            accessibilityState={{
+              checked: todosSelecionados,
+              disabled: alunos.length === 0,
+            }}
+            disabled={alunos.length === 0}
+            onPress={selecionarTodosAlunos}
+            style={Estilos.botaoSelecionarTodos}
+          >
+            <Ionicons
+              name={
+                todosSelecionados
+                  ? "checkbox"
+                  : "square-outline"
+              }
+              size={22}
+              color={
+                todosSelecionados ? colors.primary : tema.text
+              }
+              style={Estilos.iconeSelecionarTodos}
             />
 
-            <Pressable
+            <Text
               style={[
-                Estilos.botaoAplicar,
-                { backgroundColor: colors.primary },
+                Estilos.textoSelecionarTodos,
+                {
+                  color: tema.text,
+                  fontSize: 13 * escalaFonte,
+                },
               ]}
-              onPress={() => setModalFiltroVisivel(false)}
             >
-              <Text style={Estilos.textoAplicar}>Aplicar Filtro</Text>
-            </Pressable>
-          </View>
+              {todosSelecionados
+                ? "Desmarcar todos"
+                : "Selecionar todos"}
+            </Text>
+          </Pressable>
         </View>
-      </Modal>
+
+        <Text
+          style={[
+            Estilos.subtituloModal,
+            {
+              color: tema.text,
+              fontSize: 13 * escalaFonte,
+            },
+          ]}
+        >
+          Selecione quais alunos deseja exibir:
+        </Text>
+      </View>
+
+      {/* Somente a lista rola */}
+      <FlatList
+        style={Estilos.listaFiltro}
+        contentContainerStyle={Estilos.listaFiltroConteudo}
+        data={alunos}
+        extraData={idsSelecionados}
+        keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => {
+          const selecionado = idsSelecionados.includes(item.id);
+
+          return (
+            <Pressable
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: selecionado }}
+              accessibilityLabel={item.nome}
+              style={[
+                Estilos.itemFiltro,
+                { borderBottomColor: tema.border },
+              ]}
+              onPress={() => alternarSelecaoFiltro(item.id)}
+            >
+              <Ionicons
+                name={
+                  selecionado ? "checkbox" : "square-outline"
+                }
+                size={22}
+                color={
+                  selecionado ? colors.primary : tema.text
+                }
+                style={Estilos.iconeFiltro}
+              />
+
+              <Text
+                style={[
+                  Estilos.nomeFiltro,
+                  {
+                    color: tema.text,
+                    fontSize: 15 * escalaFonte,
+                  },
+                ]}
+              >
+                {item.nome}
+              </Text>
+            </Pressable>
+          );
+        }}
+      />
+
+      {/* Botão fixo */}
+      <View style={Estilos.rodapeFiltro}>
+        <Pressable
+          accessibilityRole="button"
+          style={[
+            Estilos.botaoAplicar,
+            { backgroundColor: colors.primary },
+          ]}
+          onPress={() => setModalFiltroVisivel(false)}
+        >
+          <Text
+            style={[
+              Estilos.textoAplicar,
+              { fontSize: 16 * escalaFonte },
+            ]}
+          >
+            Aplicar Filtro
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  </SafeAreaView>
+</Modal>
     </SafeAreaView>
   );
 }

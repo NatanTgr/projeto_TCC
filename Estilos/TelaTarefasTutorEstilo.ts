@@ -174,57 +174,115 @@ const Estilos = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.55)",
   },
 
   modalFiltro: {
-    padding: 20,
+    width: "100%",
+    maxWidth: 540,
+    maxHeight: "85%",
+    alignSelf: "center",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "70%",
+    overflow: "hidden",
   },
 
-  tituloModal: {
-    fontSize: 18,
-    fontFamily: "FredokaMedium",
+  cabecalhoFiltro: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 15,
+    flexShrink: 0,
+  },
+
+  linhaTituloFiltro: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-between",
+    columnGap: 12,
+    rowGap: 4,
     marginBottom: 5,
   },
 
+  tituloModal: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 140,
+    minWidth: 0,
+    fontFamily: "FredokaMedium",
+  },
+
+  botaoSelecionarTodos: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    minHeight: 44,
+    maxWidth: "100%",
+    marginLeft: "auto",
+    gap: 6,
+  },
+
+  iconeSelecionarTodos: {
+    flexShrink: 0,
+  },
+
+  textoSelecionarTodos: {
+    fontFamily: "FredokaMedium",
+    flexShrink: 1,
+    textAlign: "right",
+  },
+
   subtituloModal: {
-    fontSize: 13,
     fontFamily: "FredokaLight",
-    marginBottom: 15,
+  },
+
+  listaFiltro: {
+    flexGrow: 0,
+    flexShrink: 1,
+    minHeight: 0,
+  },
+
+  listaFiltroConteudo: {
+    paddingHorizontal: 20,
   },
 
   itemFiltro: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
+    minHeight: 48,
+    paddingVertical: 12,
     borderBottomWidth: 1,
   },
 
   iconeFiltro: {
     marginRight: 10,
+    flexShrink: 0,
   },
 
   nomeFiltro: {
     flex: 1,
-    fontSize: 15,
+    minWidth: 0,
     fontFamily: "FredokaLight",
   },
 
+  rodapeFiltro: {
+    padding: 20,
+    flexShrink: 0,
+  },
+
   botaoAplicar: {
-    marginTop: 15,
-    marginBottom: 40,
-    padding: 12,
+    minHeight: 48,
+    paddingHorizontal: 12,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
+    justifyContent: "center",
   },
 
   textoAplicar: {
     color: "#FFFFFF",
-    fontFamily: "FredokaLight",
-    fontSize: 16,
+    fontFamily: "FredokaMedium",
+    textAlign: "center",
   },
 });
 

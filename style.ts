@@ -337,28 +337,40 @@ export const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-  registerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-
-  registerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: colors.text,
-  },
-
-  registerSpacer: {
-    height: 15,
-  },
-
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+
+    chatAbasContainer: {
+    width: "100%",
+    flexShrink: 0,
+    paddingHorizontal: 7,
+  },
+
+  chatAbasConteudo: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    paddingVertical: 4,
+    gap: 12,
+  },
+
+  chatAbaBotao: {
+    minWidth: 140,
+    minHeight: 48,
+    flexShrink: 0,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 2,
+  },
+
+  chatAbaTexto: {
+    fontFamily: "FredokaMedium",
+    textAlign: "center",
   },
 
   // --- ESTILOS DE SIGNUP / CADASTRO ---
@@ -1216,64 +1228,54 @@ export const esqueciSenhaStyles = StyleSheet.create({
     minHeight: 0,
   },
 
-  logoContainer: {
-    width: "100%",
-    maxWidth: 520,
-    alignSelf: "center",
-    alignItems: "center",
-    flexShrink: 0,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
-  },
-
-  logoContainerCompacto: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-
-  logo: {
-    width: "100%",
-    maxWidth: 400,
-    height: 100,
-  },
-
-  logoCompacto: {
-    height: 70,
-  },
-
-  logoPequeno: {
-    height: 40,
-  },
-
-  scroll: {
+  conteudo: {
     flex: 1,
-    minHeight: 0,
-  },
-
-  scrollContent: {
-    flexGrow: 1,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
 
-  scrollContentCompacto: {
+  conteudoCompacto: {
     paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingVertical: 8,
+  },
+
+  logoContainer: {
+    width: "100%",
+    maxWidth: 480,
+    alignItems: "center",
+    marginBottom: 20,
+    flexShrink: 1,
+    minHeight: 0,
+  },
+
+  logo: {
+    width: "100%",
+    maxWidth: 400,
+    height: 100,
+    flexShrink: 1,
+  },
+
+  logoCompacto: {
+    height: 65,
   },
 
   card: {
     width: "100%",
     maxWidth: 480,
     minWidth: 0,
+    flexShrink: 0,
   },
 
   cardCompacto: {
     paddingHorizontal: 16,
-    paddingVertical: 20,
+    paddingVertical: 16,
+  },
+
+  tituloCompacto: {
+    marginBottom: 12,
   },
 
   descricao: {
@@ -1281,9 +1283,13 @@ export const esqueciSenhaStyles = StyleSheet.create({
     marginBottom: 20,
   },
 
+  descricaoCompacta: {
+    marginBottom: 12,
+  },
+
   input: {
     height: "auto",
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
 
   botao: {
@@ -1293,6 +1299,11 @@ export const esqueciSenhaStyles = StyleSheet.create({
     paddingVertical: 12,
   },
 
+  rodape: {
+    alignItems: "center",
+    marginTop: 8,
+  },
+
   botaoVoltar: {
     minHeight: 48,
     maxWidth: "100%",
@@ -1300,6 +1311,247 @@ export const esqueciSenhaStyles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 8,
     paddingVertical: 10,
+  },
+
+  textoCentralizado: {
+    textAlign: "center",
+    flexShrink: 1,
+  },
+
+  desativado: {
+    opacity: 0.5,
+  },
+});
+export const resetPasswordStyles = StyleSheet.create({
+  keyboard: {
+    flex: 1,
+    minHeight: 0,
+  },
+
+  conteudo: {
+    flex: 1,
+    minHeight: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+
+  conteudoCompacto: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+
+  logoContainer: {
+    width: "100%",
+    maxWidth: 480,
+    alignItems: "center",
+    flexShrink: 0,
+    marginBottom: 20,
+  },
+
+  logoContainerCompacto: {
+    marginBottom: 10,
+  },
+
+  logo: {
+    width: "100%",
+    maxWidth: 400,
+    height: 100,
+  },
+
+  logoCompacto: {
+    height: 65,
+  },
+
+  logoPequeno: {
+    height: 36,
+  },
+
+  card: {
+    width: "100%",
+    maxWidth: 480,
+    minWidth: 0,
+    minHeight: 0,
+    flexShrink: 1,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    overflow: "hidden",
+  },
+
+  scrollFormulario: {
+    flexGrow: 0,
+    flexShrink: 1,
+    minHeight: 0,
+  },
+
+  formulario: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+
+  formularioCompacto: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+
+  tituloCompacto: {
+    marginBottom: 12,
+  },
+
+  descricao: {
+    textAlign: "center",
+    marginBottom: 20,
+  },
+
+  input: {
+    height: "auto",
+    paddingVertical: 10,
+  },
+
+  botao: {
+    height: "auto",
+    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
+  rodape: {
+    alignItems: "center",
+    marginTop: 8,
+  },
+
+  botaoVoltar: {
+    minHeight: 48,
+    maxWidth: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+  },
+
+  textoCentralizado: {
+    textAlign: "center",
+    flexShrink: 1,
+  },
+
+  desativado: {
+    opacity: 0.5,
+  },
+});
+export const loginStyles = StyleSheet.create({
+  keyboard: {
+    flex: 1,
+    minHeight: 0,
+  },
+
+  conteudo: {
+    flex: 1,
+    minHeight: 0,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+
+  conteudoCompacto: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+
+  logoContainer: {
+    width: "100%",
+    maxWidth: 480,
+    alignItems: "center",
+    flexShrink: 0,
+    marginBottom: 20,
+  },
+
+  logoContainerCompacto: {
+    marginBottom: 10,
+  },
+
+  logo: {
+    width: "100%",
+    maxWidth: 400,
+    height: 100,
+  },
+
+  logoCompacto: {
+    height: 65,
+  },
+
+  logoPequeno: {
+    height: 36,
+  },
+
+  card: {
+    width: "100%",
+    maxWidth: 480,
+    minWidth: 0,
+    minHeight: 0,
+    flexShrink: 1,
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    overflow: "hidden",
+  },
+
+  scrollFormulario: {
+    flexGrow: 0,
+    flexShrink: 1,
+    minHeight: 0,
+  },
+
+  formulario: {
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+  },
+
+  formularioCompacto: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+
+  tituloCompacto: {
+    marginBottom: 16,
+  },
+
+  input: {
+    height: "auto",
+    paddingVertical: 10,
+  },
+
+  botao: {
+    height: "auto",
+    minHeight: 48,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
+  rodape: {
+    width: "100%",
+    alignItems: "center",
+    marginTop: 16,
+    gap: 4,
+  },
+
+  linhaLinks: {
+    width: "100%",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    columnGap: 6,
+  },
+
+  linkBotao: {
+    minHeight: 44,
+    maxWidth: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+    paddingVertical: 8,
   },
 
   textoCentralizado: {

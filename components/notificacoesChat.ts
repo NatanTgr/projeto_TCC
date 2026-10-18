@@ -1,18 +1,21 @@
-import Constants from 'expo-constants';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from "expo-constants";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-import { supabase } from '../bd/supabase';
-
+import { supabase } from "../bd/supabase";
 
 function chaveTokensChat(usuarioId: string) {
   return `@paed:push-chat:${usuarioId}`;
 }
 
-async function lerTokensChat(usuarioId: string): Promise<string[]> {
-  const valor = await AsyncStorage.getItem(chaveTokensChat(usuarioId));
+async function lerTokensChat(
+  usuarioId: string
+): Promise<string[]> {
+  const valor = await AsyncStorage.getItem(
+    chaveTokensChat(usuarioId)
+  );
 
   if (!valor) return [];
 
@@ -20,15 +23,20 @@ async function lerTokensChat(usuarioId: string): Promise<string[]> {
 
   if (
     !Array.isArray(tokens) ||
-    !tokens.every((token) => typeof token === 'string')
+    !tokens.every((token) => typeof token === "string")
   ) {
-    throw new Error('O registro local das notificações está inválido.');
+    throw new Error(
+      "O registro local das notificações está inválido."
+    );
   }
 
   return tokens;
 }
 
-async function guardarTokenChat(usuarioId: string, token: string) {
+async function guardarTokenChat(
+  usuarioId: string,
+  token: string
+) {
   const tokens = await lerTokensChat(usuarioId);
   const tokensAtualizados = [...new Set([...tokens, token])];
 
@@ -39,24 +47,33 @@ async function guardarTokenChat(usuarioId: string, token: string) {
 }
 
 export async function registrarPushChat(usuarioId: string) {
+  if (Platform.OS === "web") return;
+
   if (!Device.isDevice) {
-    console.log('Push: teste em aparelho físico.');
+    console.log("Push: teste em aparelho físico.");
     return;
   }
 
   try {
     if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("mensagens", {
-        name: "Mensagens",
-        importance: Notifications.AndroidImportance.HIGH,
-      });
+      await Notifications.setNotificationChannelAsync(
+        "mensagens",
+        {
+          name: "Mensagens",
+          importance: Notifications.AndroidImportance.HIGH,
+        }
+      );
     }
 
-    const permissaoAtual = await Notifications.getPermissionsAsync();
+    const permissaoAtual =
+      await Notifications.getPermissionsAsync();
+
     let status = permissaoAtual.status;
 
     if (status !== "granted") {
-      const solicitacao = await Notifications.requestPermissionsAsync();
+      const solicitacao =
+        await Notifications.requestPermissionsAsync();
+
       status = solicitacao.status;
     }
 
@@ -70,62 +87,81 @@ export async function registrarPushChat(usuarioId: string) {
       Constants.expoConfig?.extra?.eas?.projectId;
 
     if (!projectId) {
-      throw new Error("EAS projectId não encontrado no app.json.");
+      throw new Error(
+        "EAS projectId não encontrado na configuração do app."
+      );
     }
 
-    const { data: token } = await Notifications.getExpoPushTokenAsync({
-      projectId,
-    });
+    const { data: token } =
+      await Notifications.getExpoPushTokenAsync({
+        projectId,
+      });
 
-    // Guarda antes de enviar ao banco.
-    // Se o envio falhar, ainda sabemos qual token tentar remover.
+    // Confere a sessão após as operações de permissão e token.
+    const {
+      data: { user },
+      error: erroUsuario,
+    } = await supabase.auth.getUser();
+
+    if (erroUsuario) throw erroUsuario;
+
+    if (!user || user.id !== usuarioId) {
+      console.log(
+        "Registro de push cancelado: a conta autenticada mudou."
+      );
+      return;
+    }
+
+    // Guarda antes do envio para permitir a remoção no logout,
+    // mesmo se houver falha de rede após a gravação no banco.
     await guardarTokenChat(usuarioId, token);
 
-    const { error } = await supabase.from("push_tokens").upsert(
+    // O banco identifica o usuário pela sessão.
+    const { error } = await supabase.rpc(
+      "registrar_push_chat",
       {
-        token,
-        usuario_id: usuarioId,
-        atualizado_em: new Date().toISOString(),
-      },
-      { onConflict: "token" },
+        p_token: token,
+      }
     );
 
     if (error) throw error;
   } catch (error) {
-    console.error('Erro ao registrar push do chat:', error);
+    console.error("Erro ao registrar push do chat:", error);
   }
 }
-export async function removerPushChatDesteAparelho(usuarioId: string) {
-  if (!Device.isDevice || Platform.OS === 'web') return;
+
+export async function removerPushChatDesteAparelho(
+  usuarioId: string
+) {
+  if (Platform.OS === "web" || !Device.isDevice) return;
 
   const tokens = await lerTokensChat(usuarioId);
 
-  // Nenhum token foi guardado para esta conta neste aparelho.
   if (tokens.length === 0) return;
 
   const { error: erroRemocao } = await supabase
-    .from('push_tokens')
+    .from("push_tokens")
     .delete()
-    .eq('usuario_id', usuarioId)
-    .in('token', tokens);
+    .eq("usuario_id", usuarioId)
+    .in("token", tokens);
 
   if (erroRemocao) throw erroRemocao;
 
-  // Confirma que os vínculos conhecidos não continuam no banco.
-  const { data: restantes, error: erroConsulta } = await supabase
-    .from('push_tokens')
-    .select('token')
-    .eq('usuario_id', usuarioId)
-    .in('token', tokens);
+  const { data: restantes, error: erroConsulta } =
+    await supabase
+      .from("push_tokens")
+      .select("token")
+      .eq("usuario_id", usuarioId)
+      .in("token", tokens);
 
   if (erroConsulta) throw erroConsulta;
 
   if (restantes?.length) {
     throw new Error(
-      'Não foi possível remover o vínculo das notificações no banco.'
+      "Não foi possível remover o vínculo das notificações no banco."
     );
   }
 
   // Mantém o histórico local para permitir novas tentativas,
-  // inclusive se o encerramento da sessão falhar depois.
+  // caso o encerramento da sessão falhe depois.
 }

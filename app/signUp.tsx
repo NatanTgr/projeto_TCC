@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  StatusBar,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -1049,10 +1048,6 @@ export default function SignUp() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.background}
-      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}

@@ -1,190 +1,350 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   TextInput,
   Pressable,
-  StatusBar,
   ScrollView,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Alert,
   ActivityIndicator,
   Image,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { supabase } from '../lib/supabase';
-import { styles, colors } from '../style';
+  useWindowDimensions,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
-// Função utilitária para converter mensagens de erro do Supabase no Login para Português
+import { supabase } from "../lib/supabase";
+import {
+  styles,
+  colors,
+  loginStyles as login,
+} from "../style";
+
 const traduzirErroSupabase = (mensagem?: string) => {
-  if (!mensagem) return 'Usuário ou senha incorretos.';
+  if (!mensagem) return "Usuário ou senha incorretos.";
 
-  if (mensagem.includes('Invalid login credentials')) {
-    return 'E-mail ou senha incorretos. Verifique seus dados e tente novamente.';
-  }
-  if (mensagem.includes('Email not confirmed')) {
-    return 'E-mail não confirmado. Por favor, verifique sua caixa de entrada.';
-  }
-  if (mensagem.includes('User not found')) {
-    return 'Usuário não encontrado.';
-  }
-  if (mensagem.includes('Too many requests')) {
-    return 'Muitas tentativas sem sucesso. Aguarde um momento e tente novamente.';
+  if (mensagem.includes("Invalid login credentials")) {
+    return "E-mail ou senha incorretos. Verifique seus dados e tente novamente.";
   }
 
-  return mensagem; // Retorna a mensagem original caso seja um erro customizado
+  if (mensagem.includes("Email not confirmed")) {
+    return "E-mail não confirmado. Por favor, verifique sua caixa de entrada.";
+  }
+
+  if (mensagem.includes("User not found")) {
+    return "Usuário não encontrado.";
+  }
+
+  if (mensagem.includes("Too many requests")) {
+    return "Muitas tentativas sem sucesso. Aguarde um momento e tente novamente.";
+  }
+
+  return mensagem;
 };
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const senhaRef = useRef<TextInput>(null);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [tecladoAberto, setTecladoAberto] = useState(false);
 
-  const handleLogin = async () => {
-    if (!email.trim() || !password) {
-      Alert.alert('Atenção', 'Por favor, preencha e-mail e senha.');
-      return;
-    }
+  const { width, height, fontScale } = useWindowDimensions();
 
-    setLoading(true);
+  const telaCompacta = width < 360 || height < 700;
+  const modoCompacto = telaCompacta || tecladoAberto;
+  const logoPequeno = height < 500 || tecladoAberto;
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
+  useEffect(() => {
+    const eventoAbrir =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+
+    const eventoFechar =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+
+    const abrir = Keyboard.addListener(eventoAbrir, () => {
+      setTecladoAberto(true);
     });
 
-    setLoading(false);
+    const fechar = Keyboard.addListener(eventoFechar, () => {
+      setTecladoAberto(false);
+    });
 
-    if (error || !data.user) {
-      Alert.alert(
-        'Erro ao entrar',
-        traduzirErroSupabase(error?.message)
-      );
+    return () => {
+      abrir.remove();
+      fechar.remove();
+    };
+  }, []);
+
+  const estiloInput = [
+    styles.input,
+    login.input,
+    {
+      minHeight: Math.max(48, Math.ceil(24 * fontScale + 20)),
+    },
+  ];
+
+  const handleLogin = async () => {
+    if (loading) return;
+
+    if (!email.trim() || !password) {
+      Alert.alert("Atenção", "Por favor, preencha e-mail e senha.");
       return;
     }
 
-    const {
-      data: { user },
-      } = await supabase.auth.getUser();
+    Keyboard.dismiss();
+    setLoading(true);
 
-      if (!user) {
-        Alert.alert('Erro', 'Usuário não encontrado.');
-      return;
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error || !data.user) {
+        Alert.alert(
+          "Erro ao entrar",
+          traduzirErroSupabase(error?.message)
+        );
+        return;
       }
 
-    const { data: usuario, error: usuarioError } = await supabase
-      .from('usuarios')
-      .select('tipo')
-      .eq('id', user.id)
-      .single();
+      const { data: usuario, error: usuarioError } = await supabase
+        .from("usuarios")
+        .select("tipo")
+        .eq("id", data.user.id)
+        .single();
 
-    if (usuarioError) {
-      console.log('Erro ao buscar tipo do usuário:', usuarioError);
-      Alert.alert('Erro', 'Não foi possível identificar o tipo de usuário.');
-      return;
+      if (usuarioError || !usuario) {
+        console.log("Erro ao buscar tipo do usuário:", usuarioError);
+
+        Alert.alert(
+          "Erro",
+          "Não foi possível identificar o tipo de usuário."
+        );
+        return;
+      }
+
+            if (
+        usuario.tipo === "tutor" ||
+        usuario.tipo === "napne"
+      ) {
+        router.replace("/(tabs)/TelaTarefasTutor");
+      } else if (usuario.tipo === "professor") {
+        router.replace("/(tabs)/TelaChat");
+      } else {
+        router.replace("/(tabs)/TelaTarefas");
+      }
+    } catch (error) {
+      console.error("Erro ao entrar:", error);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível entrar. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
     }
-
-if (usuario?.tipo === "tutor") {
-  router.replace("/(tabs)/TelaTarefasTutor");
-} else if (usuario?.tipo === "professor") {
-  router.replace("/(tabs)/TelaChat");
-} else {
-  router.replace("/(tabs)/TelaTarefas");
-}
-
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={login.keyboard}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+        <View
+          style={[
+            login.conteudo,
+            modoCompacto && login.conteudoCompacto,
+          ]}
         >
-          <View style={styles.logoContainer}>
+          <View
+            style={[
+              login.logoContainer,
+              modoCompacto && login.logoContainerCompacto,
+            ]}
+          >
             <Image
-              source={require('../assets/images/logo_PAED.png')}
-              style={styles.logoImage}
+              source={require("../assets/images/logo_PAED.png")}
+              style={[
+                login.logo,
+                telaCompacta && login.logoCompacto,
+                logoPequeno && login.logoPequeno,
+              ]}
               resizeMode="contain"
+              accessible
+              accessibilityLabel="PAED"
             />
           </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Bem-vindo de volta!</Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Email</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="seu@email.com"
-                placeholderTextColor={colors.placeholder}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                value={email}
-                onChangeText={setEmail}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Senha</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="••••••••"
-                placeholderTextColor={colors.placeholder}
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-              />
-            </View>
-
-            <Pressable
-              style={({ pressed }) => [
-                styles.button,
-                pressed && styles.buttonPressed,
+          <View style={[styles.card, login.card]}>
+            <ScrollView
+              style={login.scrollFormulario}
+              contentContainerStyle={[
+                login.formulario,
+                modoCompacto && login.formularioCompacto,
               ]}
-              onPress={handleLogin}
-              disabled={loading}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              showsVerticalScrollIndicator
             >
-              {loading ? (
-                <ActivityIndicator color={colors.white} />
-              ) : (
-                <Text style={styles.buttonText}>Entrar</Text>
-              )}
-            </Pressable>
+              <Text
+                style={[
+                  styles.cardTitle,
+                  modoCompacto && login.tituloCompacto,
+                ]}
+              >
+                Bem-vindo de volta!
+              </Text>
 
-            <View style={styles.cardFooter}>
-  <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-    <Text style={styles.cardFooterText}>
-      Não tem uma conta?
-    </Text>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email</Text>
 
-    <Pressable onPress={() => router.push('/welcome')}>
-      <Text style={styles.signUpLink}> Criar conta</Text>
-    </Pressable>
-  </View>
+                <TextInput
+                  style={estiloInput}
+                  accessibilityLabel="Email"
+                  placeholder="seu@email.com"
+                  placeholderTextColor={colors.placeholder}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={email}
+                  onChangeText={setEmail}
+                  editable={!loading}
+                  returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => senhaRef.current?.focus()}
+                />
+              </View>
 
-  <View style={{ marginTop: 10 }}>
-    <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-      <Text style={styles.cardFooterText}>
-        Esqueceu a senha?
-      </Text>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Senha</Text>
 
-      <Pressable onPress={() => router.push('/esqueciSenha')}>
-        <Text style={styles.signUpLink}> Redefinir senha</Text>
-      </Pressable>
-    </View>
-  </View>
-</View>
+                <TextInput
+                  ref={senhaRef}
+                  style={estiloInput}
+                  accessibilityLabel="Senha"
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.placeholder}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                  returnKeyType="done"
+                  onSubmitEditing={handleLogin}
+                />
+              </View>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{
+                  disabled: loading,
+                  busy: loading,
+                }}
+                style={({ pressed }) => [
+                  styles.button,
+                  login.botao,
+                  loading && login.desativado,
+                  pressed && styles.buttonPressed,
+                ]}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : (
+                  <Text
+                    style={[
+                      styles.buttonText,
+                      login.textoCentralizado,
+                    ]}
+                  >
+                    Entrar
+                  </Text>
+                )}
+              </Pressable>
+
+              <View style={login.rodape}>
+                <View style={login.linhaLinks}>
+                  <Text
+                    style={[
+                      styles.cardFooterText,
+                      login.textoCentralizado,
+                    ]}
+                  >
+                    Não tem uma conta?
+                  </Text>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={loading}
+                    style={({ pressed }) => [
+                      login.linkBotao,
+                      loading && login.desativado,
+                      pressed && styles.buttonPressed,
+                    ]}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      router.push("/welcome");
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.signUpLink,
+                        login.textoCentralizado,
+                      ]}
+                    >
+                      Criar conta
+                    </Text>
+                  </Pressable>
+                </View>
+
+                <View style={login.linhaLinks}>
+                  <Text
+                    style={[
+                      styles.cardFooterText,
+                      login.textoCentralizado,
+                    ]}
+                  >
+                    Esqueceu a senha?
+                  </Text>
+
+                  <Pressable
+                    accessibilityRole="button"
+                    disabled={loading}
+                    style={({ pressed }) => [
+                      login.linkBotao,
+                      loading && login.desativado,
+                      pressed && styles.buttonPressed,
+                    ]}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      router.push("/esqueciSenha");
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.signUpLink,
+                        login.textoCentralizado,
+                      ]}
+                    >
+                      Redefinir senha
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
+            </ScrollView>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

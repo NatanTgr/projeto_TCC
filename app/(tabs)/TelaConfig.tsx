@@ -37,7 +37,7 @@ type Usuario = {
   nome: string;
   email: string;
   campus: string;
-  tipo: "estudante" | "professor" | "tutor";
+  tipo: "estudante" | "professor" | "tutor" | "napne";
   estado: string | null;
   avatar: string | null;
 };
@@ -394,7 +394,7 @@ export default function TelaConfig() {
         setDadosProfessor(data);
       }
 
-      if (dadosUsuario.tipo === "tutor") {
+      if (dadosUsuario.tipo === "tutor" || dadosUsuario.tipo === "napne") {
         const { data, error } = await supabase
           .from("tutores")
           .select("departamento")
@@ -402,7 +402,7 @@ export default function TelaConfig() {
           .single();
 
         if (error) {
-          console.log("Erro ao buscar tutor:", error);
+          console.log("Erro ao buscar departamento do tutor/NAPNE:", error);
           return;
         }
 
@@ -470,15 +470,10 @@ export default function TelaConfig() {
   }, []);
 
   return (
-    <SafeAreaView
-      edges={["top", "left", "right"]}
-      style={Estilos.container}
-    >
+    <SafeAreaView edges={["top", "left", "right"]} style={Estilos.container}>
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
-          <Text style={Estilos.headerTitle}>
-            Configurações
-          </Text>
+          <Text style={Estilos.headerTitle}>Configurações</Text>
 
           {usuario?.tipo === "estudante" && <BotaoAlerta />}
         </View>
@@ -495,10 +490,7 @@ export default function TelaConfig() {
             >
               <View style={Estilos.avatarContainer}>
                 {avatarPerfil ? (
-                  <AvatarImagem
-                    uri={avatarPerfil.url}
-                    tamanho={90}
-                  />
+                  <AvatarImagem uri={avatarPerfil.url} tamanho={90} />
                 ) : (
                   <Text style={Estilos.avatarTexto}>👤</Text>
                 )}
@@ -507,14 +499,11 @@ export default function TelaConfig() {
               <View
                 style={[
                   Estilos.informacoesPerfil,
-                  perfilEmColuna &&
-                    Estilos.informacoesPerfilEmColuna,
+                  perfilEmColuna && Estilos.informacoesPerfilEmColuna,
                 ]}
               >
                 <Text style={Estilos.nomePerfil}>
-                  {carregandoPerfil
-                    ? "Carregando..."
-                    : usuario?.nome}
+                  {carregandoPerfil ? "Carregando..." : usuario?.nome}
                 </Text>
 
                 <Text style={Estilos.tipoPerfil}>
@@ -524,7 +513,9 @@ export default function TelaConfig() {
                       ? "Professor"
                       : usuario?.tipo === "tutor"
                         ? "Tutor"
-                        : ""}
+                        : usuario?.tipo === "napne"
+                          ? "Sala de recurso (NAPNE)"
+                          : ""}
                 </Text>
 
                 {usuario?.tipo === "estudante" && dadosAluno && (
@@ -539,22 +530,18 @@ export default function TelaConfig() {
                   </>
                 )}
 
-                {usuario?.tipo === "professor" &&
-                  dadosProfessor && (
-                    <Text style={Estilos.detalhesPerfil}>
-                      Área:{" "}
-                      {dadosProfessor.area_atuacao ||
-                        "Não informada"}
-                    </Text>
-                  )}
-
-                {usuario?.tipo === "tutor" && dadosTutor && (
+                {usuario?.tipo === "professor" && dadosProfessor && (
                   <Text style={Estilos.detalhesPerfil}>
-                    Departamento:{" "}
-                    {dadosTutor.departamento ||
-                      "Não informado"}
+                    Área: {dadosProfessor.area_atuacao || "Não informada"}
                   </Text>
                 )}
+
+                {(usuario?.tipo === "tutor" || usuario?.tipo === "napne") &&
+                  dadosTutor && (
+                    <Text style={Estilos.detalhesPerfil}>
+                      Departamento: {dadosTutor.departamento || "Não informado"}
+                    </Text>
+                  )}
               </View>
             </View>
 
@@ -567,19 +554,12 @@ export default function TelaConfig() {
               }}
               style={[
                 Estilos.botaoAvatar,
-                (carregandoPerfil || !usuario) &&
-                  Estilos.desabilitado,
+                (carregandoPerfil || !usuario) && Estilos.desabilitado,
               ]}
             >
-              <Feather
-                name="edit-2"
-                size={18}
-                color={tema.text}
-              />
+              <Feather name="edit-2" size={18} color={tema.text} />
 
-              <Text style={Estilos.textoBotaoAvatar}>
-                Alterar avatar
-              </Text>
+              <Text style={Estilos.textoBotaoAvatar}>Alterar avatar</Text>
             </TouchableOpacity>
           </View>
 
@@ -588,11 +568,7 @@ export default function TelaConfig() {
 
             <View style={Estilos.informacaoConta}>
               <View style={Estilos.iconeConta}>
-                <Feather
-                  name="mail"
-                  size={21}
-                  color={tema.text}
-                />
+                <Feather name="mail" size={21} color={tema.text} />
               </View>
 
               <View style={Estilos.conteudoConta}>
@@ -606,18 +582,12 @@ export default function TelaConfig() {
 
             <View style={Estilos.informacaoConta}>
               <View style={Estilos.iconeConta}>
-                <Feather
-                  name="lock"
-                  size={21}
-                  color={tema.text}
-                />
+                <Feather name="lock" size={21} color={tema.text} />
               </View>
 
               <View style={Estilos.conteudoConta}>
                 <Text style={Estilos.labelConta}>Senha</Text>
-                <Text style={Estilos.valorConta}>
-                  ••••••••
-                </Text>
+                <Text style={Estilos.valorConta}>••••••••</Text>
               </View>
             </View>
 
@@ -625,76 +595,53 @@ export default function TelaConfig() {
               style={Estilos.botaoAlterarSenha}
               onPress={() => setModalAlterarSenha(true)}
             >
-              <Feather
-                name="edit-2"
-                size={18}
-                color={tema.text}
-              />
+              <Feather name="edit-2" size={18} color={tema.text} />
 
-              <Text style={Estilos.textoAlterarSenha}>
-                Alterar senha
-              </Text>
+              <Text style={Estilos.textoAlterarSenha}>Alterar senha</Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={Estilos.cardTutorial}>
             <View style={Estilos.conteudoTutorial}>
-              <Feather
-                name="play-circle"
-                size={26}
-                color="#4CAF50"
-              />
+              <Feather name="play-circle" size={26} color="#4CAF50" />
 
-              <Text style={Estilos.textoTutorial}>
-                Vídeo Tutorial
-              </Text>
+              <Text style={Estilos.textoTutorial}>Vídeo Tutorial</Text>
             </View>
           </TouchableOpacity>
 
           <View style={Estilos.cardConfig}>
             <View style={Estilos.secaoTema}>
-              <Text style={Estilos.tituloTema}>
-                Tema do aplicativo
-              </Text>
+              <Text style={Estilos.tituloTema}>Tema do aplicativo</Text>
 
               <View style={Estilos.botoesTema}>
                 <TouchableOpacity
                   onPress={() => selecionarTema("claro")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "claro" &&
-                      Estilos.botaoTemaSelecionado,
+                    tipoTema === "claro" && Estilos.botaoTemaSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>
-                    ☀️ Claro
-                  </Text>
+                  <Text style={Estilos.textoBotaoTema}>☀️ Claro</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => selecionarTema("escuro")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "escuro" &&
-                      Estilos.botaoTemaSelecionado,
+                    tipoTema === "escuro" && Estilos.botaoTemaSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>
-                    🌙 Escuro
-                  </Text>
+                  <Text style={Estilos.textoBotaoTema}>🌙 Escuro</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => selecionarTema("forte")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "forte" &&
-                      Estilos.botaoTemaForteSelecionado,
+                    tipoTema === "forte" && Estilos.botaoTemaForteSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>
-                    🌈 Forte
-                  </Text>
+                  <Text style={Estilos.textoBotaoTema}>🌈 Forte</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -704,20 +651,14 @@ export default function TelaConfig() {
               onPress={() => setModalTamanhoFonte(true)}
             >
               <View style={Estilos.conteudoOpcao}>
-                <Text style={Estilos.tituloOpcao}>
-                  🔤 Tamanho da letra
-                </Text>
+                <Text style={Estilos.tituloOpcao}>🔤 Tamanho da letra</Text>
 
                 <Text style={Estilos.textoTamanhoAtual}>
                   Atual: {tamanhoFonte}
                 </Text>
               </View>
 
-              <Feather
-                name="chevron-right"
-                size={24}
-                color={tema.text}
-              />
+              <Feather name="chevron-right" size={24} color={tema.text} />
             </TouchableOpacity>
 
             {usuario?.tipo === "estudante" && (
@@ -755,39 +696,27 @@ export default function TelaConfig() {
                   </Text>
                 </View>
 
-                <Feather
-                  name="chevron-right"
-                  size={24}
-                  color={tema.text}
-                />
+                <Feather name="chevron-right" size={24} color={tema.text} />
               </TouchableOpacity>
             )}
 
             <View style={Estilos.cardNotiChat}>
-              <Text style={Estilos.textoNotificacao}>
-                Notificações de Chat
-              </Text>
+              <Text style={Estilos.textoNotificacao}>Notificações de Chat</Text>
 
               <Switch
                 value={chatAtivo}
-                onValueChange={(valor) =>
-                  alterarNotificacao("chat", valor)
-                }
+                onValueChange={(valor) => alterarNotificacao("chat", valor)}
                 disabled={!usuario || salvandoNotificacao}
                 accessibilityLabel="Notificações de Chat"
               />
             </View>
 
             <View style={Estilos.cardLembrete}>
-              <Text style={Estilos.textoNotificacao}>
-                Lembretes de Tarefas
-              </Text>
+              <Text style={Estilos.textoNotificacao}>Lembretes de Tarefas</Text>
 
               <Switch
                 value={tarefasAtivas}
-                onValueChange={(valor) =>
-                  alterarNotificacao("tarefas", valor)
-                }
+                onValueChange={(valor) => alterarNotificacao("tarefas", valor)}
                 disabled={!usuario || salvandoNotificacao}
                 accessibilityLabel="Lembretes de Tarefas"
               />
@@ -795,12 +724,19 @@ export default function TelaConfig() {
           </View>
 
           <TouchableOpacity
-            style={Estilos.botaoSair}
-            onPress={sairDaConta}
+            style={Estilos.botaoSobrePaed}
+            onPress={() => router.push("/(tabs)/TelaSobrePaed")}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Sobre o PAED"
           >
-            <Text style={Estilos.textoBotaoSair}>
-              Sair da conta
-            </Text>
+            <Feather name="info" size={24} color={tema.text} />
+
+            <Text style={Estilos.textoSobrePaed}>Sobre o PAED</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={Estilos.botaoSair} onPress={sairDaConta}>
+            <Text style={Estilos.textoBotaoSair}>Sair da conta</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -822,9 +758,7 @@ export default function TelaConfig() {
       >
         <View style={Estilos.fundoModal}>
           <View style={Estilos.modalTamanhoFonte}>
-            <Text style={Estilos.tituloModalFonte}>
-              Tamanho da letra
-            </Text>
+            <Text style={Estilos.tituloModalFonte}>Tamanho da letra</Text>
 
             {OPCOES_TAMANHO.map((opcao) => (
               <TouchableOpacity
@@ -839,12 +773,7 @@ export default function TelaConfig() {
                     Estilos.opcaoTamanhoSelecionada,
                 ]}
               >
-                <Text
-                  style={[
-                    Estilos.textoOpcaoTamanho,
-                    Estilos[opcao.valor],
-                  ]}
-                >
+                <Text style={[Estilos.textoOpcaoTamanho, Estilos[opcao.valor]]}>
                   {opcao.label}
                 </Text>
               </TouchableOpacity>
@@ -854,9 +783,7 @@ export default function TelaConfig() {
               onPress={() => setModalTamanhoFonte(false)}
               style={Estilos.botaoFecharFonte}
             >
-              <Text style={Estilos.textoFechar}>
-                Fechar
-              </Text>
+              <Text style={Estilos.textoFechar}>Fechar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -878,9 +805,7 @@ export default function TelaConfig() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={Estilos.tituloModalSenha}>
-              Alterar senha
-            </Text>
+            <Text style={Estilos.tituloModalSenha}>Alterar senha</Text>
 
             <Text style={Estilos.textoModalSenha}>
               Digite e confirme sua nova senha.
@@ -910,9 +835,7 @@ export default function TelaConfig() {
               disabled={alterandoSenha}
             >
               <Text style={Estilos.textoConfirmarSenha}>
-                {alterandoSenha
-                  ? "Alterando..."
-                  : "Salvar nova senha"}
+                {alterandoSenha ? "Alterando..." : "Salvar nova senha"}
               </Text>
             </TouchableOpacity>
 
@@ -925,18 +848,14 @@ export default function TelaConfig() {
               }}
               disabled={alterandoSenha}
             >
-              <Text style={Estilos.textoCancelarSenha}>
-                Cancelar
-              </Text>
+              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
 
       <Modal
-        visible={
-          modalLimpeza && usuario?.tipo === "estudante"
-        }
+        visible={modalLimpeza && usuario?.tipo === "estudante"}
         transparent
         animationType="fade"
         onRequestClose={() => {
@@ -956,15 +875,13 @@ export default function TelaConfig() {
             </Text>
 
             <Text style={Estilos.textoModalLimpeza}>
-              Cada tarefa será excluída automaticamente após o
-              prazo escolhido, contado a partir da sua conclusão.
-              A exclusão é permanente. Ao mudar o prazo, ele também
-              será aplicado às tarefas já concluídas.
+              Cada tarefa será excluída automaticamente após o prazo escolhido,
+              contado a partir da sua conclusão. A exclusão é permanente. Ao
+              mudar o prazo, ele também será aplicado às tarefas já concluídas.
             </Text>
 
             {OPCOES_LIMPEZA.map((opcao) => {
-              const selecionada =
-                prazoLimpeza === opcao.meses;
+              const selecionada = prazoLimpeza === opcao.meses;
 
               return (
                 <TouchableOpacity
@@ -975,13 +892,10 @@ export default function TelaConfig() {
                     selected: selecionada,
                     disabled: salvandoLimpeza,
                   }}
-                  onPress={() =>
-                    salvarPrazoLimpeza(opcao.meses)
-                  }
+                  onPress={() => salvarPrazoLimpeza(opcao.meses)}
                   style={[
                     Estilos.opcaoLimpeza,
-                    selecionada &&
-                      Estilos.opcaoLimpezaSelecionada,
+                    selecionada && Estilos.opcaoLimpezaSelecionada,
                     salvandoLimpeza && Estilos.desabilitado,
                   ]}
                 >
@@ -990,11 +904,7 @@ export default function TelaConfig() {
                   </Text>
 
                   {selecionada && (
-                    <Feather
-                      name="check"
-                      size={22}
-                      color={tema.text}
-                    />
+                    <Feather name="check" size={22} color={tema.text} />
                   )}
                 </TouchableOpacity>
               );
@@ -1014,9 +924,7 @@ export default function TelaConfig() {
               onPress={() => setModalLimpeza(false)}
               style={Estilos.botaoCancelarSenha}
             >
-              <Text style={Estilos.textoFechar}>
-                Fechar
-              </Text>
+              <Text style={Estilos.textoFechar}>Fechar</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

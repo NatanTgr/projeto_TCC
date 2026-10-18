@@ -89,7 +89,7 @@ export default function TabLayout() {
     <>
       <Tabs
         initialRouteName={
-          tipoUsuario === "tutor"
+          tipoUsuario === "tutor" || tipoUsuario === "napne"
             ? "TelaTarefasTutor"
             : tipoUsuario === "professor"
               ? "TelaChat"
@@ -103,7 +103,7 @@ export default function TabLayout() {
             borderTopColor: tema.border,
 
             height: 70 + 20 * (escalaFonte - 1) + insets.bottom,
-            
+
             paddingBottom: 8 + insets.bottom,
             paddingTop: 8,
           },
@@ -153,10 +153,13 @@ export default function TabLayout() {
           }}
         />
 
-                <Tabs.Screen
+        <Tabs.Screen
           name="TelaTarefasTutor"
           options={{
-            href: tipoUsuario === "tutor" ? undefined : null,
+            href:
+              tipoUsuario === "tutor" || tipoUsuario === "napne"
+                ? undefined
+                : null,
             title: "Tarefas",
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="list-outline" color={color} size={size} />
@@ -185,6 +188,13 @@ export default function TabLayout() {
             tabBarStyle: {
               display: "none",
             },
+          }}
+        />
+
+        <Tabs.Screen
+          name="TelaSobrePaed"
+          options={{
+            href: null,
           }}
         />
       </Tabs>

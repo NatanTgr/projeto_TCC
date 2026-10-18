@@ -551,5 +551,24 @@ export default function criarEstilos(
     desabilitado: {
       opacity: 0.5,
     },
+        botaoSobrePaed: {
+      backgroundColor: tema.modal,
+      borderRadius: 15,
+      padding: 20,
+      minHeight: 48,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      elevation: 5,
+    },
+
+    textoSobrePaed: {
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+      flexShrink: 1,
+      textAlign: "center",
+    },
   });
 }

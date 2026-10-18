@@ -103,14 +103,31 @@ export default function Conversa() {
 
   const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(null);
 
-    const corBolhaMinha = tema.balaoChat;
+function obterTipoBalao(tipo: string | null | undefined) {
+  switch (tipo?.toLowerCase()) {
+    case "estudante":
+      return "estudante";
+    case "professor":
+      return "professor";
+    case "tutor":
+      return "tutor";
+    case "napne":
+      return "napne";
+    default:
+      return "padrao";
+  }
+}
 
-    const corBolhaOutra =
-      tipoUsuarioLogado === "estudante" && usuarioDestinoTipo === "professor"
-        ? tema.professores + "95"
-        : tipoUsuarioLogado === "estudante" && usuarioDestinoTipo === "tutor"
-          ? tema.Tutores + "95"
-          : tema.modal;
+const tipoBalaoMeu = obterTipoBalao(tipoUsuarioLogado);
+const tipoBalaoOutro = obterTipoBalao(usuarioDestinoTipo);
+
+const corBolhaMinha = tema.baloes[tipoBalaoMeu];
+const corBolhaOutra = tema.baloes[tipoBalaoOutro];
+
+const corBordaMinha = tema.baloes.bordas[tipoBalaoMeu];
+const corBordaOutra = tema.baloes.bordas[tipoBalaoOutro];
+
+const corTextoBalao = tema.baloes.texto;
 
   const [imagemSelecionada, setImagemSelecionada] =
   useState<string | null>(null);
@@ -1138,6 +1155,10 @@ const iniciarRealtime = async (meuId: string) => {
             minhaMensagem ? styles.chatBubbleMine : styles.chatBubbleOther,
             {
               backgroundColor: minhaMensagem ? corBolhaMinha : corBolhaOutra,
+
+              borderWidth: tipoTema === "forte" ? 2 : 0,
+
+              borderColor: minhaMensagem ? corBordaMinha : corBordaOutra,
             },
           ]}
         >
@@ -1170,7 +1191,7 @@ const iniciarRealtime = async (meuId: string) => {
                 styles.chatMessageText,
                 {
                   fontSize: 15 * escalaFonte,
-                  color: tema.text,
+                  color: corTextoBalao,
                 },
               ]}
             >
@@ -1192,10 +1213,8 @@ const iniciarRealtime = async (meuId: string) => {
               <Text
                 style={{
                   fontSize: 9 * escalaFonte,
-                  color:
-                    minhaMensagem && tipoTema === "forte"
-                      ? colors.white
-                      : tema.text,
+                  color: corTextoBalao,
+                  fontFamily: "FredokaLight",
                   marginRight: 5,
                   fontStyle: "italic",
                 }}
@@ -1209,10 +1228,7 @@ const iniciarRealtime = async (meuId: string) => {
                 styles.chatMessageTime,
                 {
                   fontSize: 10 * escalaFonte,
-                  color:
-                    minhaMensagem && tipoTema === "forte"
-                      ? colors.white
-                      : tema.text,
+                  color: corTextoBalao,
                 },
               ]}
             >

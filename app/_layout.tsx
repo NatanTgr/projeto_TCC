@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   View,
   Image,
-  StatusBar,
   StyleSheet,
   Linking,
 } from 'react-native';
@@ -17,11 +16,43 @@ import { registrarPushChat } from '../components/notificacoesChat';
 import { supabase } from '../lib/supabase';
 import { styles as globalStyles, colors } from '../style';
 
-import { ThemeProvider } from '../context/ThemeContext';
+import {
+  ThemeProvider,
+  useTheme,
+} from "../context/ThemeContext";
+
 import { FontSizeProvider } from '../context/FontSizeContext';
 
 const VERSAO_TERMO = '1.0';
 const TERMO_STORAGE_KEY = '@paed:termo_autorizacao';
+
+function NavegacaoComTema() {
+  const { tema, tipoTema } = useTheme();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        statusBarStyle: "dark",
+        contentStyle: {
+          backgroundColor: colors.background,
+        },
+      }}
+    >
+      <Stack.Screen
+        name="(tabs)"
+        options={{
+          statusBarStyle:
+            tipoTema === "claro" ? "dark" : "light",
+
+          contentStyle: {
+            backgroundColor: tema.background,
+          },
+        }}
+      />
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);
@@ -338,33 +369,21 @@ export default function RootLayout() {
     /*
      * Tutor
      */
-    if (usuario.tipo === 'tutor') {
-      router.replace('/(tabs)/TelaTarefasTutor');
-    }
-
-    /*
-     * Professor
-     */
-    else if (usuario.tipo === 'professor') {
-      router.replace('/(tabs)/TelaChat');
-    }
-
-    /*
-     * Estudante
-     */
-    else {
-      router.replace('/(tabs)/TelaTarefas');
+        if (
+      usuario.tipo === "tutor" ||
+      usuario.tipo === "napne"
+    ) {
+      router.replace("/(tabs)/TelaTarefasTutor");
+    } else if (usuario.tipo === "professor") {
+      router.replace("/(tabs)/TelaChat");
+    } else {
+      router.replace("/(tabs)/TelaTarefas");
     }
   };
 
   if (loading) {
     return (
       <View style={localStyles.splashContainer}>
-        <StatusBar
-          barStyle="dark-content"
-          backgroundColor={colors.background}
-          translucent
-        />
 
         <Image
           source={require('../assets/images/logo_PAED.png')}
@@ -379,20 +398,10 @@ export default function RootLayout() {
     return null;
   }
 
-  return (
+    return (
     <ThemeProvider>
       <FontSizeProvider>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-
-            contentStyle: {
-              backgroundColor: colors.background,
-            },
-          }}
-        >
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <NavegacaoComTema />
       </FontSizeProvider>
     </ThemeProvider>
   );

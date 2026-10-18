@@ -29,7 +29,7 @@ type Usuario = {
   nome: string;
   email: string;
   campus: string | null;
-  tipo: 'estudante' | 'tutor' | 'professor';
+  tipo: "estudante" | "tutor" | "professor" | "napne";
   avatar: string | null;
   fixado?: boolean;
   mensagemNaoLida?: boolean;
@@ -302,31 +302,41 @@ export default function Chat() {
 
   // ABAS PERMITIDAS
 
-  const getAbasPermitidas = () => {
+    const getAbasPermitidas = (): {
+    key: Usuario["tipo"];
+    label: string;
+  }[] => {
     switch (tipoLogado) {
-      case 'estudante':
+      case "estudante":
         return [
-          { key: 'professor', label: 'Professores' },
-          { key: 'tutor', label: 'Tutores' },
+          { key: "professor", label: "Professores" },
+          { key: "tutor", label: "Tutores" },
+          { key: "napne", label: "Sala de recurso" },
         ];
 
-      case 'tutor':
+      case "tutor":
         return [
-          { key: 'professor', label: 'Professores' },
-          { key: 'estudante', label: 'Alunos' },
+          { key: "professor", label: "Professores" },
+          { key: "estudante", label: "Alunos" },
+          { key: "napne", label: "Sala de recurso" },
         ];
 
-      case 'professor':
+      case "professor":
         return [
-          { key: 'estudante', label: 'Alunos' },
-          { key: 'tutor', label: 'Tutores' },
+          { key: "estudante", label: "Alunos" },
+          { key: "tutor", label: "Tutores" },
+          { key: "napne", label: "Sala de recurso" },
+        ];
+
+      case "napne":
+        return [
+          { key: "professor", label: "Professores" },
+          { key: "tutor", label: "Tutores" },
+          { key: "estudante", label: "Alunos" },
         ];
 
       default:
-        return [
-          { key: 'professor', label: 'Professores' },
-          { key: 'tutor', label: 'Tutores' },
-        ];
+        return [];
     }
   };
 
@@ -546,14 +556,20 @@ export default function Chat() {
 
   // CORES POR TIPO
 
-  const getCorTipo = (tipo: Usuario['tipo']) => {
+  const getCorTipo = (tipo: Usuario["tipo"]) => {
     switch (tipo) {
-      case 'estudante':
+      case "estudante":
         return colors.student;
-      case 'tutor':
+
+      case "tutor":
         return colors.tutor;
-      case 'professor':
+
+      case "professor":
         return colors.professor;
+
+      case "napne":
+        return colors.purple;
+
       default:
         return colors.primary;
     }
@@ -790,54 +806,54 @@ export default function Chat() {
 
       {/* ABAS */}
 
+            {/* ABAS COM ROLAGEM HORIZONTAL */}
       <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          paddingHorizontal: 15,
-          paddingVertical: 2,
-          gap: 12,
-          backgroundColor: tema.background,
-        }}
+        style={[
+          styles.chatAbasContainer,
+          { backgroundColor: tema.background },
+        ]}
       >
-        {abasPermitidas.map((aba) => {
-          const selecionada = abaAtiva === aba.key;
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chatAbasConteudo}
+        >
+          {abasPermitidas.map((aba) => {
+            const selecionada = abaAtiva === aba.key;
 
-          return (
-            <Pressable
-              key={aba.key}
-              style={{
-                flexGrow: 1,
-                flexShrink: 1,
-                flexBasis: 140,
-                minHeight: 48,
-                paddingHorizontal: 12,
-                paddingVertical: 12,
-                borderRadius: 14,
-                backgroundColor: selecionada
-                  ? aba.key === "professor"
-                    ? "#94C0DF"
-                    : "#88C688"
-                  : tema.modal,
-                alignItems: "center",
-                justifyContent: "center",
-                elevation: 2,
-              }}
-              onPress={() => setAbaAtiva(aba.key)}
-            >
-              <Text
-                style={{
-                  fontSize: 15 * escalaFonte,
-                  fontWeight: "600",
-                  textAlign: "center",
-                  color: tema.text,
+            return (
+              <Pressable
+                key={aba.key}
+                accessibilityRole="tab"
+                accessibilityState={{
+                  selected: selecionada,
                 }}
+                onPress={() => setAbaAtiva(aba.key)}
+                style={({ pressed }) => [
+                  styles.chatAbaBotao,
+                  {
+                    backgroundColor: selecionada
+                      ? getCorTipo(aba.key)
+                      : tema.modal,
+                  },
+                  pressed && styles.buttonPressed,
+                ]}
               >
-                {aba.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+                <Text
+                  style={[
+                    styles.chatAbaTexto,
+                    {
+                      fontSize: 15 * escalaFonte,
+                      color: selecionada ? "#222222" : tema.text,
+                    },
+                  ]}
+                >
+                  {aba.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
       </View>
 
       {/* FILTRO */}
@@ -875,8 +891,9 @@ export default function Chat() {
           <Text
             style={{
               fontSize: 13 * escalaFonte,
+              fontFamily: "FredokaLight",
               fontWeight: "600",
-              color: tema.text + 95,
+              color: tema.text,
               flexShrink: 1,
               textAlign: "center",
             }}

@@ -3,11 +3,11 @@ import {
   View,
   Text,
   Pressable,
-  StatusBar,
   ScrollView,
   Image,
   useWindowDimensions,
 } from "react-native";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -67,10 +67,6 @@ export default function Welcome() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.background}
-      />
 
       <View style={styles.welcomeLayout}>
         <View
@@ -182,6 +178,9 @@ export default function Welcome() {
               Já tem uma conta? Entre aqui
             </Text>
           </Pressable>
+          <Pressable onPress={() => router.push("/registro")} style={({ pressed }) => [pressed && styles.buttonPressed]}>
+  <Text>Abrir recuperação de senha</Text>
+</Pressable>
         </View>
       </View>
     </SafeAreaView>

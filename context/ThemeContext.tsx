@@ -43,6 +43,23 @@ export function ThemeProvider({
           professores: "#94c0df",
           Tutores: "#88c688",
           balaoChat: "#524c4c",
+          baloes: {
+            estudante: "#65432C",
+            professor: "#294B63",
+            tutor: "#345438",
+            napne: "#503D65",
+            padrao: "#2A2A2A",
+
+            texto: "#FFFDD0",
+
+            bordas: {
+              estudante: "#65432C",
+              professor: "#294B63",
+              tutor: "#345438",
+              napne: "#503D65",
+              padrao: "#2A2A2A",
+            },
+          },
           placeholder: "#fff",
           textoBotao: "#fff",
         }
@@ -59,6 +76,23 @@ export function ThemeProvider({
             professores: "#94c0df",
             Tutores: "#88c688",
             balaoChat: "#0057FF",
+            baloes: {
+              estudante: "#000000",
+              professor: "#000000",
+              tutor: "#000000",
+              napne: "#000000",
+              padrao: "#000000",
+
+              texto: "#FFEA00",
+
+              bordas: {
+                estudante: "#FFAA56",
+                professor: "#94C0DF",
+                tutor: "#88C688",
+                napne: "#C5A5E5",
+                padrao: "#FFEA00",
+              },
+            },
             placeholder: "#fff",
             textoBotao: "#fff",
           }
@@ -74,6 +108,23 @@ export function ThemeProvider({
             professores: "#94c0df",
             Tutores: "#88c688",
             balaoChat: "#ffb1638f",
+            baloes: {
+              estudante: "#FFE0BD",
+              professor: "#D6EAF7",
+              tutor: "#DCEED8",
+              napne: "#E8DDF3",
+              padrao: "#FFFFFF",
+
+              texto: "#493B35",
+
+              bordas: {
+                estudante: "#FFE0BD",
+                professor: "#D6EAF7",
+                tutor: "#DCEED8",
+                napne: "#E8DDF3",
+                padrao: "#FFFFFF",
+              },
+            },
             placeholder: "#836F68" + 80,
             textoBotao: "#fff",
           };

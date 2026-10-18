@@ -7,9 +7,8 @@ import {
   View,
   ActivityIndicator,
   Image,
-  StatusBar,
-  ScrollView,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   useWindowDimensions,
 } from "react-native";
@@ -24,13 +23,16 @@ import {
 } from "../style";
 
 export default function EsqueciSenha() {
+  
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const [campoEmFoco, setCampoEmFoco] = useState(false);
 
   const { width, height, fontScale } = useWindowDimensions();
 
   const telaCompacta = width < 360 || height < 700;
-  const telaBaixa = height < 500;
+  const modoCompacto = telaCompacta || campoEmFoco;
+  const mostrarLogo = !campoEmFoco && height >= 500;
 
   const enviarEmail = async () => {
     if (loading) return;
@@ -40,6 +42,8 @@ export default function EsqueciSenha() {
       return;
     }
 
+    Keyboard.dismiss();
+    setCampoEmFoco(false);
     setLoading(true);
 
     try {
@@ -79,10 +83,6 @@ export default function EsqueciSenha() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor={colors.background}
-      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -90,41 +90,38 @@ export default function EsqueciSenha() {
       >
         <View
           style={[
-            recuperacao.logoContainer,
-            telaCompacta && recuperacao.logoContainerCompacto,
+            recuperacao.conteudo,
+            modoCompacto && recuperacao.conteudoCompacto,
           ]}
         >
-          <Image
-            source={require("../assets/images/logo_PAED.png")}
-            style={[
-              recuperacao.logo,
-              telaCompacta && recuperacao.logoCompacto,
-              telaBaixa && recuperacao.logoPequeno,
-            ]}
-            resizeMode="contain"
-            accessible
-            accessibilityLabel="PAED"
-          />
-        </View>
+          {mostrarLogo && (
+            <View style={recuperacao.logoContainer}>
+              <Image
+                source={require("../assets/images/logo_PAED.png")}
+                style={[
+                  recuperacao.logo,
+                  telaCompacta && recuperacao.logoCompacto,
+                ]}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel="PAED"
+              />
+            </View>
+          )}
 
-        <ScrollView
-          style={recuperacao.scroll}
-          contentContainerStyle={[
-            recuperacao.scrollContent,
-            telaCompacta && recuperacao.scrollContentCompacto,
-          ]}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator={false}
-        >
           <View
             style={[
               styles.card,
               recuperacao.card,
-              telaCompacta && recuperacao.cardCompacto,
+              modoCompacto && recuperacao.cardCompacto,
             ]}
           >
-            <Text style={styles.cardTitle}>
+            <Text
+              style={[
+                styles.cardTitle,
+                modoCompacto && recuperacao.tituloCompacto,
+              ]}
+            >
               Esqueci minha senha
             </Text>
 
@@ -132,6 +129,7 @@ export default function EsqueciSenha() {
               style={[
                 styles.cardFooterText,
                 recuperacao.descricao,
+                modoCompacto && recuperacao.descricaoCompacta,
               ]}
             >
               Digite o e-mail cadastrado para receber o link de
@@ -148,7 +146,7 @@ export default function EsqueciSenha() {
                   {
                     minHeight: Math.max(
                       48,
-                      Math.ceil(24 * fontScale + 24)
+                      Math.ceil(24 * fontScale + 20)
                     ),
                   },
                 ]}
@@ -162,6 +160,8 @@ export default function EsqueciSenha() {
                 autoCorrect={false}
                 editable={!loading}
                 returnKeyType="done"
+                onFocus={() => setCampoEmFoco(true)}
+                onBlur={() => setCampoEmFoco(false)}
                 onSubmitEditing={enviarEmail}
               />
             </View>
@@ -196,7 +196,7 @@ export default function EsqueciSenha() {
               )}
             </Pressable>
 
-            <View style={styles.cardFooter}>
+            <View style={recuperacao.rodape}>
               <Pressable
                 accessibilityRole="button"
                 style={({ pressed }) => [
@@ -204,7 +204,10 @@ export default function EsqueciSenha() {
                   loading && recuperacao.desativado,
                   pressed && styles.buttonPressed,
                 ]}
-                onPress={() => router.replace("/login")}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  router.replace("/login");
+                }}
                 disabled={loading}
               >
                 <Text
@@ -218,7 +221,7 @@ export default function EsqueciSenha() {
               </Pressable>
             </View>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
