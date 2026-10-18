@@ -1,5 +1,8 @@
+
 import {
+  Alert,
   Image,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -112,8 +115,25 @@ export default function TelaSobrePaed() {
 
   const styles = criarEstilos(tema, escalaFonte, width);
 
+  // Abre o aplicativo de e-mail do celular
+  async function abrirEmail() {
+    try {
+      await Linking.openURL("mailto:paed.tcc@gmail.com");
+    } catch (erro) {
+      console.error("Erro ao abrir e-mail:", erro);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível abrir o aplicativo de e-mail."
+      );
+    }
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+    <SafeAreaView
+      style={styles.container}
+      edges={["top", "bottom", "left", "right"]}
+    >
       {/* Cabeçalho */}
       <View style={styles.header}>
         <Pressable
@@ -123,10 +143,16 @@ export default function TelaSobrePaed() {
           accessibilityRole="button"
           accessibilityLabel="Voltar para configurações"
         >
-          <Ionicons name="arrow-back" size={27} color={tema.text} />
+          <Ionicons
+            name="arrow-back"
+            size={27}
+            color={tema.text}
+          />
         </Pressable>
 
-        <Text style={styles.headerTitle}>Sobre o PAED</Text>
+        <Text style={styles.headerTitle}>
+          Sobre o PAED
+        </Text>
 
         <View style={styles.headerSpacer} />
       </View>
@@ -145,134 +171,203 @@ export default function TelaSobrePaed() {
 
         {/* Sobre o projeto */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Nosso projeto</Text>
-
-          <Text style={styles.text}>
-            O PAED é um aplicativo desenvolvido no IFPR – Campus Pinhais, criado
-            com o objetivo de auxiliar estudantes com TEA na organização de suas
-            atividades acadêmicas e na comunicação com professores e tutores.
+          <Text style={styles.cardTitle}>
+            Nosso projeto
           </Text>
 
           <Text style={styles.text}>
-            O aplicativo reúne recursos para facilitar a organização das
-            tarefas, calendário e comunicação, buscando oferecer uma experiência
-            simples, acessível e acolhedora.
+            O PAED é um aplicativo desenvolvido no IFPR – Campus
+            Pinhais, criado com o objetivo de auxiliar estudantes
+            com TEA na organização de suas atividades acadêmicas
+            e na comunicação com professores e tutores.
+          </Text>
+
+          <Text style={styles.text}>
+            O aplicativo reúne recursos para facilitar a
+            organização das tarefas, calendário e comunicação,
+            buscando oferecer uma experiência simples,
+            acessível e acolhedora.
           </Text>
         </View>
 
         {/* Nossa missão */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🎯 Nossa missão</Text>
+          <Text style={styles.cardTitle}>
+            🎯 Nossa missão
+          </Text>
 
           <Text style={styles.text}>
-            Tornar a rotina escolar mais organizada, acessível e acolhedora,
-            oferecendo ferramentas que auxiliem estudantes, professores e
-            tutores no dia a dia acadêmico.
+            Tornar a rotina escolar mais organizada, acessível
+            e acolhedora, oferecendo ferramentas que auxiliem
+            estudantes, professores e tutores no dia a dia
+            acadêmico.
           </Text>
         </View>
 
         {/* Equipe */}
-
         <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Quem faz o PAED</Text>
+          <Text style={styles.sectionTitle}>
+            Quem faz o PAED
+          </Text>
 
-        <View style={tema.modal} />
-        <Text style={styles.subsectionTitle}>Desenvolvimento</Text>
+          <Text style={styles.subsectionTitle}>
+            Desenvolvimento
+          </Text>
 
-        <View style={styles.teamRow}>
-          {/* Maria */}
-          <View style={styles.member}>
-            <View
-              style={styles.avatar}
-              accessible
-              accessibilityLabel="Avatar de Maria"
-            >
-              <AvatarImagem uri={AVATARES_EQUIPE.maria} tamanho={90} />
+          <View style={styles.teamRow}>
+            {/* Maria */}
+            <View style={styles.member}>
+              <View
+                style={styles.avatar}
+                accessible
+                accessibilityLabel="Avatar de Maria"
+              >
+                <AvatarImagem
+                  uri={AVATARES_EQUIPE.maria}
+                  tamanho={90}
+                />
+              </View>
+
+              <Text style={styles.memberName}>
+                Maria Eduarda Miotti
+              </Text>
             </View>
 
-            <Text style={styles.memberName}>Maria Eduarda Miotti</Text>
-          </View>
+            {/* Natan */}
+            <View style={styles.member}>
+              <View
+                style={styles.avatar}
+                accessible
+                accessibilityLabel="Avatar de Natan"
+              >
+                <AvatarImagem
+                  uri={AVATARES_EQUIPE.natan}
+                  tamanho={90}
+                />
+              </View>
 
-          {/* Natan */}
-          <View style={styles.member}>
-            <View
-              style={styles.avatar}
-              accessible
-              accessibilityLabel="Avatar de Natan"
-            >
-              <AvatarImagem uri={AVATARES_EQUIPE.natan} tamanho={90} />
+              <Text style={styles.memberName}>
+                Natan Rodrigues
+              </Text>
             </View>
 
-            <Text style={styles.memberName}>Natan Rodrigues</Text>
+            {/* João */}
+            <View style={styles.member}>
+              <View
+                style={styles.avatar}
+                accessible
+                accessibilityLabel="Avatar de João"
+              >
+                <AvatarImagem
+                  uri={AVATARES_EQUIPE.joao}
+                  tamanho={90}
+                />
+              </View>
+
+              <Text style={styles.memberName}>
+                João Odimar Gonçalves
+              </Text>
+            </View>
           </View>
 
-          {/* João */}
-          <View style={styles.member}>
-            <View
-              style={styles.avatar}
-              accessible
-              accessibilityLabel="Avatar de João"
-            >
-              <AvatarImagem uri={AVATARES_EQUIPE.joao} tamanho={90} />
+          {/* Orientadoras */}
+          <Text style={styles.subsectionTitle}>
+            Orientadoras
+          </Text>
+
+          <View style={styles.teamRow}>
+            {/* Paula */}
+            <View style={styles.member}>
+              <View
+                style={styles.avatar}
+                accessible
+                accessibilityLabel="Avatar de Paula Cristina Stopa"
+              >
+                <AvatarImagem
+                  uri={AVATARES_EQUIPE.paula}
+                  tamanho={90}
+                />
+              </View>
+
+              <Text style={styles.memberName}>
+                Paula Cristina Stopa
+              </Text>
+
+              <Text style={styles.memberRole}>
+                Orientadora
+              </Text>
             </View>
 
-            <Text style={styles.memberName}>João Odimar Gonçalves</Text>
-          </View>
-        </View>
-        
+            {/* Lauriana */}
+            <View style={styles.member}>
+              <View
+                style={styles.avatar}
+                accessible
+                accessibilityLabel="Avatar de Lauriana Paludo"
+              >
+                <AvatarImagem
+                  uri={AVATARES_EQUIPE.lauriana}
+                  tamanho={90}
+                />
+              </View>
 
-        {/* Orientadoras */}
-        <Text style={styles.subsectionTitle}>Orientadoras</Text>
+              <Text style={styles.memberName}>
+                Lauriana Paludo
+              </Text>
 
-        <View style={styles.teamRow}>
-          {/* Paula */}
-          <View style={styles.member}>
-            <View
-              style={styles.avatar}
-              accessible
-              accessibilityLabel="Avatar de Paula Cristina Stopa"
-            >
-              <AvatarImagem uri={AVATARES_EQUIPE.paula} tamanho={90} />
+              <Text style={styles.memberRole}>
+                Coorientadora
+              </Text>
             </View>
-
-            <Text style={styles.memberName}>Paula Cristina Stopa</Text>
-
-            <Text style={styles.memberRole}>Orientadora</Text>
           </View>
-
-          {/* Lauriana */}
-          <View style={styles.member}>
-            <View
-              style={styles.avatar}
-              accessible
-              accessibilityLabel="Avatar de Lauriana Paludo"
-            >
-              <AvatarImagem uri={AVATARES_EQUIPE.lauriana} tamanho={90} />
-            </View>
-
-            <Text style={styles.memberName}>Lauriana Paludo</Text>
-
-            <Text style={styles.memberRole}>Coorientadora</Text>
-          </View>
-        </View>
         </View>
 
         {/* Instituição */}
         <View style={styles.institutionCard}>
-          <Text style={styles.institutionTitle}>IFPR Campus Pinhais</Text>
+          <Text style={styles.institutionTitle}>
+            IFPR Campus Pinhais
+          </Text>
 
-          <Text style={styles.institutionText}>TCC Técnico em Informática</Text>
+          <Text style={styles.institutionText}>
+            TCC Técnico em Informática
+          </Text>
         </View>
 
         {/* Instagram */}
         <View style={styles.instagramContainer}>
-          <FontAwesome name="instagram" size={22} color={tema.text} />
+          <FontAwesome
+            name="instagram"
+            size={22}
+            color={tema.text}
+          />
 
-          <Text style={styles.instagram}>@paed.tcc</Text>
+          <Text style={styles.instagram}>
+            @paed.tcc
+          </Text>
         </View>
 
+        {/* E-mail para contato */}
+        <Pressable
+          style={styles.emailContainer}
+          onPress={abrirEmail}
+          accessibilityRole="link"
+          accessibilityLabel="Enviar e-mail para paed.tcc@gmail.com"
+        >
+          <Ionicons
+            name="mail-outline"
+            size={23}
+            color={tema.text}
+          />
+
+          <Text style={styles.email}>
+            paed.tcc@gmail.com
+          </Text>
+        </Pressable>
+
         {/* Versão */}
-        <Text style={styles.version}>PAED v1.0.0</Text>
+        <Text style={styles.version}>
+          PAED v1.0.0
+        </Text>
       </ScrollView>
     </SafeAreaView>
   );

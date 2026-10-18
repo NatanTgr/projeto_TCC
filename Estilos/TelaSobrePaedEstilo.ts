@@ -1,3 +1,4 @@
+
 import { StyleSheet } from "react-native";
 
 type TemaSobrePaed = {
@@ -65,7 +66,8 @@ export default function criarEstilos(
       alignItems: "center",
       paddingHorizontal: 30,
       paddingTop: 10,
-      paddingBottom: 30,
+      paddingBottom: 20,
+      flexGrow: 1,
     },
 
     logo: {
@@ -126,7 +128,7 @@ export default function criarEstilos(
       color: tema.text,
       textAlign: "center",
       marginBottom: 14,
-      marginTop: 4,
+      marginTop: 35,
     },
 
     teamRow: {
@@ -201,6 +203,8 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
+    // INSTAGRAM
+
     instagramContainer: {
       maxWidth: "100%",
       flexDirection: "row",
@@ -218,6 +222,31 @@ export default function criarEstilos(
       fontFamily: "FredokaMedium",
       textAlign: "center",
     },
+
+    // E-MAIL PARA CONTATO
+
+    emailContainer: {
+      maxWidth: "100%",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      marginBottom: 18,
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+      minHeight: 48,
+    },
+
+    email: {
+      flexShrink: 1,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      textAlign: "center",
+    },
+
+    // VERSÃO
 
     version: {
       maxWidth: "100%",

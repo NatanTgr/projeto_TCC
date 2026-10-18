@@ -14,7 +14,7 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Feather } from "@expo/vector-icons";
 
 import { useTheme } from "../../context/ThemeContext";
@@ -74,32 +74,35 @@ const OPCOES_TAMANHO = [
 
 export default function TelaConfig() {
   const { tipoTema, selecionarTema, tema } = useTheme();
-  const {
-    tamanhoFonte,
-    escalaFonte,
-    selecionarTamanhoFonte,
-  } = useFontSize();
+  const { tamanhoFonte, escalaFonte, selecionarTamanhoFonte } = useFontSize();
 
   const { width, fontScale } = useWindowDimensions();
 
   const Estilos = criarEstilos(tema, escalaFonte);
-  const perfilEmColuna =
-    width < 380 || escalaFonte * fontScale >= 1.2;
+  const perfilEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
 
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [dadosAluno, setDadosAluno] = useState<DadosAluno | null>(null);
-  const [dadosProfessor, setDadosProfessor] =
-    useState<DadosProfessor | null>(null);
+  const [dadosProfessor, setDadosProfessor] = useState<DadosProfessor | null>(
+    null,
+  );
   const [dadosTutor, setDadosTutor] = useState<DadosTutor | null>(null);
 
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
   const [chatAtivo, setChatAtivo] = useState(true);
-  const [tarefasAtivas, setTarefasAtivas] = useState(true);
-  const [salvandoNotificacao, setSalvandoNotificacao] = useState(false);
+const [tarefasAtivas, setTarefasAtivas] = useState(true);
 
-  const [prazoLimpeza, setPrazoLimpeza] =
-    useState<PrazoLimpeza | null>(null);
+const [salvandoNotificacao, setSalvandoNotificacao] = useState(false);
+
+const preferenciasNotificacoesRef = useRef({
+  chat_ativo: true,
+  tarefas_ativas: true,
+});
+
+const salvandoNotificacaoRef = useRef(false);
+
+  const [prazoLimpeza, setPrazoLimpeza] = useState<PrazoLimpeza | null>(null);
   const [modalLimpeza, setModalLimpeza] = useState(false);
   const [salvandoLimpeza, setSalvandoLimpeza] = useState(false);
   const [carregandoLimpeza, setCarregandoLimpeza] = useState(true);
@@ -109,6 +112,10 @@ export default function TelaConfig() {
   const [modalAlterarSenha, setModalAlterarSenha] = useState(false);
   const [modalAvatar, setModalAvatar] = useState(false);
 
+  const [modalAlterarTurma, setModalAlterarTurma] = useState(false);
+  const [novaTurma, setNovaTurma] = useState("");
+  const [salvandoTurma, setSalvandoTurma] = useState(false);
+
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [alterandoSenha, setAlterandoSenha] = useState(false);
@@ -116,9 +123,8 @@ export default function TelaConfig() {
   const avatarPerfil = buscarAvatar(usuario?.avatar);
 
   const labelPrazoLimpeza =
-    OPCOES_LIMPEZA.find(
-      (opcao) => opcao.meses === prazoLimpeza,
-    )?.label ?? "Não configurada";
+    OPCOES_LIMPEZA.find((opcao) => opcao.meses === prazoLimpeza)?.label ??
+    "Não configurada";
 
   async function carregarPreferenciaLimpeza(usuarioId: string) {
     setCarregandoLimpeza(true);
@@ -179,52 +185,87 @@ export default function TelaConfig() {
       setModalLimpeza(false);
     } catch (erro) {
       console.error("Erro ao salvar limpeza de tarefas:", erro);
-      Alert.alert(
-        "Erro",
-        "Não foi possível salvar o prazo de limpeza.",
-      );
+      Alert.alert("Erro", "Não foi possível salvar o prazo de limpeza.");
     } finally {
       setSalvandoLimpeza(false);
     }
   }
 
   async function alterarNotificacao(
-    tipo: "chat" | "tarefas",
-    ativa: boolean,
-  ) {
-    if (!usuario || salvandoNotificacao) return;
+  tipo: "chat" | "tarefas",
+  ativa: boolean
+) {
+  if (!usuario || salvandoNotificacaoRef.current) return;
 
-    try {
-      setSalvandoNotificacao(true);
+  salvandoNotificacaoRef.current = true;
+  setSalvandoNotificacao(true);
 
-      const { data, error } = await supabase
-        .from("preferencias_notificacoes")
-        .upsert(
-          {
-            usuario_id: usuario.id,
-            chat_ativo: tipo === "chat" ? ativa : chatAtivo,
-            tarefas_ativas:
-              tipo === "tarefas" ? ativa : tarefasAtivas,
-          },
-          { onConflict: "usuario_id" },
-        )
-        .select("chat_ativo, tarefas_ativas")
-        .single();
+  const preferenciasAnteriores = {
+    ...preferenciasNotificacoesRef.current,
+  };
 
-      if (error) throw error;
+  const novasPreferencias = {
+    ...preferenciasAnteriores,
+    chat_ativo:
+      tipo === "chat"
+        ? ativa
+        : preferenciasAnteriores.chat_ativo,
+    tarefas_ativas:
+      tipo === "tarefas"
+        ? ativa
+        : preferenciasAnteriores.tarefas_ativas,
+  };
 
-      setChatAtivo(data.chat_ativo);
-      setTarefasAtivas(data.tarefas_ativas);
-    } catch (erro) {
-      console.error("Erro ao alterar notificações:", erro);
-      Alert.alert(
-        "Erro",
-        "Não foi possível salvar esta configuração.",
-      );
-    } finally {
-      setSalvandoNotificacao(false);
-    }
+  // Atualiza o visual imediatamente
+  preferenciasNotificacoesRef.current = novasPreferencias;
+
+  setChatAtivo(novasPreferencias.chat_ativo);
+  setTarefasAtivas(novasPreferencias.tarefas_ativas);
+
+  try {
+    const { data, error } = await supabase
+      .from("preferencias_notificacoes")
+      .upsert(
+        {
+          usuario_id: usuario.id,
+          ...novasPreferencias,
+        },
+        { onConflict: "usuario_id" }
+      )
+      .select("chat_ativo, tarefas_ativas")
+      .single();
+
+    if (error) throw error;
+
+    const preferenciasConfirmadas = {
+      chat_ativo: data.chat_ativo,
+      tarefas_ativas: data.tarefas_ativas,
+    };
+
+    preferenciasNotificacoesRef.current =
+      preferenciasConfirmadas;
+
+    setChatAtivo(preferenciasConfirmadas.chat_ativo);
+    setTarefasAtivas(preferenciasConfirmadas.tarefas_ativas);
+  } catch (erro) {
+    console.error("Erro ao alterar notificações:", erro);
+
+    // Restaura os valores anteriores em caso de erro
+    preferenciasNotificacoesRef.current =
+      preferenciasAnteriores;
+
+    setChatAtivo(preferenciasAnteriores.chat_ativo);
+    setTarefasAtivas(preferenciasAnteriores.tarefas_ativas);
+
+    Alert.alert(
+      "Erro",
+      "Não foi possível salvar esta configuração."
+    );
+  } finally {
+    salvandoNotificacaoRef.current = false;
+    setSalvandoNotificacao(false);
   }
+}
 
   const sairDaConta = async () => {
     try {
@@ -252,9 +293,7 @@ export default function TelaConfig() {
       console.error("Erro ao sair da conta:", erro);
 
       const detalhe =
-        typeof erro === "object" &&
-        erro !== null &&
-        "message" in erro
+        typeof erro === "object" && erro !== null && "message" in erro
           ? String(erro.message)
           : "Erro sem detalhes disponíveis.";
 
@@ -270,10 +309,7 @@ export default function TelaConfig() {
       throw new Error("Perfil inválido.");
     }
 
-    if (
-      url !== null &&
-      !AVATARES.some((avatar) => avatar.url === url)
-    ) {
+    if (url !== null && !AVATARES.some((avatar) => avatar.url === url)) {
       throw new Error("Avatar inválido.");
     }
 
@@ -293,12 +329,7 @@ export default function TelaConfig() {
       .select("id, avatar")
       .single();
 
-    if (
-      error ||
-      !data ||
-      data.id !== user.id ||
-      data.avatar !== url
-    ) {
+    if (error || !data || data.id !== user.id || data.avatar !== url) {
       console.log("Erro ao salvar avatar:", error);
       throw error ?? new Error("O banco não confirmou a alteração.");
     }
@@ -332,12 +363,11 @@ export default function TelaConfig() {
         return;
       }
 
-      const { data: dadosUsuario, error: erroUsuario } =
-        await supabase
-          .from("usuarios")
-          .select("id, nome, email, campus, tipo, estado, avatar")
-          .eq("id", user.id)
-          .single();
+      const { data: dadosUsuario, error: erroUsuario } = await supabase
+        .from("usuarios")
+        .select("id, nome, email, campus, tipo, estado, avatar")
+        .eq("id", user.id)
+        .single();
 
       if (erroUsuario) {
         console.log("Erro ao buscar usuário:", erroUsuario);
@@ -350,10 +380,7 @@ export default function TelaConfig() {
         await carregarPreferenciaLimpeza(user.id);
       }
 
-      const {
-        data: preferencias,
-        error: erroPreferencias,
-      } = await supabase
+      const { data: preferencias, error: erroPreferencias } = await supabase
         .from("preferencias_notificacoes")
         .select("chat_ativo, tarefas_ativas")
         .eq("usuario_id", user.id)
@@ -361,8 +388,15 @@ export default function TelaConfig() {
 
       if (erroPreferencias) throw erroPreferencias;
 
-      setChatAtivo(preferencias?.chat_ativo ?? true);
-      setTarefasAtivas(preferencias?.tarefas_ativas ?? true);
+      const preferenciasCarregadas = {
+        chat_ativo: preferencias?.chat_ativo ?? true,
+        tarefas_ativas: preferencias?.tarefas_ativas ?? true,
+      };
+
+      preferenciasNotificacoesRef.current = preferenciasCarregadas;
+
+      setChatAtivo(preferenciasCarregadas.chat_ativo);
+      setTarefasAtivas(preferenciasCarregadas.tarefas_ativas);
 
       if (dadosUsuario.tipo === "estudante") {
         const { data, error } = await supabase
@@ -415,6 +449,68 @@ export default function TelaConfig() {
     }
   }
 
+  async function alterarTurma() {
+    if (usuario?.tipo !== "estudante" || !dadosAluno || salvandoTurma) {
+      return;
+    }
+
+    const turmaFormatada = novaTurma.trim();
+
+    if (!turmaFormatada) {
+      Alert.alert("Atenção", "Informe sua nova turma.");
+      return;
+    }
+
+    if (turmaFormatada === dadosAluno.turma) {
+      Alert.alert("Atenção", "Esta já é sua turma atual.");
+      return;
+    }
+
+    try {
+      setSalvandoTurma(true);
+
+      const {
+        data: { user },
+        error: erroAuth,
+      } = await supabase.auth.getUser();
+
+      if (erroAuth || !user || user.id !== usuario.id) {
+        throw new Error("Sessão inválida. Entre novamente.");
+      }
+
+      const { data, error } = await supabase
+        .from("alunos")
+        .update({ turma: turmaFormatada })
+        .eq("id", user.id)
+        .select("turma")
+        .single();
+
+      if (error) throw error;
+
+      if (data.turma !== turmaFormatada) {
+        throw new Error("O banco não confirmou a alteração.");
+      }
+
+      setDadosAluno((dadosAtuais) =>
+        dadosAtuais ? { ...dadosAtuais, turma: data.turma } : dadosAtuais,
+      );
+
+      setModalAlterarTurma(false);
+      setNovaTurma("");
+
+      Alert.alert("Sucesso", "Sua turma foi alterada com sucesso!");
+    } catch (erro) {
+      console.error("Erro ao alterar turma:", erro);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível alterar sua turma. Tente novamente.",
+      );
+    } finally {
+      setSalvandoTurma(false);
+    }
+  }
+
   async function alterarSenha() {
     if (!novaSenha || !confirmarSenha) {
       Alert.alert("Atenção", "Preencha os dois campos.");
@@ -422,10 +518,7 @@ export default function TelaConfig() {
     }
 
     if (novaSenha.length < 6) {
-      Alert.alert(
-        "Atenção",
-        "A senha deve ter pelo menos 6 caracteres.",
-      );
+      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres.");
       return;
     }
 
@@ -561,6 +654,23 @@ export default function TelaConfig() {
 
               <Text style={Estilos.textoBotaoAvatar}>Alterar avatar</Text>
             </TouchableOpacity>
+
+            {usuario?.tipo === "estudante" && dadosAluno && (
+              <TouchableOpacity
+                style={Estilos.botaoAlterarTurma}
+                onPress={() => {
+                  setNovaTurma(dadosAluno.turma || "");
+                  setModalAlterarTurma(true);
+                }}
+                disabled={salvandoTurma}
+                accessibilityRole="button"
+                accessibilityLabel="Alterar turma"
+              >
+                <Feather name="edit-2" size={18} color={tema.text} />
+
+                <Text style={Estilos.textoAlterarTurma}>Alterar turma</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={Estilos.cardConta}>
@@ -706,7 +816,12 @@ export default function TelaConfig() {
               <Switch
                 value={chatAtivo}
                 onValueChange={(valor) => alterarNotificacao("chat", valor)}
-                disabled={!usuario || salvandoNotificacao}
+                disabled={!usuario}
+                trackColor={{
+                  false: "#B0B0B0",
+                  true: "#88C688",
+                }}
+                thumbColor="#FFFFFF"
                 accessibilityLabel="Notificações de Chat"
               />
             </View>
@@ -717,7 +832,12 @@ export default function TelaConfig() {
               <Switch
                 value={tarefasAtivas}
                 onValueChange={(valor) => alterarNotificacao("tarefas", valor)}
-                disabled={!usuario || salvandoNotificacao}
+                disabled={!usuario}
+                trackColor={{
+                  false: "#B0B0B0",
+                  true: "#88C688",
+                }}
+                thumbColor="#FFFFFF"
                 accessibilityLabel="Lembretes de Tarefas"
               />
             </View>
@@ -928,6 +1048,95 @@ export default function TelaConfig() {
             </TouchableOpacity>
           </ScrollView>
         </View>
+      </Modal>
+      <Modal
+        visible={modalAlterarTurma && usuario?.tipo === "estudante"}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!salvandoTurma) {
+            setModalAlterarTurma(false);
+          }
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={Estilos.fundoModal}
+        >
+          <ScrollView
+            style={Estilos.modalTurma}
+            contentContainerStyle={Estilos.conteudoModal}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={Estilos.tituloModalTurma}>Alterar turma</Text>
+
+            <Text style={Estilos.textoModalTurma}>
+              Informe sua nova turma para atualizar seus dados no aplicativo.
+            </Text>
+
+            <View style={Estilos.avisoAlterarTurma}>
+              <Feather name="alert-circle" size={22} color={tema.text} />
+
+              <View style={Estilos.conteudoAvisoTurma}>
+                <Text style={Estilos.tituloAvisoTurma}>
+                  Atenção ao alterar sua turma
+                </Text>
+
+                <Text style={Estilos.textoAvisoTurma}>
+                  Mantenha sua turma sempre atualizada e informe apenas dados
+                  verdadeiros. Essa informação é importante para facilitar sua
+                  identificação e a comunicação com professores e tutores pelo
+                  PAED.
+                </Text>
+              </View>
+            </View>
+
+            <Text style={Estilos.labelTurma}>Turma atual</Text>
+
+            <Text style={Estilos.valorTurmaAtual}>
+              {dadosAluno?.turma || "Não informada"}
+            </Text>
+
+            <Text style={Estilos.labelTurma}>Nova turma</Text>
+
+            <TextInput
+              style={Estilos.inputTurma}
+              placeholder="Digite sua nova turma"
+              placeholderTextColor={tema.text}
+              value={novaTurma}
+              onChangeText={setNovaTurma}
+              maxLength={50}
+              editable={!salvandoTurma}
+              autoCapitalize="sentences"
+              accessibilityLabel="Nova turma"
+            />
+
+            <TouchableOpacity
+              style={[
+                Estilos.botaoConfirmarTurma,
+                salvandoTurma && Estilos.desabilitado,
+              ]}
+              onPress={alterarTurma}
+              disabled={salvandoTurma}
+            >
+              <Text style={Estilos.textoConfirmarTurma}>
+                {salvandoTurma ? "Salvando..." : "Salvar turma"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={Estilos.botaoCancelarSenha}
+              onPress={() => {
+                setNovaTurma("");
+                setModalAlterarTurma(false);
+              }}
+              disabled={salvandoTurma}
+            >
+              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

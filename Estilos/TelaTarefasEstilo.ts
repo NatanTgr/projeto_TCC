@@ -1,8 +1,17 @@
+
 import { StyleSheet } from "react-native";
 
 const Estilos = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FFFDD0" },
-  header: { width: "100%", paddingHorizontal: 15, marginTop: 12 },
+  container: {
+    flex: 1,
+    backgroundColor: "#FFFDD0",
+  },
+
+  header: {
+    width: "100%",
+    paddingHorizontal: 15,
+    marginTop: 12,
+  },
 
   topRow: {
     flexDirection: "row",
@@ -77,13 +86,18 @@ const Estilos = StyleSheet.create({
     padding: 15,
     marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
 
-  checkbox: { marginRight: 4 },
+  checkbox: {
+    marginRight: 4,
+  },
 
   taskText: {
     flex: 1,
@@ -97,7 +111,9 @@ const Estilos = StyleSheet.create({
     color: "#999",
   },
 
-  deleteButton: { padding: 8 },
+  deleteButton: {
+    padding: 8,
+  },
 
   emptyState: {
     flex: 1,
@@ -122,7 +138,8 @@ const Estilos = StyleSheet.create({
     textAlign: "center",
   },
 
-  /* Parte feita com IA até o BotaoConfirmar */
+  // MODAL DE CRIAÇÃO E EDIÇÃO
+
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -150,11 +167,14 @@ const Estilos = StyleSheet.create({
     marginBottom: 20,
   },
 
+  // SELEÇÃO DO TIPO DE EVENTO
+
   opcaoContainer: {
     flexDirection: "row",
     alignItems: "center",
     maxWidth: "100%",
     marginRight: 20,
+    minHeight: 36,
   },
 
   opcoesRow: {
@@ -169,7 +189,6 @@ const Estilos = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "#4B6CB7",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
@@ -180,7 +199,6 @@ const Estilos = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#4B6CB7",
   },
 
   textoOpcao: {
@@ -188,6 +206,69 @@ const Estilos = StyleSheet.create({
     fontFamily: "FredokaLight",
     flexShrink: 1,
   },
+
+  textoTipoAdicionar: {
+    paddingBottom: 15,
+    fontFamily: "FredokaLight",
+  },
+
+  // CAMPOS DO FORMULÁRIO
+
+  infoTarefa: {
+    gap: 10,
+  },
+
+  textosInfo: {
+    width: "100%",
+    minHeight: 48,
+    borderWidth: 1,
+    borderColor: "#dbdbdb",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontFamily: "FredokaLight",
+    textAlignVertical: "center",
+  },
+
+  titulosInfoTarefa: {
+    marginTop: 20,
+    fontFamily: "FredokaMedium",
+  },
+
+  // SELETOR DE DATA
+
+  campoData: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingVertical: 12,
+  },
+
+  textoCampoData: {
+    flex: 1,
+    flexShrink: 1,
+    fontFamily: "FredokaLight",
+  },
+
+  seletorData: {
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#dbdbdb",
+    borderRadius: 12,
+    padding: 4,
+    overflow: "hidden",
+  },
+
+  botaoFecharCalendario: {
+    minHeight: 44,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  // BOTÕES DO MODAL
 
   botoesModal: {
     flexDirection: "row",
@@ -232,24 +313,12 @@ const Estilos = StyleSheet.create({
     maxWidth: "100%",
   },
 
-  infoTarefa: { gap: 10 },
-
-  textosInfo: {
-    borderWidth: 1,
-    borderColor: "#dbdbdb",
-    borderRadius: 10,
-    minHeight: 48,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontFamily: "FredokaLight",
+  buttons: {
+    marginBottom: 50,
+    alignItems: "center",
   },
 
-  titulosInfoTarefa: {
-    marginTop: 20,
-    fontFamily: "FredokaMedium",
-  },
-
-  buttons: { marginBottom: 50, alignItems: "center" },
+  // CARDS DOS EVENTOS
 
   topoCard: {
     flexDirection: "row",
@@ -281,11 +350,6 @@ const Estilos = StyleSheet.create({
     fontFamily: "FredokaLight",
   },
 
-  textoTipoAdicionar: {
-    paddingBottom: 15,
-    fontFamily: "FredokaLight",
-  },
-
   textodataEvento: {
     fontFamily: "FredokaLight",
   },
@@ -313,30 +377,7 @@ const Estilos = StyleSheet.create({
 
   modalContent: {},
 
-  campoData: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingVertical: 12,
-  },
-
-  seletorData: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#dbdbdb",
-    borderRadius: 12,
-    padding: 4,
-    overflow: "hidden",
-  },
-
-  botaoFecharCalendario: {
-    minHeight: 44,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  // MODAL DE REFORÇO POSITIVO
 
   fecharReforco: {
     minWidth: 44,
@@ -399,6 +440,8 @@ const Estilos = StyleSheet.create({
     fontFamily: "FredokaLight",
     textAlign: "center",
   },
+
+  // IDENTIFICAÇÃO DO CRIADOR
 
   rodapeCriador: {
     flexDirection: "row",

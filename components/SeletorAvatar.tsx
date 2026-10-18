@@ -227,11 +227,7 @@ export default function SeletorAvatar({
                     { width: 64, height: 64, borderRadius: 32 },
                   ]}
                 >
-                  <Ionicons
-                    name="person-outline"
-                    size={36}
-                    color={tema.text}
-                  />
+                  <Ionicons name="person-outline" size={36} color={tema.text} />
                 </View>
 
                 <View style={estilos.nomeAvatar}>
@@ -305,10 +301,7 @@ export default function SeletorAvatar({
               }}
               disabled={!podeSalvar}
               onPress={salvarAvatar}
-              style={[
-                estilos.botaoSalvar,
-                { opacity: podeSalvar ? 1 : 0.5 },
-              ]}
+              style={[estilos.botaoSalvar, { opacity: podeSalvar ? 1 : 0.5 }]}
             >
               {salvando ? (
                 <ActivityIndicator color="#fff" />
@@ -329,12 +322,24 @@ export default function SeletorAvatar({
               accessibilityState={{ disabled: salvando }}
               disabled={salvando}
               onPress={fecharModal}
-              style={estilos.botaoCancelar}
+              style={[
+                estilos.botaoCancelar,
+                {
+                  backgroundColor: tema.botaoCancelar,
+                  borderColor: tema.bordaBotaoCancelar,
+                  borderWidth: tema.larguraBordaBotaoCancelar,
+                  opacity: salvando ? 0.5 : 1,
+                },
+              ]}
             >
               <Text
                 style={[
                   estilos.textoCentralizado,
-                  { color: tema.text, fontSize: 16 * escalaFonte },
+                  {
+                    color: tema.textoBotaoCancelar,
+                    fontSize: 16 * escalaFonte,
+                    fontFamily: "FredokaMedium",
+                  },
                 ]}
               >
                 Cancelar
@@ -427,6 +432,7 @@ const estilos = StyleSheet.create({
   },
 
   botaoCancelar: {
+    borderRadius: 10,
     padding: 14,
     minHeight: 48,
     alignItems: "center",

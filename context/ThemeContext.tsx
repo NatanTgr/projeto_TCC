@@ -1,3 +1,4 @@
+
 import React, {
   createContext,
   useContext,
@@ -43,6 +44,13 @@ export function ThemeProvider({
           professores: "#94c0df",
           Tutores: "#88c688",
           balaoChat: "#524c4c",
+
+          // Botões Cancelar e Fechar
+          botaoCancelar: "#655854",
+          textoBotaoCancelar: "#FFFDD0",
+          bordaBotaoCancelar: "#655854",
+          larguraBordaBotaoCancelar: 0,
+
           baloes: {
             estudante: "#65432C",
             professor: "#294B63",
@@ -60,6 +68,7 @@ export function ThemeProvider({
               padrao: "#2A2A2A",
             },
           },
+
           placeholder: "#fff",
           textoBotao: "#fff",
         }
@@ -76,6 +85,13 @@ export function ThemeProvider({
             professores: "#94c0df",
             Tutores: "#88c688",
             balaoChat: "#0057FF",
+
+            // Botões Cancelar e Fechar
+            botaoCancelar: "#303030",
+            textoBotaoCancelar: "#FFEA00",
+            bordaBotaoCancelar: "#FFEA00",
+            larguraBordaBotaoCancelar: 2,
+
             baloes: {
               estudante: "#000000",
               professor: "#000000",
@@ -93,6 +109,7 @@ export function ThemeProvider({
                 padrao: "#FFEA00",
               },
             },
+
             placeholder: "#fff",
             textoBotao: "#fff",
           }
@@ -108,6 +125,13 @@ export function ThemeProvider({
             professores: "#94c0df",
             Tutores: "#88c688",
             balaoChat: "#ffb1638f",
+
+            // Botões Cancelar e Fechar
+            botaoCancelar: "#8C7B75",
+            textoBotaoCancelar: "#FFFFFF",
+            bordaBotaoCancelar: "#8C7B75",
+            larguraBordaBotaoCancelar: 0,
+
             baloes: {
               estudante: "#FFE0BD",
               professor: "#D6EAF7",
@@ -125,6 +149,7 @@ export function ThemeProvider({
                 padrao: "#FFFFFF",
               },
             },
+
             placeholder: "#836F68" + 80,
             textoBotao: "#fff",
           };

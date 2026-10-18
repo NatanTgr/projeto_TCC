@@ -1,3 +1,4 @@
+
 import { StyleSheet } from "react-native";
 import type { useTheme } from "../context/ThemeContext";
 
@@ -5,7 +6,7 @@ type Tema = ReturnType<typeof useTheme>["tema"];
 
 export default function criarEstilos(
   tema: Tema,
-  escalaFonte: number,
+  escalaFonte: number
 ) {
   return StyleSheet.create({
     container: {
@@ -135,10 +136,13 @@ export default function criarEstilos(
     cardNotiChat: {
       backgroundColor: tema.card,
       borderRadius: 15,
-      padding: 20,
+      width: "100%",
+      minHeight: 70,
+      padding: 16,
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
+      gap: 12,
       elevation: 5,
     },
 
@@ -146,6 +150,7 @@ export default function criarEstilos(
       backgroundColor: tema.card,
       borderRadius: 15,
       width: "100%",
+      minHeight: 70,
       padding: 16,
       flexDirection: "row",
       justifyContent: "space-between",
@@ -410,17 +415,25 @@ export default function criarEstilos(
       fontSize: 20 * escalaFonte,
     },
 
+    // BOTÃO FECHAR - TAMANHO DA FONTE
+
     botaoFecharFonte: {
-      padding: 15,
+      backgroundColor: tema.botaoCancelar,
+      borderColor: tema.bordaBotaoCancelar,
+      borderWidth: tema.larguraBordaBotaoCancelar,
       borderRadius: 10,
-      marginTop: 5,
+      minHeight: 48,
+      padding: 14,
+      marginTop: 10,
       alignItems: "center",
+      justifyContent: "center",
     },
 
     textoFechar: {
-      color: tema.text,
+      color: tema.textoBotaoCancelar,
       fontSize: 16 * escalaFonte,
-      fontFamily: "FredokaLight",
+      fontFamily: "FredokaMedium",
+      textAlign: "center",
     },
 
     modalSenha: {
@@ -480,16 +493,25 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
+    // BOTÃO CANCELAR - SENHA, LIMPEZA E TURMA
+
     botaoCancelarSenha: {
+      backgroundColor: tema.botaoCancelar,
+      borderColor: tema.bordaBotaoCancelar,
+      borderWidth: tema.larguraBordaBotaoCancelar,
+      borderRadius: 10,
+      minHeight: 48,
       padding: 14,
+      marginTop: 10,
       alignItems: "center",
-      marginTop: 5,
+      justifyContent: "center",
     },
 
     textoCancelarSenha: {
-      color: tema.text,
-      fontSize: 15 * escalaFonte,
-      fontFamily: "FredokaLight",
+      color: tema.textoBotaoCancelar,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      textAlign: "center",
     },
 
     modalLimpeza: {
@@ -551,7 +573,8 @@ export default function criarEstilos(
     desabilitado: {
       opacity: 0.5,
     },
-        botaoSobrePaed: {
+
+    botaoSobrePaed: {
       backgroundColor: tema.modal,
       borderRadius: 15,
       padding: 20,
@@ -569,6 +592,140 @@ export default function criarEstilos(
       fontFamily: "FredokaLight",
       flexShrink: 1,
       textAlign: "center",
+    },
+
+    // BOTÃO ALTERAR TURMA
+
+    botaoAlterarTurma: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 12,
+      marginTop: 10,
+      minHeight: 48,
+    },
+
+    textoAlterarTurma: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaLight",
+      flexShrink: 1,
+      textAlign: "center",
+    },
+
+    // MODAL ALTERAR TURMA
+
+    modalTurma: {
+      width: "92%",
+      maxWidth: 520,
+      maxHeight: "85%",
+      flexGrow: 0,
+      borderRadius: 15,
+      backgroundColor: tema.modal,
+    },
+
+    tituloModalTurma: {
+      color: tema.text,
+      fontSize: 21 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 8,
+    },
+
+    textoModalTurma: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      marginBottom: 20,
+    },
+
+    labelTurma: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 8,
+    },
+
+    valorTurmaAtual: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 12,
+      marginBottom: 18,
+    },
+
+    inputTurma: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      marginBottom: 18,
+    },
+
+    botaoConfirmarTurma: {
+      backgroundColor: "#88C688",
+      borderRadius: 10,
+      padding: 14,
+      minHeight: 48,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    textoConfirmarTurma: {
+      color: "#FFFFFF",
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      textAlign: "center",
+    },
+
+    // AVISO DE ALTERAÇÃO DE TURMA
+
+    avisoAlterarTurma: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      borderWidth: 1,
+      borderLeftWidth: 4,
+      borderLeftColor: "#FFAA56",
+      borderRadius: 10,
+      padding: 14,
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: 10,
+      marginBottom: 20,
+    },
+
+    conteudoAvisoTurma: {
+      flex: 1,
+      minWidth: 0,
+      gap: 6,
+    },
+
+    tituloAvisoTurma: {
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      flexShrink: 1,
+    },
+
+    textoAvisoTurma: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      lineHeight: 21 * escalaFonte,
+      flexShrink: 1,
     },
   });
 }

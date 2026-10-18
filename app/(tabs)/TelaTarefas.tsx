@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -47,15 +48,45 @@ type CriadorEvento = {
   tipo: string;
 };
 
+const TIPOS_EVENTO = ["Tarefa", "Reunião", "Avaliação"] as const;
+
 export default function ListaTarefas() {
   const { alunoId } = useLocalSearchParams<{ alunoId?: string }>();
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
+  const { width, fontScale } = useWindowDimensions();
+
+  const botoesEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
 
   const [alunoTitulo, setAlunoTitulo] = useState<{
     id: string;
     nome: string;
   } | null>(null);
+
+  const [criadores, setCriadores] = useState<Record<string, CriadorEvento>>({});
+
+  const [reforcoPositivo, setReforcoPositivo] = useState<{
+    tarefaId: number;
+    titulo: string;
+  } | null>(null);
+
+  const [tarefas, setTarefas] = useState<Task[]>([]);
+  const [editando, setEditando] = useState(false);
+  const [modalVisivel, setModalVisivel] = useState(false);
+
+  const [tipoSelecionado, setTipoSelecionado] = useState("");
+  const [titulo, setTitulo] = useState("");
+  const [data, setData] = useState("");
+  const [disciplina, setDisciplina] = useState("");
+  const [professor, setProfessor] = useState("");
+  const [plataforma, setPlataforma] = useState("");
+  const [descricao, setDescricao] = useState("");
+
+  const [modalDetalhes, setModalDetalhes] = useState(false);
+  const [tarefaSelecionada, setTarefaSelecionada] = useState<Task | null>(null);
+
+  const [dataInterna, setDataInterna] = useState("");
+  const [calendarioDataAberto, setCalendarioDataAberto] = useState(false);
 
   useEffect(() => {
     let ativo = true;
@@ -103,40 +134,33 @@ export default function ListaTarefas() {
       : "Tarefas do aluno"
     : "Minhas Tarefas";
 
-  const { width, fontScale } = useWindowDimensions();
+  const getCorTipo = (tipo: string) => {
+    switch (tipo) {
+      case "Tarefa":
+        return "#88C688";
+      case "Reunião":
+        return "#94C0DF";
+      case "Avaliação":
+        return "#9E82C0";
+      default:
+        return "#94C0DF";
+    }
+  };
 
-  const botoesEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
+  const formatarData = (data: string) => {
+    const [ano, mes, dia] = data.split("-");
+    return `${dia}/${mes}/${ano}`;
+  };
 
-  const [criadores, setCriadores] = useState<Record<string, CriadorEvento>>({});
-
-  const [reforcoPositivo, setReforcoPositivo] = useState<{
-    tarefaId: number;
-    titulo: string;
-  } | null>(null);
-  const [tarefas, setTarefas] = useState<Task[]>([]);
-  const [editando, setEditando] = useState(false);
-  const [modalVisivel, setModalVisivel] = useState(false);
-
-  const [tipoSelecionado, setTipoSelecionado] = useState("");
-  const [titulo, setTitulo] = useState("");
-  const [data, setData] = useState("");
-  const [disciplina, setDisciplina] = useState("");
-  const [professor, setProfessor] = useState("");
-  const [plataforma, setPlataforma] = useState("");
-  const [descricao, setDescricao] = useState("");
-
-  const [modalDetalhes, setModalDetalhes] = useState(false);
-  const [tarefaSelecionada, setTarefaSelecionada] = useState<Task | null>(null);
-
-  const [dataInterna, setDataInterna] = useState("");
-  const [calendarioDataAberto, setCalendarioDataAberto] = useState(false);
+  const converterData = (data: string) => {
+    const [ano, mes, dia] = data.split("-");
+    return new Date(Number(ano), Number(mes) - 1, Number(dia));
+  };
 
   const validarData = (data: string) => {
     const partes = data.split("-");
 
-    if (partes.length !== 3) {
-      return false;
-    }
+    if (partes.length !== 3) return false;
 
     const ano = Number(partes[0]);
     const mes = Number(partes[1]);
@@ -151,6 +175,24 @@ export default function ListaTarefas() {
     );
   };
 
+  const limparFormulario = () => {
+    setTitulo("");
+    setData("");
+    setDataInterna("");
+    setDisciplina("");
+    setProfessor("");
+    setPlataforma("");
+    setDescricao("");
+    setTipoSelecionado("");
+    setCalendarioDataAberto(false);
+  };
+
+  const fecharModal = () => {
+    setModalVisivel(false);
+    setEditando(false);
+    limparFormulario();
+  };
+
   const adicionarTarefa = async () => {
     if (
       !titulo.trim() ||
@@ -161,7 +203,7 @@ export default function ListaTarefas() {
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha título, data, disciplina, professor e tipo do evento.",
+        "Preencha título, data, disciplina, professor e tipo do evento."
       );
       return false;
     }
@@ -169,7 +211,7 @@ export default function ListaTarefas() {
     if (!validarData(dataInterna)) {
       Alert.alert(
         "Data inválida",
-        "Digite uma data válida no formato dd/mm/aaaa.",
+        "Selecione uma data válida."
       );
       return false;
     }
@@ -183,7 +225,7 @@ export default function ListaTarefas() {
     if (dataEvento < hoje) {
       Alert.alert(
         "Data inválida",
-        "Não é possível criar um evento em uma data que já passou.",
+        "Não é possível criar um evento em uma data que já passou."
       );
       return false;
     }
@@ -226,52 +268,22 @@ export default function ListaTarefas() {
     setTarefas((tarefasAtuais) => [...tarefasAtuais, tarefaSalva]);
     await getData();
 
-    setTitulo("");
-    setData("");
-    setDisciplina("");
-    setProfessor("");
-    setPlataforma("");
-    setDescricao("");
-    setTipoSelecionado("");
+    limparFormulario();
 
     console.log("Tarefa adicionada");
     return true;
   };
 
-  const getCorTipo = (tipo: string) => {
-    switch (tipo) {
-      case "Tarefa":
-        return "#88C688";
-
-      case "Reunião":
-        return "#94C0DF";
-
-      case "Avaliação":
-        return "#9E82C0";
-
-      default:
-        return "#94C0DF";
-    }
-  };
-
-  const formatarData = (data: string) => {
-    const [ano, mes, dia] = data.split("-");
-    return `${dia}/${mes}/${ano}`;
-  };
-
   const identificarCriador = (tarefa: Task) => {
-    if (!tarefa.criado_por) {
-      return "Não informado";
-    }
+    if (!tarefa.criado_por) return "Não informado";
+
     if (tarefa.criado_por === tarefa.aluno_id) {
       return "Você";
     }
 
     const criador = criadores[tarefa.criado_por];
 
-    if (!criador) {
-      return "Nome indisponível";
-    }
+    if (!criador) return "Nome indisponível";
 
     const papel =
       criador.tipo === "tutor"
@@ -307,9 +319,17 @@ export default function ListaTarefas() {
           onPress={() => alterarStatusTarefa(item.id)}
         >
           {item.concluido ? (
-            <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
+            <Ionicons
+              name="checkmark-circle"
+              size={24}
+              color="#4CAF50"
+            />
           ) : (
-            <Ionicons name="ellipse-outline" size={24} color="#ccc" />
+            <Ionicons
+              name="ellipse-outline"
+              size={24}
+              color="#ccc"
+            />
           )}
         </TouchableOpacity>
 
@@ -317,7 +337,10 @@ export default function ListaTarefas() {
           style={[
             Estilos.tituloEvento,
             item.concluido && Estilos.completedTaskText,
-            { color: tema.text, fontSize: 18 * escalaFonte },
+            {
+              color: tema.text,
+              fontSize: 18 * escalaFonte,
+            },
           ]}
         >
           {item.titulo}
@@ -329,7 +352,12 @@ export default function ListaTarefas() {
             { backgroundColor: getCorTipo(item.tipo) },
           ]}
         >
-          <Text style={[Estilos.textoTipo, { fontSize: 14 * escalaFonte }]}>
+          <Text
+            style={[
+              Estilos.textoTipo,
+              { fontSize: 14 * escalaFonte },
+            ]}
+          >
             {item.tipo}
           </Text>
         </View>
@@ -352,6 +380,7 @@ export default function ListaTarefas() {
       >
         👨‍🏫 Prof. {item.professor}
       </Text>
+
       <View style={Estilos.rodapeCriador}>
         <Ionicons
           name="person-outline"
@@ -378,12 +407,10 @@ export default function ListaTarefas() {
   const alterarStatusTarefa = async (id: number) => {
     try {
       const tarefa = tarefas.find((task) => task.id === id);
-
       if (!tarefa) return;
 
       const novoStatus = !tarefa.concluido;
 
-      // Usa a data local, permitindo concluir durante todo o dia do prazo.
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
 
@@ -391,7 +418,8 @@ export default function ListaTarefas() {
       prazo.setHours(0, 0, 0, 0);
 
       const dentroDoPrazo =
-        validarData(tarefa.data) && prazo.getTime() >= hoje.getTime();
+        validarData(tarefa.data) &&
+        prazo.getTime() >= hoje.getTime();
 
       const { data: tarefaAtualizada, error } = await supabase
         .from("tarefas")
@@ -402,12 +430,17 @@ export default function ListaTarefas() {
 
       if (error || !tarefaAtualizada) {
         console.log("Erro ao alterar status da tarefa:", error);
-        Alert.alert("Erro", "Não foi possível alterar o status da tarefa.");
+        Alert.alert(
+          "Erro",
+          "Não foi possível alterar o status da tarefa."
+        );
         return;
       }
 
       setTarefas((tarefasAtuais) =>
-        tarefasAtuais.map((task) => (task.id === id ? tarefaAtualizada : task)),
+        tarefasAtuais.map((task) =>
+          task.id === id ? tarefaAtualizada : task
+        )
       );
 
       if (novoStatus && dentroDoPrazo) {
@@ -416,14 +449,16 @@ export default function ListaTarefas() {
           titulo: tarefa.titulo,
         });
       } else {
-        // Remove a mensagem se a conclusão dessa tarefa for desfeita.
         setReforcoPositivo((mensagemAtual) =>
-          mensagemAtual?.tarefaId === id ? null : mensagemAtual,
+          mensagemAtual?.tarefaId === id ? null : mensagemAtual
         );
       }
     } catch (error) {
       console.log("Erro ao alterar status da tarefa:", error);
-      Alert.alert("Erro", "Não foi possível alterar o status da tarefa.");
+      Alert.alert(
+        "Erro",
+        "Não foi possível alterar o status da tarefa."
+      );
     }
   };
 
@@ -448,11 +483,17 @@ export default function ListaTarefas() {
 
               if (error) {
                 console.log("Erro ao remover tarefa:", error);
-                Alert.alert("Erro", "Não foi possível remover a tarefa.");
+                Alert.alert(
+                  "Erro",
+                  "Não foi possível remover a tarefa."
+                );
                 return;
               }
 
-              setTarefas(tarefas.filter((task) => task.id !== id));
+              setTarefas((tarefasAtuais) =>
+                tarefasAtuais.filter((task) => task.id !== id)
+              );
+
               setModalDetalhes(false);
               setTarefaSelecionada(null);
             } catch (error) {
@@ -460,12 +501,14 @@ export default function ListaTarefas() {
             }
           },
         },
-      ],
+      ]
     );
   };
 
   const totalTarefas = tarefas.length;
-  const tarefasCompletas = tarefas.filter((task) => task.concluido).length;
+  const tarefasCompletas = tarefas.filter(
+    (task) => task.concluido
+  ).length;
 
   const getData = async () => {
     try {
@@ -498,20 +541,26 @@ export default function ListaTarefas() {
         ...new Set(
           listaTarefas
             .map((tarefa) => tarefa.criado_por)
-            .filter((id): id is string => Boolean(id)),
+            .filter((id): id is string => Boolean(id))
         ),
       ];
 
       const mapaCriadores: Record<string, CriadorEvento> = {};
 
       if (idsCriadores.length > 0) {
-        const { data: usuariosCriadores, error: erroCriadores } = await supabase
+        const {
+          data: usuariosCriadores,
+          error: erroCriadores,
+        } = await supabase
           .from("usuarios")
           .select("id, nome, tipo")
           .in("id", idsCriadores);
 
         if (erroCriadores) {
-          console.log("Erro ao carregar criadores dos eventos:", erroCriadores);
+          console.log(
+            "Erro ao carregar criadores dos eventos:",
+            erroCriadores
+          );
         } else {
           for (const criador of usuariosCriadores || []) {
             mapaCriadores[criador.id] = criador;
@@ -524,11 +573,6 @@ export default function ListaTarefas() {
     } catch (error) {
       console.log("Erro ao carregar tarefas:", error);
     }
-  };
-
-  const converterData = (data: string) => {
-    const [ano, mes, dia] = data.split("-");
-    return new Date(Number(ano), Number(mes) - 1, Number(dia));
   };
 
   const agora = new Date();
@@ -577,7 +621,8 @@ export default function ListaTarefas() {
     data.setHours(0, 0, 0, 0);
 
     const diferencaDias =
-      (data.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24);
+      (data.getTime() - hoje.getTime()) /
+      (1000 * 60 * 60 * 24);
 
     if (diferencaDias < 0) {
       atrasadas.push(tarefa);
@@ -617,16 +662,13 @@ export default function ListaTarefas() {
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha título, data, disciplina, professor e tipo do evento.",
+        "Preencha título, data, disciplina, professor e tipo do evento."
       );
       return false;
     }
 
     if (!validarData(dataInterna)) {
-      Alert.alert(
-        "Data inválida",
-        "Digite uma data válida no formato dd/mm/aaaa.",
-      );
+      Alert.alert("Data inválida", "Selecione uma data válida.");
       return false;
     }
 
@@ -639,7 +681,7 @@ export default function ListaTarefas() {
     if (dataEvento < hoje) {
       Alert.alert(
         "Data inválida",
-        "Não é possível colocar o evento em uma data que já passou.",
+        "Não é possível colocar o evento em uma data que já passou."
       );
       return false;
     }
@@ -668,27 +710,22 @@ export default function ListaTarefas() {
         return false;
       }
 
-      setTarefas(
-        tarefas.map((task) =>
-          task.id === tarefaSelecionada.id ? tarefaAtualizada : task,
-        ),
+      setTarefas((tarefasAtuais) =>
+        tarefasAtuais.map((task) =>
+          task.id === tarefaSelecionada.id
+            ? tarefaAtualizada
+            : task
+        )
       );
 
       setTarefaSelecionada(tarefaAtualizada);
-
-      setTitulo("");
-      setData("");
-      setDataInterna("");
-      setDisciplina("");
-      setProfessor("");
-      setPlataforma("");
-      setDescricao("");
-      setTipoSelecionado("");
+      limparFormulario();
       setEditando(false);
 
       return true;
     } catch (error) {
       console.log("Erro ao editar tarefa:", error);
+      Alert.alert("Erro", "Não foi possível editar a tarefa.");
       return false;
     }
   };
@@ -701,38 +738,63 @@ export default function ListaTarefas() {
         <Text
           style={[
             Estilos.tituloSecao,
-            { color: tema.text, fontSize: 22 * escalaFonte },
+            {
+              color: tema.text,
+              fontSize: 22 * escalaFonte,
+            },
           ]}
         >
           {titulo}
         </Text>
 
         {dados.map((item) => (
-          <View key={item.id}>{renderizarTarefas({ item })}</View>
+          <View key={item.id}>
+            {renderizarTarefas({ item })}
+          </View>
         ))}
       </View>
     );
   };
 
-  const textoBotao = editando ? "Salvar Alterações" : "Adicionar Evento";
+  const textoBotao = editando
+    ? "Salvar Alterações"
+    : "Adicionar Evento";
 
   useFocusEffect(
     useCallback(() => {
-      getData();
-    }, [alunoId]),
+      void getData();
+    }, [alunoId])
   );
+
+  // Mesmo estilo visual para todos os inputs do formulário
+  const estiloCampo = [
+    Estilos.textosInfo,
+    {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+    },
+  ];
 
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      style={[Estilos.container, { backgroundColor: tema.background }]}
+      style={[
+        Estilos.container,
+        { backgroundColor: tema.background },
+      ]}
     >
+      {/* Cabeçalho */}
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
           <Text
             style={[
               Estilos.headerTitle,
-              { color: tema.text, fontSize: 30 * escalaFonte },
+              {
+                color: tema.text,
+                fontSize: 30 * escalaFonte,
+              },
             ]}
           >
             {tituloTela}
@@ -755,9 +817,17 @@ export default function ListaTarefas() {
               style={Estilos.addButton}
               accessibilityRole="button"
               accessibilityLabel="Adicionar evento"
-              onPress={() => setModalVisivel(true)}
+              onPress={() => {
+                limparFormulario();
+                setEditando(false);
+                setModalVisivel(true);
+              }}
             >
-              <Ionicons name="add" size={24 * escalaFonte} color="white" />
+              <Ionicons
+                name="add"
+                size={24 * escalaFonte}
+                color="white"
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -765,13 +835,17 @@ export default function ListaTarefas() {
         <Text
           style={[
             Estilos.taskCount,
-            { color: tema.text, fontSize: 14 * escalaFonte },
+            {
+              color: tema.text,
+              fontSize: 14 * escalaFonte,
+            },
           ]}
         >
           {tarefasCompletas} de {totalTarefas} concluídas
         </Text>
       </View>
 
+      {/* Lista de eventos */}
       {tarefas.length > 0 ? (
         <ScrollView
           style={Estilos.taskList}
@@ -785,9 +859,15 @@ export default function ListaTarefas() {
         </ScrollView>
       ) : (
         <View style={Estilos.emptyState}>
-          <Ionicons name="checkmark-done-outline" size={64} color="#e0e0e0" />
+          <Ionicons
+            name="checkmark-done-outline"
+            size={64}
+            color="#e0e0e0"
+          />
 
-          <Text style={Estilos.emptyStateText}>Nenhuma tarefa adicionada</Text>
+          <Text style={Estilos.emptyStateText}>
+            Nenhuma tarefa adicionada
+          </Text>
 
           <Text style={Estilos.emptyStateSubtext}>
             Adicione uma tarefa para começar!
@@ -795,20 +875,27 @@ export default function ListaTarefas() {
         </View>
       )}
 
+      {/* Modal de criação e edição */}
       <Modal
         transparent
         visible={modalVisivel}
         animationType="fade"
-        onRequestClose={() => setModalVisivel(false)}
+        onRequestClose={fecharModal}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={[Estilos.modalOverlay, { paddingVertical: 16 }]}
+          style={[
+            Estilos.modalOverlay,
+            { paddingVertical: 16 },
+          ]}
         >
           <ScrollView
             style={[
               Estilos.cardModal,
-              { backgroundColor: tema.modal, flexGrow: 0 },
+              {
+                backgroundColor: tema.modal,
+                flexGrow: 0,
+              },
             ]}
             contentContainerStyle={{
               padding: width < 380 ? 16 : 20,
@@ -819,108 +906,106 @@ export default function ListaTarefas() {
             <Text
               style={[
                 Estilos.tituloModal,
-                { color: tema.text, fontSize: 20 * escalaFonte },
+                {
+                  color: tema.text,
+                  fontSize: 20 * escalaFonte,
+                },
               ]}
             >
               {editando ? "Editar Evento" : "Novo Evento"}
             </Text>
 
+            {/* Tipo do evento */}
             <Text
               style={[
                 Estilos.textoTipoAdicionar,
-                { color: tema.text, fontSize: 14 * escalaFonte },
+                {
+                  color: tema.text,
+                  fontSize: 14 * escalaFonte,
+                },
               ]}
             >
               Tipo
             </Text>
 
             <View style={Estilos.opcoesRow}>
-              <TouchableOpacity
-                style={Estilos.opcaoContainer}
-                onPress={() => setTipoSelecionado("Tarefa")}
-              >
-                <View style={Estilos.radioExterno}>
-                  {tipoSelecionado === "Tarefa" && (
-                    <View style={Estilos.radioInterno} />
-                  )}
-                </View>
+              {TIPOS_EVENTO.map((tipo) => {
+                const selecionado = tipoSelecionado === tipo;
+                const cor = getCorTipo(tipo);
 
-                <Text
-                  style={[
-                    Estilos.textoOpcao,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Tarefa
-                </Text>
-              </TouchableOpacity>
+                return (
+                  <TouchableOpacity
+                    key={tipo}
+                    style={Estilos.opcaoContainer}
+                    onPress={() => setTipoSelecionado(tipo)}
+                    accessibilityRole="radio"
+                    accessibilityState={{
+                      selected: selecionado,
+                    }}
+                    accessibilityLabel={tipo}
+                  >
+                    <View
+                      style={[
+                        Estilos.radioExterno,
+                        { borderColor: cor },
+                      ]}
+                    >
+                      {selecionado && (
+                        <View
+                          style={[
+                            Estilos.radioInterno,
+                            { backgroundColor: cor },
+                          ]}
+                        />
+                      )}
+                    </View>
 
-              <TouchableOpacity
-                style={Estilos.opcaoContainer}
-                onPress={() => setTipoSelecionado("Reunião")}
-              >
-                <View style={Estilos.radioExterno}>
-                  {tipoSelecionado === "Reunião" && (
-                    <View style={Estilos.radioInterno} />
-                  )}
-                </View>
-
-                <Text
-                  style={[
-                    Estilos.textoOpcao,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Reunião
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={Estilos.opcaoContainer}
-                onPress={() => setTipoSelecionado("Avaliação")}
-              >
-                <View style={Estilos.radioExterno}>
-                  {tipoSelecionado === "Avaliação" && (
-                    <View style={Estilos.radioInterno} />
-                  )}
-                </View>
-
-                <Text
-                  style={[
-                    Estilos.textoOpcao,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
-                  ]}
-                >
-                  Avaliação
-                </Text>
-              </TouchableOpacity>
+                    <Text
+                      style={[
+                        Estilos.textoOpcao,
+                        {
+                          color: tema.text,
+                          fontSize: 16 * escalaFonte,
+                        },
+                      ]}
+                    >
+                      {tipo}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
 
             <View style={Estilos.infoTarefa}>
+              {/* Título */}
               <Text
                 style={[
                   Estilos.titulosInfoTarefa,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 14 * escalaFonte,
+                  },
                 ]}
               >
                 Título
               </Text>
 
               <TextInput
-                style={[
-                  Estilos.textosInfo,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
-                ]}
+                style={estiloCampo}
                 placeholder="Nome do evento"
                 placeholderTextColor={tema.placeholder}
                 value={titulo}
                 onChangeText={setTitulo}
               />
 
+              {/* Data */}
               <Text
                 style={[
                   Estilos.titulosInfoTarefa,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 14 * escalaFonte,
+                  },
                 ]}
               >
                 Data
@@ -930,37 +1015,52 @@ export default function ListaTarefas() {
                 onPress={abrirCalendarioData}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  data ? `Alterar data: ${data}` : "Selecionar data do evento"
+                  data
+                    ? `Alterar data: ${data}`
+                    : "Selecionar data do evento"
                 }
-                accessibilityState={{ expanded: calendarioDataAberto }}
+                accessibilityState={{
+                  expanded: calendarioDataAberto,
+                }}
                 style={[
-                  Estilos.textosInfo,
+                  estiloCampo,
                   Estilos.campoData,
-                  { backgroundColor: tema.card },
                 ]}
               >
                 <Text
-                  style={{
-                    color: tema.text,
-                    fontSize: 16 * escalaFonte,
-                    flex: 1,
-                    flexShrink: 1,
-                  }}
+                  style={[
+                    Estilos.textoCampoData,
+                    {
+                      color: data ? tema.text : tema.placeholder,
+                      fontSize: 16 * escalaFonte,
+                    },
+                  ]}
                 >
                   {data || "Selecionar data"}
                 </Text>
 
-                <Ionicons name="calendar-outline" size={24} color={tema.text} />
+                <Ionicons
+                  name="calendar-outline"
+                  size={24}
+                  color={tema.text}
+                />
               </TouchableOpacity>
 
               {calendarioDataAberto && (
                 <View
-                  style={[Estilos.seletorData, { backgroundColor: tema.card }]}
+                  style={[
+                    Estilos.seletorData,
+                    {
+                      backgroundColor: tema.card,
+                      borderColor: tema.border,
+                    },
+                  ]}
                 >
                   <Calendar
                     key={`seletor-data-${escalaFonte}-${tema.background}`}
                     current={
-                      dataInterna && dataInterna >= hojeCalendario
+                      dataInterna &&
+                      dataInterna >= hojeCalendario
                         ? dataInterna
                         : hojeCalendario
                     }
@@ -996,7 +1096,9 @@ export default function ListaTarefas() {
                   />
 
                   <TouchableOpacity
-                    onPress={() => setCalendarioDataAberto(false)}
+                    onPress={() =>
+                      setCalendarioDataAberto(false)
+                    }
                     accessibilityRole="button"
                     style={Estilos.botaoFecharCalendario}
                   >
@@ -1005,6 +1107,7 @@ export default function ListaTarefas() {
                         color: tema.text,
                         fontSize: 14 * escalaFonte,
                         textAlign: "center",
+                        fontFamily: "FredokaLight",
                       }}
                     >
                       Fechar calendário
@@ -1013,80 +1116,84 @@ export default function ListaTarefas() {
                 </View>
               )}
 
+              {/* Disciplina */}
               <Text
                 style={[
                   Estilos.titulosInfoTarefa,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 14 * escalaFonte,
+                  },
                 ]}
               >
                 Disciplina
               </Text>
 
               <TextInput
-                style={[
-                  Estilos.textosInfo,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
-                ]}
+                style={estiloCampo}
                 placeholder="Ex: Matemática"
                 placeholderTextColor={tema.placeholder}
                 value={disciplina}
                 onChangeText={setDisciplina}
               />
 
+              {/* Professor */}
               <Text
                 style={[
                   Estilos.titulosInfoTarefa,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 14 * escalaFonte,
+                  },
                 ]}
               >
                 Professor
               </Text>
 
               <TextInput
-                style={[
-                  Estilos.textosInfo,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
-                ]}
+                style={estiloCampo}
                 placeholder="Nome do professor"
                 placeholderTextColor={tema.placeholder}
                 value={professor}
                 onChangeText={setProfessor}
               />
 
+              {/* Plataforma */}
               <Text
                 style={[
                   Estilos.titulosInfoTarefa,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 14 * escalaFonte,
+                  },
                 ]}
               >
                 Plataforma de Realização (Opcional)
               </Text>
 
               <TextInput
-                style={[
-                  Estilos.textosInfo,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
-                ]}
+                style={estiloCampo}
                 placeholder="Ex: Google Classroom, Moodle"
                 placeholderTextColor={tema.placeholder}
                 value={plataforma}
                 onChangeText={setPlataforma}
               />
 
+              {/* Descrição */}
               <Text
                 style={[
                   Estilos.titulosInfoTarefa,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 14 * escalaFonte,
+                  },
                 ]}
               >
                 Descrição (Opcional)
               </Text>
 
               <TextInput
-                style={[
-                  Estilos.textosInfo,
-                  { color: tema.text, fontSize: 14 * escalaFonte },
-                ]}
+                style={estiloCampo}
                 placeholder="Detalhes do evento"
                 placeholderTextColor={tema.placeholder}
                 value={descricao}
@@ -1094,10 +1201,13 @@ export default function ListaTarefas() {
               />
             </View>
 
+            {/* Botões do modal */}
             <View
               style={[
                 Estilos.botoesModal,
-                botoesEmColuna && { flexDirection: "column" },
+                botoesEmColuna && {
+                  flexDirection: "column",
+                },
               ]}
             >
               <TouchableOpacity
@@ -1110,23 +1220,15 @@ export default function ListaTarefas() {
                     width: "100%",
                   },
                 ]}
-                onPress={() => {
-                  setModalVisivel(false);
-                  setEditando(false);
-                  setTitulo("");
-                  setData("");
-                  setDataInterna("");
-                  setDisciplina("");
-                  setProfessor("");
-                  setPlataforma("");
-                  setDescricao("");
-                  setTipoSelecionado("");
-                }}
+                onPress={fecharModal}
               >
                 <Text
                   style={[
                     Estilos.textoBotao,
-                    { color: tema.textoBotao, fontSize: 16 * escalaFonte },
+                    {
+                      color: tema.textoBotao,
+                      fontSize: 16 * escalaFonte,
+                    },
                   ]}
                 >
                   Cancelar
@@ -1144,25 +1246,22 @@ export default function ListaTarefas() {
                   },
                 ]}
                 onPress={async () => {
-                  if (editando) {
-                    const sucesso = await editarTarefa();
+                  const sucesso = editando
+                    ? await editarTarefa()
+                    : await adicionarTarefa();
 
-                    if (sucesso) {
-                      setModalVisivel(false);
-                    }
-                  } else {
-                    const sucesso = await adicionarTarefa();
-
-                    if (sucesso) {
-                      setModalVisivel(false);
-                    }
+                  if (sucesso) {
+                    setModalVisivel(false);
                   }
                 }}
               >
                 <Text
                   style={[
                     Estilos.textoBotao,
-                    { color: tema.textoBotao, fontSize: 16 * escalaFonte },
+                    {
+                      color: tema.textoBotao,
+                      fontSize: 16 * escalaFonte,
+                    },
                   ]}
                 >
                   {textoBotao}
@@ -1173,6 +1272,7 @@ export default function ListaTarefas() {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Modal de detalhes */}
       <ModalDetalhesTarefa
         visible={modalDetalhes}
         tarefa={tarefaSelecionada}
@@ -1184,6 +1284,8 @@ export default function ListaTarefas() {
           }
         }}
       />
+
+      {/* Modal de reforço positivo */}
       <Modal
         visible={reforcoPositivo !== null}
         transparent
@@ -1192,7 +1294,10 @@ export default function ListaTarefas() {
       >
         <View style={Estilos.overlayReforco}>
           <View
-            style={[Estilos.modalReforco, { backgroundColor: tema.card }]}
+            style={[
+              Estilos.modalReforco,
+              { backgroundColor: tema.card },
+            ]}
             accessibilityViewIsModal
           >
             <ScrollView
@@ -1210,7 +1315,10 @@ export default function ListaTarefas() {
                 accessibilityRole="header"
                 style={[
                   Estilos.tituloReforco,
-                  { color: tema.text, fontSize: 24 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 24 * escalaFonte,
+                  },
                 ]}
               >
                 Parabéns!
@@ -1219,7 +1327,10 @@ export default function ListaTarefas() {
               <Text
                 style={[
                   Estilos.textoReforco,
-                  { color: tema.text, fontSize: 18 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 18 * escalaFonte,
+                  },
                 ]}
               >
                 Você concluiu “{reforcoPositivo?.titulo}” dentro do prazo!
@@ -1228,7 +1339,10 @@ export default function ListaTarefas() {
               <Text
                 style={[
                   Estilos.textoReforco,
-                  { color: tema.text, fontSize: 16 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 16 * escalaFonte,
+                  },
                 ]}
               >
                 Cada passo conta. Você está avançando!
@@ -1246,7 +1360,10 @@ export default function ListaTarefas() {
                 <Text
                   style={[
                     Estilos.textoBotaoReforco,
-                    { color: tema.text, fontSize: 18 * escalaFonte },
+                    {
+                      color: tema.text,
+                      fontSize: 18 * escalaFonte,
+                    },
                   ]}
                 >
                   Continuar
