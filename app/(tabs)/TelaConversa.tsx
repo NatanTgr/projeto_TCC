@@ -32,6 +32,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import * as Crypto from "expo-crypto";
 
 import AvatarImagem from "../../components/AvatarImagem";
 import { buscarAvatar } from "../../components/avatares";
@@ -361,7 +362,9 @@ export default function Conversa() {
           );
         } else {
           setMensagens(
-            ((data || []) as Mensagem[]).map(prepararImagem)
+            ((data || []) as Mensagem[]).map((mensagem) =>
+              prepararImagem(mensagem),
+            ),
           );
         }
 
@@ -726,11 +729,7 @@ export default function Conversa() {
         rolarAposEnvioRef.current = true;
       }
 
-      const nomeArquivo =
-        `${usuarioLogadoId}/` +
-        `${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(2)}.jpg`;
+      const nomeArquivo = `${usuarioLogadoId}/${Crypto.randomUUID()}.jpg`;
 
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
