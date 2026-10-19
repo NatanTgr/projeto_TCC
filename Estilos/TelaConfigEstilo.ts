@@ -84,6 +84,130 @@ export default function criarEstilos(
       flexShrink: 1,
     },
 
+    // MODAL DOS VÍDEOS TUTORIAIS
+
+    modalTutoriais: {
+      width: "92%",
+      maxWidth: 520,
+      maxHeight: "85%",
+      backgroundColor: tema.modal,
+      borderRadius: 16,
+      padding: 18,
+    },
+
+    cabecalhoTutoriais: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 10,
+    },
+
+    tituloTutoriaisContainer: {
+      flex: 1,
+      minWidth: 0,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+    },
+
+    tituloModalTutoriais: {
+      flex: 1,
+      flexShrink: 1,
+      color: tema.text,
+      fontSize: 21 * escalaFonte,
+      fontFamily: "FredokaMedium",
+    },
+
+    botaoXTutoriais: {
+      width: 42,
+      height: 42,
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: 10,
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      borderWidth: 1,
+    },
+
+    descricaoTutoriais: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+      marginTop: 12,
+      marginBottom: 15,
+    },
+
+    rolagemTutoriais: {
+      flexGrow: 0,
+      flexShrink: 1,
+    },
+
+    listaTutoriais: {
+      gap: 10,
+      paddingBottom: 4,
+    },
+
+    opcaoTutorial: {
+      minHeight: 65,
+      padding: 12,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      borderWidth: 1,
+      borderRadius: 12,
+    },
+
+    iconeTutorial: {
+      width: 42,
+      height: 42,
+      alignItems: "center",
+      justifyContent: "center",
+      flexShrink: 0,
+    },
+
+    informacoesTutorial: {
+      flex: 1,
+      minWidth: 0,
+      gap: 4,
+    },
+
+    nomeTutorial: {
+      color: tema.text,
+      fontSize: 17 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      flexShrink: 1,
+    },
+
+    descricaoOpcaoTutorial: {
+      color: tema.text,
+      fontSize: 13 * escalaFonte,
+      fontFamily: "FredokaLight",
+      flexShrink: 1,
+    },
+
+    botaoFecharTutoriais: {
+      backgroundColor: tema.botaoCancelar,
+      borderColor: tema.bordaBotaoCancelar,
+      borderWidth: tema.larguraBordaBotaoCancelar,
+      borderRadius: 10,
+      padding: 14,
+      minHeight: 48,
+      marginTop: 15,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+
+    textoFecharTutoriais: {
+      color: tema.textoBotaoCancelar,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      textAlign: "center",
+    },
+
+    // CONFIGURAÇÕES
+
     cardConfig: {
       backgroundColor: tema.modal,
       borderRadius: 15,
@@ -181,6 +305,8 @@ export default function criarEstilos(
       fontFamily: "FredokaLight",
     },
 
+    // PERFIL
+
     perfilTopo: {
       flexDirection: "row",
       alignItems: "center",
@@ -257,6 +383,8 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
+    // TEMAS
+
     secaoTema: {
       width: "100%",
     },
@@ -302,6 +430,8 @@ export default function criarEstilos(
       fontSize: 14 * escalaFonte,
       fontFamily: "FredokaLight",
     },
+
+    // CONTA
 
     tituloConta: {
       color: tema.text,
@@ -360,6 +490,8 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
+    // MODAIS
+
     fundoModal: {
       flex: 1,
       justifyContent: "center",
@@ -414,8 +546,6 @@ export default function criarEstilos(
     muitoGrande: {
       fontSize: 20 * escalaFonte,
     },
-
-    // BOTÃO FECHAR - TAMANHO DA FONTE
 
     botaoFecharFonte: {
       backgroundColor: tema.botaoCancelar,
@@ -493,8 +623,6 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
-    // BOTÃO CANCELAR - SENHA, LIMPEZA E TURMA
-
     botaoCancelarSenha: {
       backgroundColor: tema.botaoCancelar,
       borderColor: tema.bordaBotaoCancelar,
@@ -513,6 +641,8 @@ export default function criarEstilos(
       fontFamily: "FredokaMedium",
       textAlign: "center",
     },
+
+    // LIMPEZA DE TAREFAS
 
     modalLimpeza: {
       width: "92%",
@@ -594,7 +724,7 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
-    // BOTÃO ALTERAR TURMA
+    // ALTERAR TURMA
 
     botaoAlterarTurma: {
       backgroundColor: tema.card,
@@ -617,8 +747,6 @@ export default function criarEstilos(
       flexShrink: 1,
       textAlign: "center",
     },
-
-    // MODAL ALTERAR TURMA
 
     modalTurma: {
       width: "92%",

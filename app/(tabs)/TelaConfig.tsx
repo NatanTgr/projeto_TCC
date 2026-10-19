@@ -1,3 +1,4 @@
+
 import {
   View,
   Text,
@@ -10,6 +11,7 @@ import {
   useWindowDimensions,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -65,6 +67,125 @@ const OPCOES_LIMPEZA: {
   { meses: 12, label: "1 ano" },
 ];
 
+// VÍDEOS TUTORIAIS POR TIPO DE USUÁRIO
+// Substitua os valores null pelos links dos vídeos.
+
+type TipoUsuario = Usuario["tipo"];
+
+type VideoTutorial = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  icone: keyof typeof Feather.glyphMap;
+  url: string | null;
+};
+
+
+const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
+  estudante: [
+    {
+      id: "calendario",
+      titulo: "Calendário",
+      descricao: "Consultar datas, eventos e avaliações.",
+      icone: "calendar",
+      url: null,
+    },
+    {
+      id: "tarefas",
+      titulo: "Tarefas",
+      descricao: "Criar, acompanhar e concluir tarefas.",
+      icone: "check-square",
+      url: null,
+    },
+    {
+      id: "chat",
+      titulo: "Chat",
+      descricao: "Conversar com professoras/professores e tutoras/tutores.",
+      icone: "message-circle",
+      url: null,
+    },
+    {
+      id: "alerta",
+      titulo: "Botão de alerta",
+      descricao: "Aprender a solicitar ajuda.",
+      icone: "alert-circle",
+      url: null,
+    },
+    {
+      id: "configuracoes",
+      titulo: "Configurações",
+      descricao: "Personalizar aparência, notificações e conta.",
+      icone: "settings",
+      url: null,
+    },
+  ],
+
+  professor: [
+    {
+      id: "chat-professor",
+      titulo: "Chat",
+      descricao: "Conversar com estudantes e tutoras/tutores.",
+      icone: "message-circle",
+      url: null,
+    },
+    {
+      id: "config-professor",
+      titulo: "Configurações",
+      descricao: "Ajustar perfil e preferências do aplicativo.",
+      icone: "settings",
+      url: null,
+    },
+  ],
+
+  tutor: [
+    {
+      id: "chat-tutor",
+      titulo: "Chat",
+      descricao: "Conversar com estudantes e professoras/professores.",
+      icone: "message-circle",
+      url: null,
+    },
+    {
+      id: "tarefas-tutor",
+      titulo: "Tarefas",
+      descricao: "Cadastrar, editar e acompanhar tarefas dos estudantes.",
+      icone: "clipboard",
+      url: null,
+    },
+    {
+      id: "config-tutor",
+      titulo: "Configurações",
+      descricao: "Ajustar perfil e preferências do aplicativo.",
+      icone: "settings",
+      url: null,
+    },
+  ],
+
+  napne: [
+    {
+      id: "chat-napne",
+      titulo: "Chat",
+      descricao: "Aprender a usar as conversas do aplicativo.",
+      icone: "message-circle",
+      url: null,
+    },
+    {
+      id: "tarefas-napne",
+      titulo: "Tarefas",
+      descricao: "Cadastrar, editar e acompanhar tarefas dos estudantes.",
+      icone: "clipboard",
+      url: null,
+    },
+    {
+      id: "config-napne",
+      titulo: "Configurações",
+      descricao: "Ajustar perfil e preferências do aplicativo.",
+      icone: "settings",
+      url: null,
+    },
+  ],
+};
+
 const OPCOES_TAMANHO = [
   { valor: "pequeno", label: "A — Pequeno" },
   { valor: "normal", label: "A — Normal" },
@@ -91,16 +212,16 @@ export default function TelaConfig() {
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
   const [chatAtivo, setChatAtivo] = useState(true);
-const [tarefasAtivas, setTarefasAtivas] = useState(true);
+  const [tarefasAtivas, setTarefasAtivas] = useState(true);
 
-const [salvandoNotificacao, setSalvandoNotificacao] = useState(false);
+  const [salvandoNotificacao, setSalvandoNotificacao] = useState(false);
 
-const preferenciasNotificacoesRef = useRef({
-  chat_ativo: true,
-  tarefas_ativas: true,
-});
+  const preferenciasNotificacoesRef = useRef({
+    chat_ativo: true,
+    tarefas_ativas: true,
+  });
 
-const salvandoNotificacaoRef = useRef(false);
+  const salvandoNotificacaoRef = useRef(false);
 
   const [prazoLimpeza, setPrazoLimpeza] = useState<PrazoLimpeza | null>(null);
   const [modalLimpeza, setModalLimpeza] = useState(false);
@@ -112,6 +233,9 @@ const salvandoNotificacaoRef = useRef(false);
   const [modalAlterarSenha, setModalAlterarSenha] = useState(false);
   const [modalAvatar, setModalAvatar] = useState(false);
 
+  // MODAL DE TUTORIAIS
+  const [modalTutoriais, setModalTutoriais] = useState(false);
+
   const [modalAlterarTurma, setModalAlterarTurma] = useState(false);
   const [novaTurma, setNovaTurma] = useState("");
   const [salvandoTurma, setSalvandoTurma] = useState(false);
@@ -119,6 +243,30 @@ const salvandoNotificacaoRef = useRef(false);
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [alterandoSenha, setAlterandoSenha] = useState(false);
+
+  // SELECIONA OS VÍDEOS DO TIPO DE USUÁRIO LOGADO
+  const tutoriaisDoUsuario = usuario ? TUTORIAIS[usuario.tipo] : [];
+
+  async function assistirTutorial(tutorial: VideoTutorial) {
+    if (!tutorial.url) {
+      Alert.alert(
+        "Tutorial em preparação",
+        `O vídeo de ${tutorial.titulo} ainda não está disponível.`,
+      );
+      return;
+    }
+
+    try {
+      await Linking.openURL(tutorial.url);
+    } catch (erro) {
+      console.error("Erro ao abrir vídeo tutorial:", erro);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível abrir o vídeo tutorial.",
+      );
+    }
+  }
 
   const avatarPerfil = buscarAvatar(usuario?.avatar);
 
@@ -192,80 +340,76 @@ const salvandoNotificacaoRef = useRef(false);
   }
 
   async function alterarNotificacao(
-  tipo: "chat" | "tarefas",
-  ativa: boolean
-) {
-  if (!usuario || salvandoNotificacaoRef.current) return;
+    tipo: "chat" | "tarefas",
+    ativa: boolean,
+  ) {
+    if (!usuario || salvandoNotificacaoRef.current) return;
 
-  salvandoNotificacaoRef.current = true;
-  setSalvandoNotificacao(true);
+    salvandoNotificacaoRef.current = true;
+    setSalvandoNotificacao(true);
 
-  const preferenciasAnteriores = {
-    ...preferenciasNotificacoesRef.current,
-  };
-
-  const novasPreferencias = {
-    ...preferenciasAnteriores,
-    chat_ativo:
-      tipo === "chat"
-        ? ativa
-        : preferenciasAnteriores.chat_ativo,
-    tarefas_ativas:
-      tipo === "tarefas"
-        ? ativa
-        : preferenciasAnteriores.tarefas_ativas,
-  };
-
-  // Atualiza o visual imediatamente
-  preferenciasNotificacoesRef.current = novasPreferencias;
-
-  setChatAtivo(novasPreferencias.chat_ativo);
-  setTarefasAtivas(novasPreferencias.tarefas_ativas);
-
-  try {
-    const { data, error } = await supabase
-      .from("preferencias_notificacoes")
-      .upsert(
-        {
-          usuario_id: usuario.id,
-          ...novasPreferencias,
-        },
-        { onConflict: "usuario_id" }
-      )
-      .select("chat_ativo, tarefas_ativas")
-      .single();
-
-    if (error) throw error;
-
-    const preferenciasConfirmadas = {
-      chat_ativo: data.chat_ativo,
-      tarefas_ativas: data.tarefas_ativas,
+    const preferenciasAnteriores = {
+      ...preferenciasNotificacoesRef.current,
     };
 
-    preferenciasNotificacoesRef.current =
-      preferenciasConfirmadas;
+    const novasPreferencias = {
+      ...preferenciasAnteriores,
+      chat_ativo:
+        tipo === "chat"
+          ? ativa
+          : preferenciasAnteriores.chat_ativo,
+      tarefas_ativas:
+        tipo === "tarefas"
+          ? ativa
+          : preferenciasAnteriores.tarefas_ativas,
+    };
 
-    setChatAtivo(preferenciasConfirmadas.chat_ativo);
-    setTarefasAtivas(preferenciasConfirmadas.tarefas_ativas);
-  } catch (erro) {
-    console.error("Erro ao alterar notificações:", erro);
+    preferenciasNotificacoesRef.current = novasPreferencias;
 
-    // Restaura os valores anteriores em caso de erro
-    preferenciasNotificacoesRef.current =
-      preferenciasAnteriores;
+    setChatAtivo(novasPreferencias.chat_ativo);
+    setTarefasAtivas(novasPreferencias.tarefas_ativas);
 
-    setChatAtivo(preferenciasAnteriores.chat_ativo);
-    setTarefasAtivas(preferenciasAnteriores.tarefas_ativas);
+    try {
+      const { data, error } = await supabase
+        .from("preferencias_notificacoes")
+        .upsert(
+          {
+            usuario_id: usuario.id,
+            ...novasPreferencias,
+          },
+          { onConflict: "usuario_id" },
+        )
+        .select("chat_ativo, tarefas_ativas")
+        .single();
 
-    Alert.alert(
-      "Erro",
-      "Não foi possível salvar esta configuração."
-    );
-  } finally {
-    salvandoNotificacaoRef.current = false;
-    setSalvandoNotificacao(false);
+      if (error) throw error;
+
+      const preferenciasConfirmadas = {
+        chat_ativo: data.chat_ativo,
+        tarefas_ativas: data.tarefas_ativas,
+      };
+
+      preferenciasNotificacoesRef.current = preferenciasConfirmadas;
+
+      setChatAtivo(preferenciasConfirmadas.chat_ativo);
+      setTarefasAtivas(preferenciasConfirmadas.tarefas_ativas);
+    } catch (erro) {
+      console.error("Erro ao alterar notificações:", erro);
+
+      preferenciasNotificacoesRef.current = preferenciasAnteriores;
+
+      setChatAtivo(preferenciasAnteriores.chat_ativo);
+      setTarefasAtivas(preferenciasAnteriores.tarefas_ativas);
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível salvar esta configuração.",
+      );
+    } finally {
+      salvandoNotificacaoRef.current = false;
+      setSalvandoNotificacao(false);
+    }
   }
-}
 
   const sairDaConta = async () => {
     try {
@@ -278,8 +422,6 @@ const salvandoNotificacaoRef = useRef(false);
         throw erroUsuario ?? new Error("Usuário não autenticado.");
       }
 
-      // Mantém a sessão ativa durante a exclusão do token
-      // para que a política RLS permita a operação.
       await removerPushChatDesteAparelho(user.id);
 
       const { error: erroSaida } = await supabase.auth.signOut({
@@ -567,7 +709,6 @@ const salvandoNotificacaoRef = useRef(false);
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
           <Text style={Estilos.headerTitle}>Configurações</Text>
-
           {usuario?.tipo === "estudante" && <BotaoAlerta />}
         </View>
       </View>
@@ -616,7 +757,6 @@ const salvandoNotificacaoRef = useRef(false);
                     <Text style={Estilos.detalhesPerfil}>
                       {dadosAluno.curso} • {dadosAluno.turno}
                     </Text>
-
                     <Text style={Estilos.detalhesPerfil}>
                       Turma: {dadosAluno.turma}
                     </Text>
@@ -651,7 +791,6 @@ const salvandoNotificacaoRef = useRef(false);
               ]}
             >
               <Feather name="edit-2" size={18} color={tema.text} />
-
               <Text style={Estilos.textoBotaoAvatar}>Alterar avatar</Text>
             </TouchableOpacity>
 
@@ -667,7 +806,6 @@ const salvandoNotificacaoRef = useRef(false);
                 accessibilityLabel="Alterar turma"
               >
                 <Feather name="edit-2" size={18} color={tema.text} />
-
                 <Text style={Estilos.textoAlterarTurma}>Alterar turma</Text>
               </TouchableOpacity>
             )}
@@ -680,10 +818,8 @@ const salvandoNotificacaoRef = useRef(false);
               <View style={Estilos.iconeConta}>
                 <Feather name="mail" size={21} color={tema.text} />
               </View>
-
               <View style={Estilos.conteudoConta}>
                 <Text style={Estilos.labelConta}>E-mail</Text>
-
                 <Text style={Estilos.valorConta}>
                   {usuario?.email || "Carregando..."}
                 </Text>
@@ -694,7 +830,6 @@ const salvandoNotificacaoRef = useRef(false);
               <View style={Estilos.iconeConta}>
                 <Feather name="lock" size={21} color={tema.text} />
               </View>
-
               <View style={Estilos.conteudoConta}>
                 <Text style={Estilos.labelConta}>Senha</Text>
                 <Text style={Estilos.valorConta}>••••••••</Text>
@@ -706,17 +841,23 @@ const salvandoNotificacaoRef = useRef(false);
               onPress={() => setModalAlterarSenha(true)}
             >
               <Feather name="edit-2" size={18} color={tema.text} />
-
               <Text style={Estilos.textoAlterarSenha}>Alterar senha</Text>
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={Estilos.cardTutorial}>
+          <TouchableOpacity
+            style={[Estilos.cardTutorial, !usuario && Estilos.desabilitado]}
+            onPress={() => setModalTutoriais(true)}
+            disabled={!usuario}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Escolher vídeo tutorial"
+          >
             <View style={Estilos.conteudoTutorial}>
               <Feather name="play-circle" size={26} color="#4CAF50" />
-
-              <Text style={Estilos.textoTutorial}>Vídeo Tutorial</Text>
+              <Text style={Estilos.textoTutorial}>Vídeos tutoriais</Text>
             </View>
+            <Feather name="chevron-right" size={24} color={tema.text} />
           </TouchableOpacity>
 
           <View style={Estilos.cardConfig}>
@@ -762,7 +903,6 @@ const salvandoNotificacaoRef = useRef(false);
             >
               <View style={Estilos.conteudoOpcao}>
                 <Text style={Estilos.tituloOpcao}>🔤 Tamanho da letra</Text>
-
                 <Text style={Estilos.textoTamanhoAtual}>
                   Atual: {tamanhoFonte}
                 </Text>
@@ -851,7 +991,6 @@ const salvandoNotificacaoRef = useRef(false);
             accessibilityLabel="Sobre o PAED"
           >
             <Feather name="info" size={24} color={tema.text} />
-
             <Text style={Estilos.textoSobrePaed}>Sobre o PAED</Text>
           </TouchableOpacity>
 
@@ -869,6 +1008,86 @@ const salvandoNotificacaoRef = useRef(false);
           aoSalvar={salvarAvatar}
         />
       )}
+
+      {/* MODAL DE SELEÇÃO DOS TUTORIAIS */}
+
+      <Modal
+        visible={modalTutoriais}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalTutoriais(false)}
+      >
+        <View style={Estilos.fundoModal}>
+          <View style={Estilos.modalTutoriais}>
+            <View style={Estilos.cabecalhoTutoriais}>
+              <View style={Estilos.tituloTutoriaisContainer}>
+                <Feather name="play-circle" size={25} color={tema.text} />
+                <Text style={Estilos.tituloModalTutoriais}>
+                  Vídeos tutoriais
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => setModalTutoriais(false)}
+                style={Estilos.botaoXTutoriais}
+                accessibilityRole="button"
+                accessibilityLabel="Fechar tutoriais"
+              >
+                <Feather name="x" size={24} color={tema.text} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={Estilos.descricaoTutoriais}>
+              Selecione a tela que deseja aprender a utilizar.
+            </Text>
+
+            <ScrollView
+              style={Estilos.rolagemTutoriais}
+              contentContainerStyle={Estilos.listaTutoriais}
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
+            >
+              {tutoriaisDoUsuario.map((tutorial) => (
+                <TouchableOpacity
+                  key={tutorial.id}
+                  style={Estilos.opcaoTutorial}
+                  onPress={() => void assistirTutorial(tutorial)}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Assistir tutorial de ${tutorial.titulo}`}
+                >
+                  <View style={Estilos.iconeTutorial}>
+                    <Feather
+                      name={tutorial.icone}
+                      size={23}
+                      color={tema.text}
+                    />
+                  </View>
+
+                  <View style={Estilos.informacoesTutorial}>
+                    <Text style={Estilos.nomeTutorial}>
+                      {tutorial.titulo}
+                    </Text>
+                    <Text style={Estilos.descricaoOpcaoTutorial}>
+                      {tutorial.descricao}
+                    </Text>
+                  </View>
+
+                  <Feather name="chevron-right" size={22} color={tema.text} />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={Estilos.botaoFecharTutoriais}
+              onPress={() => setModalTutoriais(false)}
+              accessibilityRole="button"
+            >
+              <Text style={Estilos.textoFecharTutoriais}>Fechar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={modalTamanhoFonte}
@@ -926,7 +1145,6 @@ const salvandoNotificacaoRef = useRef(false);
             showsVerticalScrollIndicator={false}
           >
             <Text style={Estilos.tituloModalSenha}>Alterar senha</Text>
-
             <Text style={Estilos.textoModalSenha}>
               Digite e confirme sua nova senha.
             </Text>
@@ -1022,7 +1240,6 @@ const salvandoNotificacaoRef = useRef(false);
                   <Text style={Estilos.textoOpcaoLimpeza}>
                     Após {opcao.label}
                   </Text>
-
                   {selecionada && (
                     <Feather name="check" size={22} color={tema.text} />
                   )}
@@ -1049,6 +1266,7 @@ const salvandoNotificacaoRef = useRef(false);
           </ScrollView>
         </View>
       </Modal>
+
       <Modal
         visible={modalAlterarTurma && usuario?.tipo === "estudante"}
         transparent
@@ -1070,7 +1288,6 @@ const salvandoNotificacaoRef = useRef(false);
             showsVerticalScrollIndicator={false}
           >
             <Text style={Estilos.tituloModalTurma}>Alterar turma</Text>
-
             <Text style={Estilos.textoModalTurma}>
               Informe sua nova turma para atualizar seus dados no aplicativo.
             </Text>
@@ -1086,14 +1303,13 @@ const salvandoNotificacaoRef = useRef(false);
                 <Text style={Estilos.textoAvisoTurma}>
                   Mantenha sua turma sempre atualizada e informe apenas dados
                   verdadeiros. Essa informação é importante para facilitar sua
-                  identificação e a comunicação com professoras/professores e tutoras/tutores pelo
-                  PAED.
+                  identificação e a comunicação com professoras/professores e
+                  tutoras/tutores pelo PAED.
                 </Text>
               </View>
             </View>
 
             <Text style={Estilos.labelTurma}>Turma atual</Text>
-
             <Text style={Estilos.valorTurmaAtual}>
               {dadosAluno?.turma || "Não informada"}
             </Text>
