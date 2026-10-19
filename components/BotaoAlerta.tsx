@@ -184,7 +184,7 @@ export default function BotaoAlerta() {
         accessibilityRole="button"
         accessibilityLabel={
           horarioPermitido
-            ? "Solicitar ajuda a um tutor"
+            ? "Solicitar ajuda a uma tutora ou um tutor"
             : "Alerta indisponível. Consulte o horário de uso"
         }
         accessibilityHint="Disponível das 7h20 às 22h30"

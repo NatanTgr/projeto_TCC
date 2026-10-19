@@ -869,6 +869,14 @@ export default function SignUp() {
   const selectedRole =
     (Array.isArray(role) ? role[0] : role) || "Estudante";
 
+  
+const tituloPerfil =
+  selectedRole === "Professor"
+    ? "Professora/Professor"
+    : selectedRole === "Tutor"
+      ? "Tutora/Tutor"
+      : selectedRole;
+  
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -981,7 +989,7 @@ export default function SignUp() {
     if (tipoUsuario === "professor" && !areaAtuacao.trim()) {
       Alert.alert(
         "Atenção",
-        "Preencha a área de atuação do professor."
+        "Preencha a área de atuação da professora/do professor."
       );
       return;
     }
@@ -1048,7 +1056,6 @@ export default function SignUp() {
 
   return (
     <SafeAreaView style={styles.container}>
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={cadastro.keyboard}
@@ -1090,7 +1097,7 @@ export default function SignUp() {
             ]}
           >
             <Text style={styles.signUpCardTitle}>
-              Criar conta - {selectedRole}
+              Criar conta - {tituloPerfil}
             </Text>
 
             <View style={styles.inputGroup}>
@@ -1165,17 +1172,11 @@ export default function SignUp() {
               <Text style={styles.label}>Campus</Text>
               <Pressable
                 accessibilityRole="button"
-                style={[
-                  ...estiloInput,
-                  !selectedEstado && cadastro.desativado,
-                ]}
+                style={[...estiloInput, !selectedEstado && cadastro.desativado]}
                 disabled={loading}
                 onPress={() => {
                   if (!selectedEstado) {
-                    Alert.alert(
-                      "Atenção",
-                      "Selecione um estado primeiro."
-                    );
+                    Alert.alert("Atenção", "Selecione um estado primeiro.");
                     return;
                   }
 
@@ -1308,12 +1309,7 @@ export default function SignUp() {
                 onPress={() => router.back()}
                 disabled={loading}
               >
-                <Text
-                  style={[
-                    styles.backButtonText,
-                    cadastro.botaoTexto,
-                  ]}
-                >
+                <Text style={[styles.backButtonText, cadastro.botaoTexto]}>
                   Voltar
                 </Text>
               </Pressable>
@@ -1337,12 +1333,7 @@ export default function SignUp() {
                 {loading ? (
                   <ActivityIndicator color={colors.white} />
                 ) : (
-                  <Text
-                    style={[
-                      styles.submitButtonText,
-                      cadastro.botaoTexto,
-                    ]}
-                  >
+                  <Text style={[styles.submitButtonText, cadastro.botaoTexto]}>
                     Criar conta
                   </Text>
                 )}

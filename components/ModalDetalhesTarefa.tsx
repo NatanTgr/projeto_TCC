@@ -177,7 +177,7 @@ export default function ModalDetalhesTarefa({
             <View style={[styles.bloco, { backgroundColor: tema.card }]}>
               {detalhe("calendar-outline", "Data", formatarData(tarefa.data))}
               {detalhe("book-outline", "Disciplina", tarefa.disciplina)}
-              {detalhe("person-outline", "Professor", tarefa.professor)}
+              {detalhe("person-outline", "Professora/Professor", tarefa.professor)}
               {detalhe(
                 "desktop-outline",
                 "Plataforma",

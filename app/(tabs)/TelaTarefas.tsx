@@ -131,7 +131,7 @@ export default function ListaTarefas() {
   const tituloTela = alunoId
     ? alunoTitulo?.id === alunoId
       ? `Tarefas de ${alunoTitulo.nome}`
-      : "Tarefas do aluno"
+      : "Tarefas da aluna/do aluno"
     : "Minhas Tarefas";
 
   const getCorTipo = (tipo: string) => {
@@ -203,7 +203,7 @@ export default function ListaTarefas() {
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha título, data, disciplina, professor e tipo do evento."
+        "Preencha título, data, disciplina, professora/professor e tipo do evento."
       );
       return false;
     }
@@ -285,16 +285,17 @@ export default function ListaTarefas() {
 
     if (!criador) return "Nome indisponível";
 
-    const papel =
-      criador.tipo === "tutor"
-        ? "Tutor"
-        : criador.tipo === "napne"
-          ? "NAPNE"
-          : criador.tipo === "estudante"
-            ? "Estudante"
-            : criador.tipo === "professor"
-              ? "Professor"
-              : "";
+    
+const papel =
+  criador.tipo === "tutor"
+    ? "Tutora/Tutor"
+    : criador.tipo === "napne"
+      ? "NAPNE"
+      : criador.tipo === "estudante"
+        ? "Estudante"
+        : criador.tipo === "professor"
+          ? "Professora/Professor"
+          : "";
 
     return papel ? `${criador.nome} (${papel})` : criador.nome;
   };
@@ -398,7 +399,7 @@ export default function ListaTarefas() {
             },
           ]}
         >
-          Criado por: {identificarCriador(item)}
+          Adicionado por: {identificarCriador(item)}
         </Text>
       </View>
     </TouchableOpacity>
@@ -662,7 +663,7 @@ export default function ListaTarefas() {
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha título, data, disciplina, professor e tipo do evento."
+        "Preencha título, data, disciplina, professora/professor e tipo do evento."
       );
       return false;
     }
@@ -1147,12 +1148,12 @@ export default function ListaTarefas() {
                   },
                 ]}
               >
-                Professor
+                Professora/Professor
               </Text>
 
               <TextInput
                 style={estiloCampo}
-                placeholder="Nome do professor"
+                placeholder="Nome da professora/do professor"
                 placeholderTextColor={tema.placeholder}
                 value={professor}
                 onChangeText={setProfessor}

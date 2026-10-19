@@ -603,9 +603,9 @@ const salvandoNotificacaoRef = useRef(false);
                   {usuario?.tipo === "estudante"
                     ? "Estudante"
                     : usuario?.tipo === "professor"
-                      ? "Professor"
+                      ? "Professora/Professor"
                       : usuario?.tipo === "tutor"
-                        ? "Tutor"
+                        ? "Tutora/Tutor"
                         : usuario?.tipo === "napne"
                           ? "Sala de recurso (NAPNE)"
                           : ""}
@@ -1086,7 +1086,7 @@ const salvandoNotificacaoRef = useRef(false);
                 <Text style={Estilos.textoAvisoTurma}>
                   Mantenha sua turma sempre atualizada e informe apenas dados
                   verdadeiros. Essa informação é importante para facilitar sua
-                  identificação e a comunicação com professores e tutores pelo
+                  identificação e a comunicação com professoras/professores e tutoras/tutores pelo
                   PAED.
                 </Text>
               </View>

@@ -1,18 +1,44 @@
-import { Ionicons } from '@expo/vector-icons';
-import { decode } from 'base64-arraybuffer';
-import * as FileSystem from 'expo-file-system/legacy';
-import * as ImagePicker from 'expo-image-picker';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, Text, TextInput, View, useWindowDimensions, } from "react-native";
-import { SafeAreaView, useSafeAreaInsets,} from "react-native-safe-area-context";
-import AvatarImagem from '../../components/AvatarImagem';
-import { buscarAvatar } from '../../components/avatares';
-import { useTheme } from '../../context/ThemeContext';
-import { useFontSize } from "../../context/FontSizeContext";
 
-import { supabase } from '../../lib/supabase';
-import { colors, styles } from '../../style';
+import { Ionicons } from "@expo/vector-icons";
+import { decode } from "base64-arraybuffer";
+import * as FileSystem from "expo-file-system/legacy";
+import * as ImagePicker from "expo-image-picker";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Image,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+
+import AvatarImagem from "../../components/AvatarImagem";
+import { buscarAvatar } from "../../components/avatares";
+import { useTheme } from "../../context/ThemeContext";
+import { useFontSize } from "../../context/FontSizeContext";
+import { supabase } from "../../lib/supabase";
+import { colors, styles } from "../../style";
 
 type Mensagem = {
   id: number;
@@ -20,90 +46,66 @@ type Mensagem = {
   conteudo: string | null;
   remetente: string;
   destinatario: string;
-
-  tipo?: 'texto' | 'imagem';
+  tipo?: "texto" | "imagem";
   arquivo_url?: string | null;
-
   editada?: boolean;
   data_edicao?: string | null;
-
   imagem_url?: string | null;
 };
 
 type ItemLista =
   | {
-      tipoItem: 'data';
+      tipoItem: "data";
       id: string;
       data: string;
     }
   | {
-      tipoItem: 'mensagem';
+      tipoItem: "mensagem";
       id: string;
       mensagem: Mensagem;
     };
 
-export default function Conversa() {
-  const router = useRouter();
+function obterChaveData(data: string) {
+  const d = new Date(data);
 
-  const { tema, tipoTema } = useTheme();
+  return [
+    d.getFullYear(),
+    String(d.getMonth() + 1).padStart(2, "0"),
+    String(d.getDate()).padStart(2, "0"),
+  ].join("-");
+}
 
-  const { escalaFonte } = useFontSize();
-  const { width, fontScale } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
+function formatarHorario(data: string) {
+  return new Date(data).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
-  const cabecalhoEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
+function formatarDataBloco(data: string) {
+  const hoje = new Date();
+  const ontem = new Date();
 
-  const tamanhoImagem = Math.max(
-    1,
-    Math.min(230, (width - insets.left - insets.right - 24) * 0.85 - 26),
-  );
+  ontem.setDate(hoje.getDate() - 1);
 
-  const params = useLocalSearchParams<{
-    usuarioId: string | string[];
-    usuarioNome: string | string[];
-    usuarioTipo: string | string[];
-  }>();
+  const chave = obterChaveData(data);
 
-  const usuarioDestinoId =
-    typeof params.usuarioId === 'string'
-      ? params.usuarioId
-      : params.usuarioId?.[0];
+  if (chave === obterChaveData(hoje.toISOString())) {
+    return "Hoje";
+  }
 
-  const usuarioDestinoNome =
-    typeof params.usuarioNome === 'string'
-      ? params.usuarioNome
-      : params.usuarioNome?.[0] || 'Usuário';
+  if (chave === obterChaveData(ontem.toISOString())) {
+    return "Ontem";
+  }
 
-  const usuarioDestinoTipo =
-    typeof params.usuarioTipo === 'string'
-      ? params.usuarioTipo
-      : params.usuarioTipo?.[0] || 'estudante';
+  return new Date(data).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
 
-  // Adiciona o prefixo "Prof." se for professor e já não o possuir
-  const nomeFormatado =
-    usuarioDestinoTipo === 'professor' && !usuarioDestinoNome.startsWith('Prof.')
-      ? `Prof. ${usuarioDestinoNome}`
-      : usuarioDestinoNome;
-
-  const [avatarDestino, setAvatarDestino] = useState<string | null>(null);
-
-  const [usuarioLogadoId, setUsuarioLogadoId] = useState<string | null>(null);
-
-  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
-
-  const [novaMensagem, setNovaMensagem] = useState('');
-
-  const [loading, setLoading] = useState(true);
-
-  const [enviando, setEnviando] = useState(false);
-
-  const [editandoId, setEditandoId] = useState<number | null>(null);
-
-  const [textoEditado, setTextoEditado] = useState('');
-
-  const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(null);
-
-function obterTipoBalao(tipo: string | null | undefined) {
+function obterTipoBalao(tipo?: string | null) {
   switch (tipo?.toLowerCase()) {
     case "estudante":
       return "estudante";
@@ -118,299 +120,380 @@ function obterTipoBalao(tipo: string | null | undefined) {
   }
 }
 
-const tipoBalaoMeu = obterTipoBalao(tipoUsuarioLogado);
-const tipoBalaoOutro = obterTipoBalao(usuarioDestinoTipo);
+export default function Conversa() {
+  const router = useRouter();
 
-const corBolhaMinha = tema.baloes[tipoBalaoMeu];
-const corBolhaOutra = tema.baloes[tipoBalaoOutro];
+  const { tema, tipoTema } = useTheme();
+  const { escalaFonte } = useFontSize();
+  const { width, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
 
-const corBordaMinha = tema.baloes.bordas[tipoBalaoMeu];
-const corBordaOutra = tema.baloes.bordas[tipoBalaoOutro];
+  const params = useLocalSearchParams<{
+    usuarioId: string | string[];
+    usuarioNome: string | string[];
+    usuarioTipo: string | string[];
+  }>();
 
-const corTextoBalao = tema.baloes.texto;
+  const usuarioDestinoId =
+    typeof params.usuarioId === "string"
+      ? params.usuarioId
+      : params.usuarioId?.[0];
+
+  const usuarioDestinoNome =
+    typeof params.usuarioNome === "string"
+      ? params.usuarioNome
+      : params.usuarioNome?.[0] || "Usuário";
+
+  const usuarioDestinoTipo =
+    typeof params.usuarioTipo === "string"
+      ? params.usuarioTipo
+      : params.usuarioTipo?.[0] || "estudante";
+
+  const nomeFormatado =
+    usuarioDestinoTipo === "professor" &&
+    !usuarioDestinoNome.startsWith("Prof.")
+      ? `Prof. ${usuarioDestinoNome}`
+      : usuarioDestinoNome;
+
+  const cabecalhoEmColuna =
+    width < 380 || escalaFonte * fontScale >= 1.2;
+
+  const tamanhoImagem = Math.max(
+    1,
+    Math.min(
+      230,
+      (width - insets.left - insets.right - 24) * 0.85 - 26
+    )
+  );
+
+  const [avatarDestino, setAvatarDestino] =
+    useState<string | null>(null);
+
+  const [usuarioLogadoId, setUsuarioLogadoId] =
+    useState<string | null>(null);
+
+  const [tipoUsuarioLogado, setTipoUsuarioLogado] =
+    useState<string | null>(null);
+
+  const [mensagens, setMensagens] = useState<Mensagem[]>([]);
+  const [novaMensagem, setNovaMensagem] = useState("");
+
+  const [loading, setLoading] = useState(true);
+  const [enviando, setEnviando] = useState(false);
+
+  const [editandoId, setEditandoId] =
+    useState<number | null>(null);
+
+  const [textoEditado, setTextoEditado] = useState("");
 
   const [imagemSelecionada, setImagemSelecionada] =
-  useState<string | null>(null);
+    useState<string | null>(null);
 
   const flatListRef = useRef<FlatList<ItemLista>>(null);
-
   const channelRef = useRef<any>(null);
 
-  // =========================================================
-  // INICIALIZAÇÃO
-  // =========================================================
+  // Controle de rolagem
+  const usuarioNoFinalRef = useRef(true);
+  const editandoMensagemRef = useRef(false);
+  const rolarAposEnvioRef = useRef(false);
 
-useEffect(() => {
-  let ativo = true;
+  const tipoBalaoMeu = obterTipoBalao(tipoUsuarioLogado);
+  const tipoBalaoOutro = obterTipoBalao(usuarioDestinoTipo);
 
-  void iniciarConversa(() => ativo);
+  const corBolhaMinha = tema.baloes[tipoBalaoMeu];
+  const corBolhaOutra = tema.baloes[tipoBalaoOutro];
 
-  return () => {
-    ativo = false;
+  const corBordaMinha = tema.baloes.bordas[tipoBalaoMeu];
+  const corBordaOutra = tema.baloes.bordas[tipoBalaoOutro];
 
-    const channel = channelRef.current;
-    channelRef.current = null;
+  const corTextoBalao = tema.baloes.texto;
 
-    if (channel) {
-      void supabase.removeChannel(channel);
-    }
-  };
-}, [usuarioDestinoId]);
+  const corTema =
+    usuarioDestinoTipo === "professor"
+      ? colors.professor
+      : usuarioDestinoTipo === "tutor"
+      ? colors.tutor
+      : colors.student;
 
-const marcarMensagensComoLidas = async (meuId: string) => {
-  if (!usuarioDestinoId) return;
+  const avatarEncontrado = buscarAvatar(avatarDestino);
 
-  const { error } = await supabase
-    .from("mensagens")
-    .update({ lida: true })
-    .eq("destinatario", meuId)
-    .eq("remetente", usuarioDestinoId)
-    .eq("lida", false);
+  // =====================================================
+  // FUNÇÕES AUXILIARES
+  // =====================================================
 
-  if (error) {
-    console.error("Erro ao marcar mensagens como lidas:", error);
-  }
-};
+  const marcarMensagensComoLidas = useCallback(
+    async (meuId: string) => {
+      if (!usuarioDestinoId) return;
 
-const iniciarConversa = async (estaAtivo: () => boolean) => {
-  if (!usuarioDestinoId) {
-    router.back();
-    return;
-  }
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (!estaAtivo()) return;
-
-  if (error || !user) {
-    router.replace("/login");
-    return;
-  }
-
-  setUsuarioLogadoId(user.id);
-
-  const { data: perfil, error: perfilError } = await supabase
-    .from("usuarios")
-    .select("tipo")
-    .eq("id", user.id)
-    .single();
-
-  if (!estaAtivo()) return;
-
-  if (perfilError) {
-    console.error("Erro ao carregar tipo do usuário:", perfilError);
-  }
-
-  setTipoUsuarioLogado(perfil?.tipo ?? null);
-
-  const { data: usuarioDestino, error: avatarError } = await supabase
-    .from("usuarios")
-    .select("avatar")
-    .eq("id", usuarioDestinoId)
-    .single();
-
-  if (!estaAtivo()) return;
-
-  if (avatarError) {
-    console.error("Erro ao carregar avatar da conversa:", avatarError);
-  }
-
-  setAvatarDestino(usuarioDestino?.avatar ?? null);
-
-  await carregarMensagens(user.id);
-
-  if (!estaAtivo()) return;
-
-  await iniciarRealtime(user.id);
-
-  if (!estaAtivo()) return;
-
-  await marcarMensagensComoLidas(user.id);
-};
-
-  // =========================================================
-  // CARREGAR MENSAGENS
-  // =========================================================
-
-  const carregarMensagens = async (meuId: string) => {
-    try {
-      setLoading(true);
-
-      const { data, error } = await supabase
-        .from('mensagens')
-        .select('*')
-        .or(
-          `and(remetente.eq.${meuId},destinatario.eq.${usuarioDestinoId}),and(remetente.eq.${usuarioDestinoId},destinatario.eq.${meuId})`
-        )
-        .order('data_envio', { ascending: true });
+      const { error } = await supabase
+        .from("mensagens")
+        .update({ lida: true })
+        .eq("destinatario", meuId)
+        .eq("remetente", usuarioDestinoId)
+        .eq("lida", false);
 
       if (error) {
-        console.error('Erro ao carregar mensagens:', error);
+        console.error(
+          "Erro ao marcar mensagens como lidas:",
+          error
+        );
+      }
+    },
+    [usuarioDestinoId]
+  );
+
+  const prepararImagem = useCallback((mensagem: Mensagem) => {
+    if (
+      mensagem.tipo !== "imagem" ||
+      !mensagem.arquivo_url
+    ) {
+      return mensagem;
+    }
+
+    const { data } = supabase.storage
+      .from("chat-imagens")
+      .getPublicUrl(mensagem.arquivo_url);
+
+    return {
+      ...mensagem,
+      imagem_url: data.publicUrl,
+    };
+  }, []);
+
+  const rolarParaUltimaMensagem = useCallback(
+    (animated = true) => {
+      if (editandoMensagemRef.current) return;
+
+      flatListRef.current?.scrollToOffset({
+        offset: 0,
+        animated,
+      });
+    },
+    []
+  );
+
+  // =====================================================
+  // INICIALIZAÇÃO E REALTIME
+  // =====================================================
+
+  useEffect(() => {
+    let ativo = true;
+    let canalLocal: any = null;
+
+    const iniciar = async () => {
+      if (!usuarioDestinoId) {
+        router.back();
         return;
       }
 
-      const mensagensCarregadas = (data || []) as Mensagem[];
+      setLoading(true);
+      setMensagens([]);
+      setUsuarioLogadoId(null);
+      setAvatarDestino(null);
 
-      // Busca URLs das imagens
-      const mensagensComImagens = await carregarUrlsDasImagens(
-        mensagensCarregadas
-      );
+      usuarioNoFinalRef.current = true;
+      editandoMensagemRef.current = false;
+      rolarAposEnvioRef.current = false;
 
-      setMensagens(mensagensComImagens);
+      try {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
 
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: false });
-      }, 150);
-    } catch (error) {
-      console.error('Erro inesperado:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+        if (!ativo) return;
 
-  // =========================================================
-  // CARREGAR URL DAS IMAGENS
-  // =========================================================
+        if (authError || !user) {
+          router.replace("/login");
+          return;
+        }
 
-  const carregarUrlsDasImagens = async (
-  lista: Mensagem[]
-): Promise<Mensagem[]> => {
-  const resultado = await Promise.all(
-    lista.map(async (mensagem) => {
-      if (
-        mensagem.tipo !== 'imagem' ||
-        !mensagem.arquivo_url
-      ) {
-        return mensagem;
+        setUsuarioLogadoId(user.id);
+
+        const [perfilResult, destinoResult] = await Promise.all([
+          supabase
+            .from("usuarios")
+            .select("tipo")
+            .eq("id", user.id)
+            .single(),
+
+          supabase
+            .from("usuarios")
+            .select("avatar")
+            .eq("id", usuarioDestinoId)
+            .single(),
+        ]);
+
+        if (!ativo) return;
+
+        if (perfilResult.error) {
+          console.error(
+            "Erro ao carregar perfil:",
+            perfilResult.error
+          );
+        }
+
+        if (destinoResult.error) {
+          console.error(
+            "Erro ao carregar avatar:",
+            destinoResult.error
+          );
+        }
+
+        setTipoUsuarioLogado(perfilResult.data?.tipo ?? null);
+        setAvatarDestino(destinoResult.data?.avatar ?? null);
+
+        const { data, error } = await supabase
+          .from("mensagens")
+          .select("*")
+          .or(
+            `and(remetente.eq.${user.id},destinatario.eq.${usuarioDestinoId}),and(remetente.eq.${usuarioDestinoId},destinatario.eq.${user.id})`
+          )
+          .order("data_envio", { ascending: true });
+
+        if (!ativo) return;
+
+        if (error) {
+          console.error("Erro ao carregar mensagens:", error);
+          Alert.alert(
+            "Erro",
+            "Não foi possível carregar a conversa."
+          );
+        } else {
+          setMensagens(
+            ((data || []) as Mensagem[]).map(prepararImagem)
+          );
+        }
+
+        canalLocal = supabase
+          .channel(
+            `chat-${user.id}-${usuarioDestinoId}-${Date.now()}`
+          )
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "mensagens",
+            },
+            async (payload) => {
+              if (!ativo) return;
+
+              if (payload.eventType === "INSERT") {
+                const nova = prepararImagem(
+                  payload.new as Mensagem
+                );
+
+                const pertenceAoChat =
+                  (nova.remetente === user.id &&
+                    nova.destinatario === usuarioDestinoId) ||
+                  (nova.remetente === usuarioDestinoId &&
+                    nova.destinatario === user.id);
+
+                if (!pertenceAoChat) return;
+
+                setMensagens((atual) => {
+                  if (atual.some((m) => m.id === nova.id)) {
+                    return atual;
+                  }
+
+                  return [...atual, nova].sort(
+                    (a, b) =>
+                      new Date(a.data_envio).getTime() -
+                      new Date(b.data_envio).getTime()
+                  );
+                });
+
+                if (nova.destinatario === user.id) {
+                  void marcarMensagensComoLidas(user.id);
+                }
+
+                return;
+              }
+
+              if (payload.eventType === "UPDATE") {
+                const atualizada = payload.new as Mensagem;
+
+                setMensagens((atual) => {
+                  const indice = atual.findIndex(
+                    (m) => m.id === atualizada.id
+                  );
+
+                  if (indice === -1) return atual;
+
+                  const anterior = atual[indice];
+
+                  // Evita renderização desnecessária quando
+                  // apenas o status de leitura muda.
+                  if (
+                    anterior.conteudo === atualizada.conteudo &&
+                    anterior.editada === atualizada.editada &&
+                    anterior.arquivo_url === atualizada.arquivo_url &&
+                    anterior.data_edicao === atualizada.data_edicao
+                  ) {
+                    return atual;
+                  }
+
+                  return atual.map((m) =>
+                    m.id === atualizada.id
+                      ? prepararImagem({
+                          ...m,
+                          ...atualizada,
+                        })
+                      : m
+                  );
+                });
+
+                return;
+              }
+
+              if (payload.eventType === "DELETE") {
+                const apagada = payload.old as Mensagem;
+
+                setMensagens((atual) =>
+                  atual.filter((m) => m.id !== apagada.id)
+                );
+              }
+            }
+          )
+          .subscribe();
+
+        channelRef.current = canalLocal;
+
+        await marcarMensagensComoLidas(user.id);
+      } catch (error) {
+        console.error(
+          "Erro inesperado ao iniciar conversa:",
+          error
+        );
+      } finally {
+        if (ativo) setLoading(false);
       }
-
-      const { data } = supabase.storage
-        .from('chat-imagens')
-        .getPublicUrl(mensagem.arquivo_url);
-
-      return {
-        ...mensagem,
-        imagem_url: data.publicUrl,
-      };
-    })
-  );
-
-  return resultado;
     };
 
-  // =========================================================
-  // REALTIME
-  // =========================================================
+    void iniciar();
 
-const iniciarRealtime = async (meuId: string) => {
-  if (channelRef.current) {
-    const channelAnterior = channelRef.current;
-    channelRef.current = null;
-    await supabase.removeChannel(channelAnterior);
-  }
+    return () => {
+      ativo = false;
 
-  const channel = supabase
-    .channel(`chat-${meuId}-${usuarioDestinoId}-${Date.now()}-${Math.random()}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "mensagens",
-      },
-      async (payload) => {
-        // -----------------------------
-        // INSERT
-        // -----------------------------
+      if (canalLocal) {
+        void supabase.removeChannel(canalLocal);
+      }
 
-        if (payload.eventType === "INSERT") {
-          let nova = payload.new as Mensagem;
+      if (channelRef.current === canalLocal) {
+        channelRef.current = null;
+      }
+    };
+  }, [
+    usuarioDestinoId,
+    marcarMensagensComoLidas,
+    prepararImagem,
+    router,
+  ]);
 
-          const pertenceAoChat =
-            (nova.remetente === meuId &&
-              nova.destinatario === usuarioDestinoId) ||
-            (nova.remetente === usuarioDestinoId &&
-              nova.destinatario === meuId);
-
-          if (!pertenceAoChat) return;
-
-          if (nova.destinatario === meuId) {
-            await marcarMensagensComoLidas(meuId);
-          }
-
-          if (nova.tipo === "imagem" && nova.arquivo_url) {
-            const { data } = supabase.storage
-              .from("chat-imagens")
-              .getPublicUrl(nova.arquivo_url);
-
-            nova = {
-              ...nova,
-              imagem_url: data.publicUrl,
-            };
-          }
-
-          setMensagens((atual) => {
-            const jaExiste = atual.some((mensagem) => mensagem.id === nova.id);
-
-            if (jaExiste) return atual;
-
-            return [...atual, nova].sort(
-              (a, b) =>
-                new Date(a.data_envio).getTime() -
-                new Date(b.data_envio).getTime(),
-            );
-          });
-
-          setTimeout(() => {
-            flatListRef.current?.scrollToEnd({
-              animated: true,
-            });
-          }, 100);
-        }
-
-        // -----------------------------
-        // UPDATE
-        // -----------------------------
-
-        if (payload.eventType === "UPDATE") {
-          const atualizada = payload.new as Mensagem;
-
-          setMensagens((atual) =>
-            atual.map((mensagem) =>
-              mensagem.id === atualizada.id
-                ? {
-                    ...mensagem,
-                    ...atualizada,
-                  }
-                : mensagem,
-            ),
-          );
-        }
-
-        // -----------------------------
-        // DELETE
-        // -----------------------------
-
-        if (payload.eventType === "DELETE") {
-          const apagada = payload.old as Mensagem;
-
-          setMensagens((atual) =>
-            atual.filter((mensagem) => mensagem.id !== apagada.id),
-          );
-        }
-      },
-    )
-    .subscribe();
-
-  channelRef.current = channel;
-};
-
-  // =========================================================
-  // ENVIAR TEXTO
-  // =========================================================
+  // =====================================================
+  // ENVIAR MENSAGEM
+  // =====================================================
 
   const enviarMensagem = async (textoParam?: string) => {
     const texto = (
@@ -429,313 +512,199 @@ const iniciarRealtime = async (meuId: string) => {
     try {
       setEnviando(true);
 
-      const { error } = await supabase.from('mensagens').insert({
-        conteudo: texto,
-        remetente: usuarioLogadoId,
-        destinatario: usuarioDestinoId,
-        tipo: 'texto',
-        arquivo_url: null,
-      });
+      if (!editandoMensagemRef.current) {
+        rolarAposEnvioRef.current = true;
+      }
 
-      if (error) {
-        console.error('Erro ao enviar mensagem:', error);
+      const { data, error } = await supabase
+        .from("mensagens")
+        .insert({
+          conteudo: texto,
+          remetente: usuarioLogadoId,
+          destinatario: usuarioDestinoId,
+          tipo: "texto",
+          arquivo_url: null,
+        })
+        .select("*")
+        .single();
 
-        Alert.alert(
-          'Erro',
-          'Não foi possível enviar a mensagem.'
-        );
+      if (error) throw error;
 
-        return;
+      // Mostra imediatamente, mesmo se o evento Realtime
+      // ainda não tiver chegado.
+      if (data) {
+        const enviada = data as Mensagem;
+
+        setMensagens((atual) => {
+          if (atual.some((m) => m.id === enviada.id)) {
+            return atual;
+          }
+
+          return [...atual, enviada].sort(
+            (a, b) =>
+              new Date(a.data_envio).getTime() -
+              new Date(b.data_envio).getTime()
+          );
+        });
       }
 
       if (textoParam === undefined) {
-        setNovaMensagem('');
+        setNovaMensagem("");
       }
+    } catch (error) {
+      rolarAposEnvioRef.current = false;
 
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({
-          animated: true,
-        });
-      }, 100);
+      console.error("Erro ao enviar mensagem:", error);
+      Alert.alert("Erro", "Não foi possível enviar a mensagem.");
     } finally {
       setEnviando(false);
     }
   };
 
-  // =========================================================
-  // EDITAR MENSAGEM
-  // =========================================================
+  // =====================================================
+  // EDIÇÃO DE MENSAGENS
+  // =====================================================
 
-  const iniciarEdicao = (mensagem: Mensagem) => {
-    if (mensagem.remetente !== usuarioLogadoId) {
-      return;
-    }
+  const iniciarEdicao = useCallback(
+    (mensagem: Mensagem) => {
+      if (
+        mensagem.remetente !== usuarioLogadoId ||
+        mensagem.tipo !== "texto"
+      ) {
+        return;
+      }
 
-    if (mensagem.tipo !== 'texto') {
-      return;
-    }
+      editandoMensagemRef.current = true;
+      usuarioNoFinalRef.current = false;
+      rolarAposEnvioRef.current = false;
 
-    setEditandoId(mensagem.id);
-    setTextoEditado(mensagem.conteudo || '');
-  };
+      setEditandoId(mensagem.id);
+      setTextoEditado(mensagem.conteudo || "");
+    },
+    [usuarioLogadoId]
+  );
 
-  const cancelarEdicao = () => {
+  const cancelarEdicao = useCallback(() => {
+    editandoMensagemRef.current = false;
+
     setEditandoId(null);
-    setTextoEditado('');
-  };
+    setTextoEditado("");
+  }, []);
 
   const salvarEdicao = async () => {
     const texto = textoEditado.trim();
 
-    if (!texto || !editandoId || !usuarioLogadoId) {
+    if (
+      !texto ||
+      editandoId === null ||
+      !usuarioLogadoId
+    ) {
       return;
     }
 
     try {
+      const dataEdicao = new Date().toISOString();
+
       const { error } = await supabase
-        .from('mensagens')
+        .from("mensagens")
         .update({
           conteudo: texto,
           editada: true,
-          data_edicao: new Date().toISOString(),
+          data_edicao: dataEdicao,
         })
-        .eq('id', editandoId)
-        .eq('remetente', usuarioLogadoId);
+        .eq("id", editandoId)
+        .eq("remetente", usuarioLogadoId);
 
-      if (error) {
-        console.error('Erro ao editar mensagem:', error);
-
-        Alert.alert(
-          'Erro',
-          'Não foi possível editar a mensagem.'
-        );
-
-        return;
-      }
+      if (error) throw error;
 
       setMensagens((atual) =>
-        atual.map((mensagem) =>
-          mensagem.id === editandoId
+        atual.map((m) =>
+          m.id === editandoId
             ? {
-                ...mensagem,
+                ...m,
                 conteudo: texto,
                 editada: true,
-                data_edicao: new Date().toISOString(),
+                data_edicao: dataEdicao,
               }
-            : mensagem
+            : m
         )
       );
 
       cancelarEdicao();
     } catch (error) {
-      console.error('Erro inesperado ao editar:', error);
+      console.error("Erro ao editar mensagem:", error);
+      Alert.alert("Erro", "Não foi possível editar a mensagem.");
     }
   };
 
-  // =========================================================
-  // APAGAR MENSAGEM
-  // =========================================================
+  // =====================================================
+  // EXCLUSÃO DE MENSAGENS
+  // =====================================================
 
-  const confirmarExclusao = (mensagem: Mensagem) => {
-    if (mensagem.remetente !== usuarioLogadoId) {
-      return;
-    }
+  const apagarMensagem = useCallback(
+    async (mensagem: Mensagem) => {
+      if (!usuarioLogadoId) return;
 
-    Alert.alert(
-      'Apagar mensagem',
-      'Deseja apagar esta mensagem?',
-      [
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-        {
-          text: 'Apagar',
-          style: 'destructive',
-          onPress: () => apagarMensagem(mensagem),
-        },
-      ]
-    );
-  };
+      try {
+        const { error } = await supabase
+          .from("mensagens")
+          .delete()
+          .eq("id", mensagem.id)
+          .eq("remetente", usuarioLogadoId);
 
-  const apagarMensagem = async (mensagem: Mensagem) => {
-    if (!usuarioLogadoId) return;
+        if (error) throw error;
 
-    try {
-      // Se for imagem, remove também do Storage
-      if (
-        mensagem.tipo === 'imagem' &&
-        mensagem.arquivo_url
-      ) {
-        const { error: storageError } =
-          await supabase.storage
-            .from('chat-imagens')
-            .remove([mensagem.arquivo_url]);
+        setMensagens((atual) =>
+          atual.filter((m) => m.id !== mensagem.id)
+        );
 
-        if (storageError) {
-          console.error(
-            'Erro ao apagar imagem:',
-            storageError
-          );
+        if (
+          mensagem.tipo === "imagem" &&
+          mensagem.arquivo_url
+        ) {
+          const { error: storageError } =
+            await supabase.storage
+              .from("chat-imagens")
+              .remove([mensagem.arquivo_url]);
+
+          if (storageError) {
+            console.error(
+              "Erro ao apagar imagem do Storage:",
+              storageError
+            );
+          }
         }
+      } catch (error) {
+        console.error("Erro ao apagar mensagem:", error);
+        Alert.alert("Erro", "Não foi possível apagar a mensagem.");
       }
+    },
+    [usuarioLogadoId]
+  );
 
-      const { error } = await supabase
-        .from('mensagens')
-        .delete()
-        .eq('id', mensagem.id)
-        .eq('remetente', usuarioLogadoId);
-
-      if (error) {
-        console.error(
-          'Erro ao apagar mensagem:',
-          error
-        );
-
-        Alert.alert(
-          'Erro',
-          'Não foi possível apagar a mensagem.'
-        );
-
-        return;
-      }
-
-      setMensagens((atual) =>
-        atual.filter(
-          (item) => item.id !== mensagem.id
-        )
-      );
-    } catch (error) {
-      console.error(
-        'Erro inesperado ao apagar:',
-        error
-      );
-    }
-  };
-
-  // =========================================================
-  // ESCOLHER IMAGEM
-  // =========================================================
-
-  const escolherImagem = async () => {
-    try {
-      const resultado =
-        await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          allowsEditing: true,
-          quality: 0.8,
-        });
-
-      if (resultado.canceled) {
-        return;
-      }
-
-      const imagem = resultado.assets[0];
-
-      if (!imagem?.uri) {
-        return;
-      }
-
-      await enviarImagem(
-        imagem.uri,
-        imagem.mimeType || 'image/jpeg',
-        imagem.fileName || `imagem-${Date.now()}.jpg`
-      );
-    } catch (error) {
-      console.error(
-        'Erro ao escolher imagem:',
-        error
-      );
-
+  const confirmarExclusao = useCallback(
+    (mensagem: Mensagem) => {
+      if (mensagem.remetente !== usuarioLogadoId) return;
 
       Alert.alert(
-        'Erro',
-        'Não foi possível selecionar a imagem.'
+        "Apagar mensagem",
+        "Deseja apagar esta mensagem?",
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Apagar",
+            style: "destructive",
+            onPress: () => void apagarMensagem(mensagem),
+          },
+        ]
       );
-    }
-  };
+    },
+    [usuarioLogadoId, apagarMensagem]
+  );
 
-  // =========================================================
-  // TIRAR FOTO
-  // =========================================================
-
-  const tirarFoto = async () => {
-    try {
-      const permissao =
-        await ImagePicker.requestCameraPermissionsAsync();
-
-      if (!permissao.granted) {
-        Alert.alert(
-          'Permissão necessária',
-          'Permita o acesso à câmera para tirar uma foto.'
-        );
-
-        return;
-      }
-
-      const resultado =
-        await ImagePicker.launchCameraAsync({
-          mediaTypes: ['images'],
-          allowsEditing: true,
-          quality: 0.8,
-        });
-
-      if (resultado.canceled) {
-        return;
-      }
-
-      const imagem = resultado.assets[0];
-
-      if (!imagem?.uri) {
-        return;
-      }
-
-      await enviarImagem(
-        imagem.uri,
-        imagem.mimeType || 'image/jpeg',
-        imagem.fileName || `foto-${Date.now()}.jpg`
-      );
-    } catch (error) {
-      console.error(
-        'Erro ao tirar foto:',
-        error
-      );
-
-      Alert.alert(
-        'Erro',
-        'Não foi possível tirar a foto.'
-      );
-    }
-  };
-
-  // =========================================================
-  // MENU DE IMAGEM
-  // =========================================================
-
-  const abrirOpcoesImagem = () => {
-    Alert.alert(
-      'Enviar imagem',
-      'Escolha uma opção',
-      [
-        {
-          text: 'Câmera',
-          onPress: tirarFoto,
-        },
-        {
-          text: 'Galeria',
-          onPress: escolherImagem,
-        },
-        {
-          text: 'Cancelar',
-          style: 'cancel',
-        },
-      ]
-    );
-  };
-
-  // =========================================================
-  // UPLOAD DA IMAGEM
-  // =========================================================
+  // =====================================================
+  // IMAGENS
+  // =====================================================
 
   const enviarImagem = async (
     uri: string,
@@ -753,270 +722,254 @@ const iniciarRealtime = async (meuId: string) => {
     try {
       setEnviando(true);
 
+      if (!editandoMensagemRef.current) {
+        rolarAposEnvioRef.current = true;
+      }
+
       const nomeArquivo =
         `${usuarioLogadoId}/` +
         `${Date.now()}-${Math.random()
           .toString(36)
           .substring(2)}.jpg`;
 
-      // Converte a URI do aparelho para ArrayBuffer.
-      // Essa abordagem é adequada para upload no React Native.
       const base64 = await FileSystem.readAsStringAsync(uri, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
       const arrayBuffer = decode(base64);
 
-
-      const { error: uploadError } =
-      await supabase.storage
-        .from('chat-imagens')
+      const { error: uploadError } = await supabase.storage
+        .from("chat-imagens")
         .upload(nomeArquivo, arrayBuffer, {
-      contentType: 'image/jpeg',
-      cacheControl: '3600',
-      upsert: false,
-    });
+          contentType: "image/jpeg",
+          cacheControl: "3600",
+          upsert: false,
+        });
 
-      if (uploadError) {
-        console.error(
-          'Erro ao enviar imagem para Storage:',
-          uploadError
-        );
+      if (uploadError) throw uploadError;
 
-        Alert.alert(
-          'Erro',
-          'Não foi possível enviar a imagem.'
-        );
-
-        return;
-      }
-
-      const { error: mensagemError } =
-        await supabase.from('mensagens').insert({
+      const { data, error: mensagemError } = await supabase
+        .from("mensagens")
+        .insert({
           conteudo: null,
           remetente: usuarioLogadoId,
           destinatario: usuarioDestinoId,
-          tipo: 'imagem',
+          tipo: "imagem",
           arquivo_url: nomeArquivo,
-        });
+        })
+        .select("*")
+        .single();
 
       if (mensagemError) {
-        console.error(
-          'Erro ao salvar mensagem de imagem:',
-          mensagemError
-        );
-
-        // Tenta apagar o arquivo caso a mensagem não tenha sido criada
         await supabase.storage
-          .from('chat-imagens')
+          .from("chat-imagens")
           .remove([nomeArquivo]);
 
-        Alert.alert(
-          'Erro',
-          'A imagem foi enviada, mas não foi possível registrar a mensagem.'
-        );
-
-        return;
+        throw mensagemError;
       }
 
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({
-          animated: true,
-        });
-      }, 150);
-    } catch (error) {
-      console.error(
-        'Erro inesperado ao enviar imagem:',
-        error
-      );
+      if (data) {
+        const mensagem = prepararImagem(data as Mensagem);
 
-      Alert.alert(
-        'Erro',
-        'Não foi possível enviar a imagem.'
-      );
+        setMensagens((atual) => {
+          if (atual.some((m) => m.id === mensagem.id)) {
+            return atual;
+          }
+
+          return [...atual, mensagem].sort(
+            (a, b) =>
+              new Date(a.data_envio).getTime() -
+              new Date(b.data_envio).getTime()
+          );
+        });
+      }
+    } catch (error) {
+      rolarAposEnvioRef.current = false;
+
+      console.error("Erro ao enviar imagem:", error);
+      Alert.alert("Erro", "Não foi possível enviar a imagem.");
     } finally {
       setEnviando(false);
     }
   };
 
-  // =========================================================
-  // FORMATAÇÃO DE HORÁRIO
-  // =========================================================
+  const escolherImagem = async () => {
+    try {
+      const resultado = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 0.8,
+      });
 
-  const formatarHorario = (data: string) => {
-    return new Date(data).toLocaleTimeString(
-      'pt-BR',
-      {
-        hour: '2-digit',
-        minute: '2-digit',
-      }
-    );
-  };
+      if (resultado.canceled) return;
 
-  // =========================================================
-  // DATA DA MENSAGEM
-  // =========================================================
+      const imagem = resultado.assets[0];
 
-  const obterChaveData = (data: string) => {
-    const dataMensagem = new Date(data);
+      if (!imagem?.uri) return;
 
-    return `${dataMensagem.getFullYear()}-${String(
-      dataMensagem.getMonth() + 1
-    ).padStart(2, '0')}-${String(
-      dataMensagem.getDate()
-    ).padStart(2, '0')}`;
-  };
-
-  const formatarDataBloco = (data: string) => {
-    const dataMensagem = new Date(data);
-
-    const hoje = new Date();
-
-    const ontem = new Date();
-    ontem.setDate(hoje.getDate() - 1);
-
-    const chaveMensagem = obterChaveData(data);
-
-    const chaveHoje = obterChaveData(
-      hoje.toISOString()
-    );
-
-    const chaveOntem = obterChaveData(
-      ontem.toISOString()
-    );
-
-    if (chaveMensagem === chaveHoje) {
-      return 'Hoje';
+      await enviarImagem(
+        imagem.uri,
+        imagem.mimeType || "image/jpeg",
+        imagem.fileName || `imagem-${Date.now()}.jpg`
+      );
+    } catch (error) {
+      console.error("Erro ao selecionar imagem:", error);
+      Alert.alert("Erro", "Não foi possível selecionar a imagem.");
     }
-
-    if (chaveMensagem === chaveOntem) {
-      return 'Ontem';
-    }
-
-    return dataMensagem.toLocaleDateString(
-      'pt-BR',
-      {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-      }
-    );
   };
 
-  // =========================================================
-  // TRANSFORMAR MENSAGENS EM BLOCOS DE DATA
-  // =========================================================
+  const tirarFoto = async () => {
+    try {
+      const permissao =
+        await ImagePicker.requestCameraPermissionsAsync();
 
-  const criarListaComDatas = (): ItemLista[] => {
+      if (!permissao.granted) {
+        Alert.alert(
+          "Permissão necessária",
+          "Permita o acesso à câmera para tirar uma foto."
+        );
+        return;
+      }
+
+      const resultado = await ImagePicker.launchCameraAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (resultado.canceled) return;
+
+      const imagem = resultado.assets[0];
+
+      if (!imagem?.uri) return;
+
+      await enviarImagem(
+        imagem.uri,
+        imagem.mimeType || "image/jpeg",
+        imagem.fileName || `foto-${Date.now()}.jpg`
+      );
+    } catch (error) {
+      console.error("Erro ao tirar foto:", error);
+      Alert.alert("Erro", "Não foi possível tirar a foto.");
+    }
+  };
+
+  const abrirOpcoesImagem = () => {
+    Alert.alert("Enviar imagem", "Escolha uma opção", [
+      { text: "Câmera", onPress: () => void tirarFoto() },
+      { text: "Galeria", onPress: () => void escolherImagem() },
+      { text: "Cancelar", style: "cancel" },
+    ]);
+  };
+
+  // =====================================================
+  // LISTA DE MENSAGENS
+  // =====================================================
+
+  // A FlatList será invertida.
+  // Portanto, os itens ficam do mais novo ao mais antigo.
+  const itensConversa = useMemo<ItemLista[]>(() => {
     const lista: ItemLista[] = [];
-
-    let ultimaData = '';
+    let ultimaData = "";
 
     mensagens.forEach((mensagem) => {
-      const chaveData = obterChaveData(
-        mensagem.data_envio
-      );
+      const chave = obterChaveData(mensagem.data_envio);
 
-      if (chaveData !== ultimaData) {
+      if (chave !== ultimaData) {
         lista.push({
-          tipoItem: 'data',
-          id: `data-${chaveData}`,
+          tipoItem: "data",
+          id: `data-${chave}`,
           data: mensagem.data_envio,
         });
 
-        ultimaData = chaveData;
+        ultimaData = chave;
       }
 
       lista.push({
-        tipoItem: 'mensagem',
+        tipoItem: "mensagem",
         id: `mensagem-${mensagem.id}`,
         mensagem,
       });
     });
 
-    return lista;
-  };
+    return lista.reverse();
+  }, [mensagens]);
 
-  // =========================================================
-  // COR DO TEMA
-  // =========================================================
+  const dadosExtrasLista = useMemo(
+    () => ({
+      escalaFonte,
+      tipoTema,
+      editandoId,
+      textoEditado,
+      usuarioLogadoId,
+      tema,
+    }),
+    [
+      escalaFonte,
+      tipoTema,
+      editandoId,
+      textoEditado,
+      usuarioLogadoId,
+      tema,
+    ]
+  );
 
-  const getCorPorTipoDestino = () => {
-    switch (usuarioDestinoTipo) {
-      case "professor":
-        return colors.professor;
-      case "tutor":
-        return colors.tutor;
-      default:
-        return colors.student;
-    }
-  };
-
-  const corTema = getCorPorTipoDestino();
-
-  // =========================================================
-  // RENDERIZAR SEPARADOR DE DATA
-  // =========================================================
-
-  const renderSeparadorData = (data: string) => {
-    return (
-      <View
-        style={{
-          alignItems: 'center',
-          marginVertical: 10,
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: tema.card,
-            paddingHorizontal: 13,
-            paddingVertical: 6,
-            borderRadius: 12,
-          }}
-        >
-          <Text
-            style={{
-              color: tema.text,
-              fontSize: 11 * escalaFonte,
-              fontWeight: '600',
-            }}
-          >
-            {formatarDataBloco(data)}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-
-  // =========================================================
-  // RENDERIZAR MENSAGEM
-  // =========================================================
+  // =====================================================
+  // RENDERIZAR MENSAGENS
+  // =====================================================
 
   const renderMensagem = ({
     item,
   }: {
     item: ItemLista;
   }) => {
-    if (item.tipoItem === 'data') {
-      return renderSeparadorData(item.data);
+    if (item.tipoItem === "data") {
+      return (
+        <View
+          style={{
+            alignItems: "center",
+            marginVertical: 10,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: tema.card,
+              paddingHorizontal: 13,
+              paddingVertical: 6,
+              borderRadius: 12,
+            }}
+          >
+            <Text
+              style={{
+                color: tema.text,
+                fontSize: 11 * escalaFonte,
+                fontFamily: "FredokaMedium",
+              }}
+            >
+              {formatarDataBloco(item.data)}
+            </Text>
+          </View>
+        </View>
+      );
     }
 
     const mensagem = item.mensagem;
-
     const minhaMensagem =
       mensagem.remetente === usuarioLogadoId;
 
-    const estaEditando =
-      editandoId === mensagem.id;
+    const estaEditando = editandoId === mensagem.id;
 
-    // -----------------------------------------
-    // EDIÇÃO
-    // -----------------------------------------
+    // -------------------------------------------------
+    // MENSAGEM EM EDIÇÃO
+    // -------------------------------------------------
 
     if (estaEditando) {
       return (
         <View
-          style={[styles.chatMessageContainer, styles.chatMessageContainerMine]}
+          style={[
+            styles.chatMessageContainer,
+            styles.chatMessageContainerMine,
+          ]}
         >
           <View
             style={{
@@ -1039,9 +992,13 @@ const iniciarRealtime = async (meuId: string) => {
                 color: tema.text,
                 fontSize: 15 * escalaFonte,
                 minHeight: 48,
-                maxHeight: Math.max(100, 100 * escalaFonte * fontScale),
+                maxHeight: Math.max(
+                  100,
+                  100 * escalaFonte * fontScale
+                ),
                 paddingVertical: 8,
                 textAlignVertical: "top",
+                fontFamily: "FredokaLight",
               }}
             />
 
@@ -1073,7 +1030,7 @@ const iniciarRealtime = async (meuId: string) => {
                     color: colors.text,
                     fontSize: 12 * escalaFonte,
                     textAlign: "center",
-                    fontWeight: "600",
+                    fontFamily: "FredokaMedium",
                   }}
                 >
                   Cancelar
@@ -1081,7 +1038,7 @@ const iniciarRealtime = async (meuId: string) => {
               </Pressable>
 
               <Pressable
-                onPress={salvarEdicao}
+                onPress={() => void salvarEdicao()}
                 disabled={!textoEditado.trim()}
                 style={{
                   paddingHorizontal: 12,
@@ -1101,7 +1058,7 @@ const iniciarRealtime = async (meuId: string) => {
                     color: colors.white,
                     fontSize: 12 * escalaFonte,
                     textAlign: "center",
-                    fontWeight: "700",
+                    fontFamily: "FredokaMedium",
                   }}
                 >
                   Salvar
@@ -1113,16 +1070,20 @@ const iniciarRealtime = async (meuId: string) => {
       );
     }
 
-    // -----------------------------------------
+    // -------------------------------------------------
     // MENSAGEM NORMAL
-    // -----------------------------------------
+    // -------------------------------------------------
 
     return (
       <Pressable
         onLongPress={() => {
-          if (minhaMensagem) {
-            if (mensagem.tipo === "texto") {
-              Alert.alert("Mensagem", "O que deseja fazer?", [
+          if (!minhaMensagem) return;
+
+          if (mensagem.tipo === "texto") {
+            Alert.alert(
+              "Mensagem",
+              "O que deseja fazer?",
+              [
                 {
                   text: "Editar",
                   onPress: () => iniciarEdicao(mensagem),
@@ -1130,16 +1091,14 @@ const iniciarRealtime = async (meuId: string) => {
                 {
                   text: "Apagar",
                   style: "destructive",
-                  onPress: () => confirmarExclusao(mensagem),
+                  onPress: () =>
+                    confirmarExclusao(mensagem),
                 },
-                {
-                  text: "Cancelar",
-                  style: "cancel",
-                },
-              ]);
-            } else {
-              confirmarExclusao(mensagem);
-            }
+                { text: "Cancelar", style: "cancel" },
+              ]
+            );
+          } else {
+            confirmarExclusao(mensagem);
           }
         }}
         style={[
@@ -1152,23 +1111,26 @@ const iniciarRealtime = async (meuId: string) => {
         <View
           style={[
             styles.chatBubble,
-            minhaMensagem ? styles.chatBubbleMine : styles.chatBubbleOther,
+            minhaMensagem
+              ? styles.chatBubbleMine
+              : styles.chatBubbleOther,
             {
-              backgroundColor: minhaMensagem ? corBolhaMinha : corBolhaOutra,
-
+              backgroundColor: minhaMensagem
+                ? corBolhaMinha
+                : corBolhaOutra,
               borderWidth: tipoTema === "forte" ? 2 : 0,
-
-              borderColor: minhaMensagem ? corBordaMinha : corBordaOutra,
+              borderColor: minhaMensagem
+                ? corBordaMinha
+                : corBordaOutra,
             },
           ]}
         >
-          {/* -----------------------------------
-              IMAGEM
-          ----------------------------------- */}
-
-          {mensagem.tipo === "imagem" && mensagem.imagem_url ? (
+          {mensagem.tipo === "imagem" &&
+          mensagem.imagem_url ? (
             <Pressable
-              onPress={() => setImagemSelecionada(mensagem.imagem_url!)}
+              onPress={() =>
+                setImagemSelecionada(mensagem.imagem_url!)
+              }
             >
               <Image
                 source={{ uri: mensagem.imagem_url }}
@@ -1182,10 +1144,6 @@ const iniciarRealtime = async (meuId: string) => {
               />
             </Pressable>
           ) : (
-            /* ---------------------------------
-               TEXTO
-            --------------------------------- */
-
             <Text
               style={[
                 styles.chatMessageText,
@@ -1240,9 +1198,9 @@ const iniciarRealtime = async (meuId: string) => {
     );
   };
 
-  // =========================================================
+  // =====================================================
   // TELA
-  // =========================================================
+  // =====================================================
 
   return (
     <SafeAreaView
@@ -1255,14 +1213,18 @@ const iniciarRealtime = async (meuId: string) => {
       ]}
       edges={["left", "right", "bottom"]}
     >
-      {/* Oculta qualquer dashboard ou header herdado da rota pai */}
       <Stack.Screen options={{ headerShown: false }} />
 
       <StatusBar
-        barStyle={tipoTema === "claro" ? "dark-content" : "light-content"}
+        barStyle={
+          tipoTema === "claro"
+            ? "dark-content"
+            : "light-content"
+        }
         backgroundColor={tema.background}
       />
 
+      {/* MODAL DE VISUALIZAÇÃO DA IMAGEM */}
       <Modal
         visible={imagemSelecionada !== null}
         transparent
@@ -1272,12 +1234,11 @@ const iniciarRealtime = async (meuId: string) => {
         <View
           style={{
             flex: 1,
-            backgroundColor: "rgba(0, 0, 0, 0.95)",
+            backgroundColor: "rgba(0,0,0,0.95)",
             justifyContent: "center",
             alignItems: "center",
           }}
         >
-          {/* Botão fechar */}
           <Pressable
             onPress={() => setImagemSelecionada(null)}
             style={{
@@ -1291,22 +1252,21 @@ const iniciarRealtime = async (meuId: string) => {
               width: 45,
               height: 45,
               borderRadius: 25,
-              justifyContent: "center",
               alignItems: "center",
+              justifyContent: "center",
             }}
           >
-            <Ionicons name="close" size={32} color="#FFFFFF" />
+            <Ionicons
+              name="close"
+              size={32}
+              color="#FFFFFF"
+            />
           </Pressable>
 
           {imagemSelecionada && (
             <Image
-              source={{
-                uri: imagemSelecionada,
-              }}
-              style={{
-                width: "100%",
-                height: "80%",
-              }}
+              source={{ uri: imagemSelecionada }}
+              style={{ width: "100%", height: "80%" }}
               resizeMode="contain"
             />
           )}
@@ -1315,13 +1275,12 @@ const iniciarRealtime = async (meuId: string) => {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+        behavior={
+          Platform.OS === "ios" ? "padding" : "height"
+        }
+        keyboardVerticalOffset={0}
       >
-        {/* =====================================
-            CABEÇALHO
-        ===================================== */}
-
+        {/* CABEÇALHO */}
         <View
           style={[
             styles.conversationHeader,
@@ -1336,24 +1295,30 @@ const iniciarRealtime = async (meuId: string) => {
             style={styles.conversationBackButton}
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color={tema.text} />
+            <Ionicons
+              name="arrow-back"
+              size={24}
+              color={tema.text}
+            />
           </Pressable>
 
           <View
             style={[
               styles.conversationAvatar,
-              {
-                backgroundColor: corTema,
-              },
+              { backgroundColor: corTema },
             ]}
           >
-            {buscarAvatar(avatarDestino) ? (
+            {avatarEncontrado ? (
               <AvatarImagem
-                uri={buscarAvatar(avatarDestino)!.url}
+                uri={avatarEncontrado.url}
                 tamanho={50}
               />
             ) : (
-              <Ionicons name="person" size={23} color={colors.white} />
+              <Ionicons
+                name="person"
+                size={23}
+                color={colors.white}
+              />
             )}
           </View>
 
@@ -1361,8 +1326,12 @@ const iniciarRealtime = async (meuId: string) => {
             style={[
               styles.conversationHeaderInfo,
               {
-                flexDirection: cabecalhoEmColuna ? "column" : "row",
-                alignItems: cabecalhoEmColuna ? "flex-start" : "center",
+                flexDirection: cabecalhoEmColuna
+                  ? "column"
+                  : "row",
+                alignItems: cabecalhoEmColuna
+                  ? "flex-start"
+                  : "center",
                 gap: 8,
                 paddingRight: 8,
               },
@@ -1403,57 +1372,107 @@ const iniciarRealtime = async (meuId: string) => {
           </View>
         </View>
 
-        {/* =====================================
-            CONTEÚDO
-        ===================================== */}
-
+        {/* LISTA DE MENSAGENS */}
         {loading ? (
           <View style={styles.chatLoadingContainer}>
-            <ActivityIndicator size="large" color={corTema} />
+            <ActivityIndicator
+              size="large"
+              color={corTema}
+            />
 
-            <Text style={[styles.chatLoadingText, { color: tema.text, fontSize: 14 * escalaFonte }]}>
+            <Text
+              style={[
+                styles.chatLoadingText,
+                {
+                  color: tema.text,
+                  fontSize: 14 * escalaFonte,
+                },
+              ]}
+            >
               Carregando conversa...
             </Text>
           </View>
         ) : mensagens.length === 0 ? (
-          <View style={styles.conversationEmptyContainer}>
+          <View
+            style={styles.conversationEmptyContainer}
+          >
             <Ionicons
               name="chatbubble-ellipses-outline"
               size={60}
               color={colors.placeholder}
             />
 
-            <Text style={[styles.conversationEmptyTitle, { color: tema.text, fontSize: 18 * escalaFonte }]}>
+            <Text
+              style={[
+                styles.conversationEmptyTitle,
+                {
+                  color: tema.text,
+                  fontSize: 18 * escalaFonte,
+                },
+              ]}
+            >
               Inicie a conversa
             </Text>
 
-            <Text style={[styles.conversationEmptyText, { color: tema.text, fontSize: 14 * escalaFonte }]}>
+            <Text
+              style={[
+                styles.conversationEmptyText,
+                {
+                  color: tema.text,
+                  fontSize: 14 * escalaFonte,
+                },
+              ]}
+            >
               Envie uma mensagem para {nomeFormatado}.
             </Text>
           </View>
         ) : (
           <FlatList
-            style={{ flex: 1 }}
-            extraData={{ escalaFonte, tipoTema, editandoId, textoEditado }}
-            keyboardShouldPersistTaps="handled"
             ref={flatListRef}
-            data={criarListaComDatas()}
+            style={{ flex: 1 }}
+            inverted
+            data={itensConversa}
             keyExtractor={(item) => item.id}
             renderItem={renderMensagem}
-            contentContainerStyle={styles.conversationMessagesList}
-            showsVerticalScrollIndicator={false}
-            onContentSizeChange={() =>
-              flatListRef.current?.scrollToEnd({
-                animated: false,
-              })
+            extraData={dadosExtrasLista}
+            contentContainerStyle={
+              styles.conversationMessagesList
             }
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            initialNumToRender={12}
+            maxToRenderPerBatch={8}
+            updateCellsBatchingPeriod={50}
+            windowSize={7}
+            removeClippedSubviews={false}
+            onScroll={({ nativeEvent }) => {
+              // Na lista invertida, offset 0 é a
+              // posição das mensagens mais recentes.
+              if (editandoMensagemRef.current) {
+                return;
+              }
+
+              usuarioNoFinalRef.current =
+                nativeEvent.contentOffset.y < 100;
+            }}
+            scrollEventThrottle={32}
+            onContentSizeChange={() => {
+              if (editandoMensagemRef.current) {
+                return;
+              }
+
+              if (rolarAposEnvioRef.current) {
+                rolarAposEnvioRef.current = false;
+
+                requestAnimationFrame(() => {
+                  rolarParaUltimaMensagem(true);
+                });
+              }
+            }}
           />
         )}
 
-        {/* =====================================
-            SUGESTÕES RÁPIDAS
-        ===================================== */}
-
+        {/* SUGESTÕES RÁPIDAS */}
         <View
           style={{
             backgroundColor: tema.background,
@@ -1470,41 +1489,42 @@ const iniciarRealtime = async (meuId: string) => {
               gap: 8,
             }}
           >
-            {["Ok, confirmado", "Podemos agendar um horário?", "Obrigado!"].map(
-              (textoPredef, index) => (
-                <Pressable
-                  key={index}
+            {[
+              "Ok, confirmado",
+              "Podemos agendar um horário?",
+              "Obrigado!",
+            ].map((textoPredef, index) => (
+              <Pressable
+                key={index}
+                onPress={() =>
+                  void enviarMensagem(textoPredef)
+                }
+                style={{
+                  backgroundColor: tema.card,
+                  borderWidth: 1.5,
+                  borderColor: corTema,
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 18,
+                  minHeight: 44,
+                  justifyContent: "center",
+                }}
+              >
+                <Text
                   style={{
-                    backgroundColor: tema.card,
-                    borderWidth: 1.5,
-                    borderColor: corTema,
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
-                    borderRadius: 18,
-                    minHeight: 44,
-                    justifyContent: "center",
+                    color: tema.text,
+                    fontSize: 13 * escalaFonte,
+                    fontFamily: "FredokaMedium",
                   }}
-                  onPress={() => enviarMensagem(textoPredef)}
                 >
-                  <Text
-                    style={{
-                      color: tema.text,
-                      fontSize: 13 * escalaFonte,
-                      fontWeight: "500",
-                    }}
-                  >
-                    {textoPredef}
-                  </Text>
-                </Pressable>
-              ),
-            )}
+                  {textoPredef}
+                </Text>
+              </Pressable>
+            ))}
           </ScrollView>
         </View>
 
-        {/* =====================================
-            INPUT
-        ===================================== */}
-
+        {/* CAMPO DE MENSAGEM */}
         <View
           style={[
             styles.messageInputContainer,
@@ -1519,10 +1539,19 @@ const iniciarRealtime = async (meuId: string) => {
               styles.messageInput,
               {
                 backgroundColor: tema.input,
-                color: tipoTema === "forte" ? "#000000" : tema.text,
+                color:
+                  tipoTema === "forte"
+                    ? "#000000"
+                    : tema.text,
                 fontSize: 15 * escalaFonte,
-                minHeight: Math.max(44, 24 * escalaFonte * fontScale + 20),
-                maxHeight: Math.max(110, 72 * escalaFonte * fontScale + 20),
+                minHeight: Math.max(
+                  44,
+                  24 * escalaFonte * fontScale + 20
+                ),
+                maxHeight: Math.max(
+                  110,
+                  72 * escalaFonte * fontScale + 20
+                ),
               },
             ]}
             value={novaMensagem}
@@ -1534,9 +1563,10 @@ const iniciarRealtime = async (meuId: string) => {
             editable={!enviando}
           />
 
-          {/* BOTÃO CÂMERA / GALERIA */}
-
+          {/* CÂMERA / GALERIA */}
           <Pressable
+            onPress={abrirOpcoesImagem}
+            disabled={enviando}
             style={{
               flexShrink: 0,
               width: 44,
@@ -1549,20 +1579,19 @@ const iniciarRealtime = async (meuId: string) => {
               borderWidth: 1,
               borderColor: colors.border,
             }}
-            onPress={abrirOpcoesImagem}
-            disabled={enviando}
           >
-            <Ionicons name="camera" size={20} color={corTema} />
+            <Ionicons
+              name="camera"
+              size={20}
+              color={corTema}
+            />
           </Pressable>
 
-          {/* BOTÃO ENVIAR */}
-
+          {/* ENVIAR */}
           <Pressable
             style={({ pressed }) => [
               styles.sendMessageButton,
-              {
-                backgroundColor: corTema,
-              },
+              { backgroundColor: corTema },
               (!novaMensagem.trim() || enviando) &&
                 styles.sendMessageButtonDisabled,
               pressed &&
@@ -1570,13 +1599,20 @@ const iniciarRealtime = async (meuId: string) => {
                 !enviando &&
                 styles.sendMessageButtonPressed,
             ]}
-            onPress={() => enviarMensagem()}
+            onPress={() => void enviarMensagem()}
             disabled={!novaMensagem.trim() || enviando}
           >
             {enviando ? (
-              <ActivityIndicator size="small" color={colors.white} />
+              <ActivityIndicator
+                size="small"
+                color={colors.white}
+              />
             ) : (
-              <Ionicons name="send" size={21} color={colors.white} />
+              <Ionicons
+                name="send"
+                size={21}
+                color={colors.white}
+              />
             )}
           </Pressable>
         </View>

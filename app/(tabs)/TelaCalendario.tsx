@@ -155,7 +155,7 @@ export default function TelaCalendario() {
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha título, data, disciplina, professor e tipo do evento."
+        "Preencha título, data, disciplina, professora/professor e tipo do evento."
       );
       return false;
     }
@@ -225,7 +225,7 @@ export default function TelaCalendario() {
     ) {
       Alert.alert(
         "Campos obrigatórios",
-        "Preencha título, data, disciplina, professor e tipo do evento."
+        "Preencha título, data, disciplina, professora/professor e tipo do evento."
       );
       return false;
     }
@@ -1096,12 +1096,12 @@ export default function TelaCalendario() {
                   },
                 ]}
               >
-                Professor
+                Professora/Professor
               </Text>
 
               <TextInput
                 style={estiloCampo}
-                placeholder="Nome do professor"
+                placeholder="Nome da professora/do professor"
                 placeholderTextColor={tema.placeholder}
                 value={professor}
                 onChangeText={setProfessor}

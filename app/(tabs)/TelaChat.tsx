@@ -309,30 +309,30 @@ export default function Chat() {
     switch (tipoLogado) {
       case "estudante":
         return [
-          { key: "professor", label: "Professores" },
-          { key: "tutor", label: "Tutores" },
+          { key: "professor", label: "Professoras/Professores" },
+          { key: "tutor", label: "Tutoras/Tutores" },
           { key: "napne", label: "Sala de recurso" },
         ];
 
       case "tutor":
         return [
-          { key: "professor", label: "Professores" },
-          { key: "estudante", label: "Alunos" },
+          { key: "professor", label: "Professoras/Professores" },
+          { key: "estudante", label: "Alunas/Alunos" },
           { key: "napne", label: "Sala de recurso" },
         ];
 
       case "professor":
         return [
-          { key: "estudante", label: "Alunos" },
-          { key: "tutor", label: "Tutores" },
+          { key: "estudante", label: "Alunas/Alunos" },
+          { key: "tutor", label: "Tutoras/Tutores" },
           { key: "napne", label: "Sala de recurso" },
         ];
 
       case "napne":
         return [
-          { key: "professor", label: "Professores" },
-          { key: "tutor", label: "Tutores" },
-          { key: "estudante", label: "Alunos" },
+          { key: "professor", label: "Professoras/Professores" },
+          { key: "tutor", label: "Tutoras/Tutores" },
+          { key: "estudante", label: "Alunas/Alunos" },
         ];
 
       default:

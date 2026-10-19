@@ -179,7 +179,7 @@ export default function TelaSobrePaed() {
             O PAED é um aplicativo desenvolvido no IFPR – Campus
             Pinhais, criado com o objetivo de auxiliar estudantes
             com TEA na organização de suas atividades acadêmicas
-            e na comunicação com professores e tutores.
+            e na comunicação com professoras/professores e tutoras/tutores.
           </Text>
 
           <Text style={styles.text}>
@@ -199,7 +199,7 @@ export default function TelaSobrePaed() {
           <Text style={styles.text}>
             Tornar a rotina escolar mais organizada, acessível
             e acolhedora, oferecendo ferramentas que auxiliem
-            estudantes, professores e tutores no dia a dia
+            estudantes, professoras/professores e tutoras/tutores no dia a dia
             acadêmico.
           </Text>
         </View>

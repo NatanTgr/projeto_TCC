@@ -246,7 +246,7 @@ export default function TelaTarefasTutor() {
               },
             ]}
           >
-            Tarefas dos Alunos
+            Tarefas das Alunas e dos Alunos
           </Text>
 
           <BotaoAlerta />
@@ -261,7 +261,7 @@ export default function TelaTarefasTutor() {
             },
           ]}
         >
-          {alunos.length} {alunos.length === 1 ? "aluno" : "alunos"}
+          {alunos.length} {alunos.length === 1 ? "aluna/aluno" : "alunas/alunos"}
         </Text>
       </View>
 
@@ -404,8 +404,8 @@ export default function TelaTarefasTutor() {
               ]}
             >
               {alunos.length === 0
-                ? "Nenhum aluno encontrado"
-                : "Nenhum aluno selecionado no filtro"}
+                ? "Nenhuma aluna/nenhum aluno encontrado"
+                : "Nenhuma aluna/nenhum aluno selecionado no filtro"}
             </Text>
           </View>
         )}
@@ -442,7 +442,7 @@ export default function TelaTarefasTutor() {
               },
             ]}
           >
-            Filtrar Alunos
+            Filtrar Alunas/Alunos
           </Text>
 
           <Pressable
@@ -493,7 +493,7 @@ export default function TelaTarefasTutor() {
             },
           ]}
         >
-          Selecione quais alunos deseja exibir:
+          Selecione quais alunas e alunos deseja exibir:
         </Text>
       </View>
 

@@ -181,8 +181,8 @@ export default function ModalAlerta({
 
     if (!tutorSelecionado) {
       Alert.alert(
-        "Tutor obrigatório",
-        "Escolha o tutor que deverá receber o alerta.",
+        "Tutora/Tutor obrigatório",
+        "Escolha a tutora ou o tutor que deverá receber o alerta.",
       );
       return;
     }
@@ -213,11 +213,11 @@ export default function ModalAlerta({
 
       if (error) {
         console.log("Erro ao enviar alerta:", error);
-        Alert.alert("Erro", "Não foi possível enviar o alerta ao tutor.");
+        Alert.alert("Erro", "Não foi possível enviar o alerta à tutora/ao tutor.");
         return;
       }
 
-      Alert.alert("Alerta enviado", "O tutor selecionado foi avisado.", [
+      Alert.alert("Alerta enviado", "A tutora ou o tutor selecionado foi avisado.", [
         { text: "OK", onPress: fecharModal },
       ]);
     } catch (erro) {
@@ -278,7 +278,7 @@ export default function ModalAlerta({
                   },
                 ]}
               >
-                Selecionar tutor
+                Selecionar tutora/tutor
               </Text>
 
               <Text
@@ -411,7 +411,7 @@ export default function ModalAlerta({
                       { color: tema.text, fontSize: 14 * escalaFonte },
                     ]}
                   >
-                    Envie um alerta para um tutor do seu campus.
+                    Envie um alerta para uma tutora ou um tutor do seu campus.
                   </Text>
                 </View>
               </View>
@@ -488,7 +488,7 @@ export default function ModalAlerta({
                   { color: tema.text, fontSize: 17 * escalaFonte },
                 ]}
               >
-                Escolha um tutor
+                Escolha uma tutora ou um tutor
               </Text>
 
               <TouchableOpacity
@@ -496,8 +496,8 @@ export default function ModalAlerta({
                 accessibilityRole="button"
                 accessibilityLabel={
                   nomeTutorSelecionado
-                    ? `Tutor selecionado: ${nomeTutorSelecionado}. Toque para alterar.`
-                    : "Selecionar tutor"
+                    ? `Tutora/Tutor selecionado: ${nomeTutorSelecionado}. Toque para alterar.`
+                    : "Selecionar tutora/tutor"
                 }
                 accessibilityState={{
                   disabled: enviando || tutores.length === 0,
@@ -524,8 +524,8 @@ export default function ModalAlerta({
                   ]}
                 >
                   {tutores.length === 0
-                    ? "Nenhum tutor disponível no seu campus"
-                    : nomeTutorSelecionado || "Selecionar tutor"}
+                    ? "Nenhuma tutora ou tutor disponível no seu campus"
+                    : nomeTutorSelecionado || "Selecionar tutora/tutor"}
                 </Text>
 
                 <Feather name="chevron-right" size={22} color={tema.text} />
