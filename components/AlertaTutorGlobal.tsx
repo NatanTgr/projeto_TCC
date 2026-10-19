@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { Feather } from "@expo/vector-icons";
+import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   AppState,
@@ -10,11 +11,9 @@ import {
   View,
 } from "react-native";
 
-import { Feather } from "@expo/vector-icons";
-
 import { supabase } from "../bd/supabase";
-import { useTheme } from "../context/ThemeContext";
 import { useFontSize } from "../context/FontSizeContext";
+import { useTheme } from "../context/ThemeContext";
 
 type AlertaBanco = {
   id: number;
@@ -38,132 +37,128 @@ type AlertaCompleto = {
   criadoEm: string;
 };
 
+// =====================================================
+// TRATAMENTO DE ERROS
+// =====================================================
+
+function registrarErro(contexto: string, erro: unknown) {
+  console.error(`[AlertaTutorGlobal] ${contexto}:`, erro);
+}
+
+// =====================================================
+// CARREGAR DETALHES DO ALERTA
+// =====================================================
+
+async function carregarDetalhes(
+  alerta: AlertaBanco
+): Promise<AlertaCompleto | null> {
+  const [resultadoUsuario, resultadoAluno] = await Promise.all([
+    supabase
+      .from("usuarios")
+      .select("nome, campus")
+      .eq("id", alerta.aluno_id)
+      .single(),
+
+    supabase
+      .from("alunos")
+      .select("curso, turno, turma")
+      .eq("id", alerta.aluno_id)
+      .single(),
+  ]);
+
+  const { data: usuario, error: erroUsuario } = resultadoUsuario;
+  const { data: aluno, error: erroAluno } = resultadoAluno;
+
+  if (erroUsuario || erroAluno || !usuario || !aluno) {
+    registrarErro(
+      "Erro ao carregar dados da aluna/do aluno",
+      erroUsuario || erroAluno || new Error("Dados incompletos")
+    );
+    return null;
+  }
+
+  return {
+    id: alerta.id,
+    alunoId: alerta.aluno_id,
+    nome: usuario.nome,
+    curso: aluno.curso,
+    turno: aluno.turno,
+    turma: aluno.turma,
+    campus: usuario.campus,
+    localCampus: alerta.local_campus,
+    status: alerta.status,
+    criadoEm: alerta.criado_em,
+  };
+}
+
 export default function AlertaTutorGlobal() {
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
 
-  const [tutorId, setTutorId] =
-    useState<string | null>(null);
-
-  const [filaAlertas, setFilaAlertas] =
-    useState<AlertaCompleto[]>([]);
+  const [tutorId, setTutorId] = useState<string | null>(null);
+  const [filaAlertas, setFilaAlertas] = useState<AlertaCompleto[]>([]);
+  const [atendendo, setAtendendo] = useState(false);
 
   const alertaAtual = filaAlertas[0] ?? null;
 
-  const carregarDetalhes = async (
-    alerta: AlertaBanco,
-  ): Promise<AlertaCompleto | null> => {
-    const [
-      { data: usuario, error: erroUsuario },
-      { data: aluno, error: erroAluno },
-    ] = await Promise.all([
-      supabase
-        .from("usuarios")
-        .select("nome, campus")
-        .eq("id", alerta.aluno_id)
-        .single(),
+  // =====================================================
+  // ADICIONAR ALERTA NA FILA
+  // =====================================================
 
-      supabase
-        .from("alunos")
-        .select("curso, turno, turma")
-        .eq("id", alerta.aluno_id)
-        .single(),
-    ]);
+  const adicionarNaFila = useCallback(async (alerta: AlertaBanco) => {
+    const alertaCompleto = await carregarDetalhes(alerta);
 
-    if (erroUsuario || erroAluno || !usuario || !aluno) {
-      console.log(
-        "Erro ao carregar estudante do alerta:",
-        erroUsuario || erroAluno,
-      );
-
-      return null;
-    }
-
-    return {
-      id: alerta.id,
-      alunoId: alerta.aluno_id,
-      nome: usuario.nome,
-      curso: aluno.curso,
-      turno: aluno.turno,
-      turma: aluno.turma,
-      campus: usuario.campus,
-      localCampus: alerta.local_campus,
-      status: alerta.status,
-      criadoEm: alerta.criado_em,
-    };
-  };
-
-  const adicionarNaFila = async (
-    alerta: AlertaBanco,
-  ) => {
-    const alertaCompleto =
-      await carregarDetalhes(alerta);
-
-    if (!alertaCompleto) {
-      return;
-    }
+    if (!alertaCompleto) return;
 
     setFilaAlertas((filaAtual) => {
-      const jaExiste = filaAtual.some(
-        (item) => item.id === alertaCompleto.id,
-      );
-
-      if (jaExiste) {
+      if (filaAtual.some((item) => item.id === alertaCompleto.id)) {
         return filaAtual;
       }
 
       return [...filaAtual, alertaCompleto];
     });
-  };
+  }, []);
 
-  const buscarAlertasPendentes = async (
-    idTutor: string,
-  ) => {
-    const { data, error } = await supabase
-      .from("alertas")
-      .select(
-        `
-          id,
-          aluno_id,
-          tutor_id,
-          local_campus,
-          status,
-          criado_em
-        `,
-      )
-      .eq("tutor_id", idTutor)
-      .eq("status", "enviado")
-      .order("criado_em", { ascending: true });
+  // =====================================================
+  // BUSCAR ALERTAS PENDENTES
+  // =====================================================
 
-    if (error) {
-      console.log(
-        "Erro ao buscar alertas pendentes:",
-        error,
-      );
+  const buscarAlertasPendentes = useCallback(
+    async (idTutor: string) => {
+      const { data, error } = await supabase
+        .from("alertas")
+        .select("id, aluno_id, tutor_id, local_campus, status, criado_em")
+        .eq("tutor_id", idTutor)
+        .eq("status", "enviado")
+        .order("criado_em", { ascending: true });
 
-      return;
-    }
+      if (error) {
+        registrarErro("Erro ao buscar alertas pendentes", error);
+        return;
+      }
 
-    for (const alerta of (data || []) as AlertaBanco[]) {
-      await adicionarNaFila(alerta);
-    }
-  };
+      for (const alerta of (data || []) as AlertaBanco[]) {
+        await adicionarNaFila(alerta);
+      }
+    },
+    [adicionarNaFila]
+  );
 
-  /*
-   * Verifica se o usuário logado é tutor.
-   */
+  // =====================================================
+  // VERIFICAR USUÁRIO LOGADO
+  // =====================================================
+
   useEffect(() => {
     let componenteAtivo = true;
 
-    const verificarUsuario = async (
-      usuarioId: string | null,
-    ) => {
+    const temporizadores = new Set<ReturnType<typeof setTimeout>>();
+
+    const verificarUsuario = async (usuarioId: string | null) => {
       if (!usuarioId) {
         if (componenteAtivo) {
           setTutorId(null);
           setFilaAlertas([]);
         }
-
         return;
       }
 
@@ -173,8 +168,10 @@ export default function AlertaTutorGlobal() {
         .eq("id", usuarioId)
         .single();
 
-      if (!componenteAtivo) {
-        return;
+      if (!componenteAtivo) return;
+
+      if (error) {
+        registrarErro("Erro ao verificar perfil", error);
       }
 
       if (error || data?.tipo !== "tutor") {
@@ -189,40 +186,63 @@ export default function AlertaTutorGlobal() {
     const carregarSessao = async () => {
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
+
+      if (error) throw error;
 
       await verificarUsuario(user?.id ?? null);
     };
 
-    carregarSessao();
+    void carregarSessao().catch((erro) => {
+      registrarErro("Erro ao carregar sessão", erro);
+    });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_evento, sessao) => {
-        setTimeout(() => {
-          verificarUsuario(
-            sessao?.user?.id ?? null,
-          );
-        }, 0);
-      },
-    );
+    } = supabase.auth.onAuthStateChange((_evento, sessao) => {
+      // Adiamos a consulta para fora do callback de autenticação.
+      const temporizador = setTimeout(() => {
+        temporizadores.delete(temporizador);
+
+        if (!componenteAtivo) return;
+
+        void verificarUsuario(sessao?.user?.id ?? null).catch((erro) => {
+          registrarErro("Erro ao atualizar usuário autenticado", erro);
+        });
+      }, 0);
+
+      temporizadores.add(temporizador);
+    });
 
     return () => {
       componenteAtivo = false;
+
+      temporizadores.forEach(clearTimeout);
+      temporizadores.clear();
+
       subscription.unsubscribe();
     };
   }, []);
 
-  /*
-   * Busca alertas já existentes e observa novos INSERTs.
-   */
-  useEffect(() => {
-    if (!tutorId) {
-      return;
-    }
+  // =====================================================
+  // REALTIME DOS ALERTAS
+  // =====================================================
 
-    buscarAlertasPendentes(tutorId);
+  useEffect(() => {
+    if (!tutorId) return;
+
+    let ativo = true;
+
+    const buscarComTratamento = () => {
+      void buscarAlertasPendentes(tutorId).catch((erro) => {
+        if (ativo) {
+          registrarErro("Erro inesperado ao buscar alertas", erro);
+        }
+      });
+    };
+
+    buscarComTratamento();
 
     const canal = supabase
       .channel(`alertas-tutor-${tutorId}`)
@@ -235,44 +255,57 @@ export default function AlertaTutorGlobal() {
           filter: `tutor_id=eq.${tutorId}`,
         },
         (payload) => {
-          adicionarNaFila(
-            payload.new as AlertaBanco,
-          );
-        },
+          if (!ativo) return;
+
+          const novoAlerta = payload.new as AlertaBanco;
+
+          if (novoAlerta.status !== "enviado") return;
+
+          void adicionarNaFila(novoAlerta).catch((erro) => {
+            if (ativo) {
+              registrarErro(
+                "Erro ao receber alerta em tempo real",
+                erro
+              );
+            }
+          });
+        }
       )
       .subscribe((status) => {
-        console.log(
-          "Realtime dos alertas:",
-          status,
-        );
+        console.log("Realtime dos alertas:", status);
       });
 
-    const appStateSubscription =
-      AppState.addEventListener(
-        "change",
-        (proximoEstado) => {
-          if (proximoEstado === "active") {
-            buscarAlertasPendentes(tutorId);
-          }
-        },
-      );
+    // Atualiza os alertas quando o aplicativo volta ao primeiro plano.
+    const appStateSubscription = AppState.addEventListener(
+      "change",
+      (proximoEstado) => {
+        if (proximoEstado === "active") {
+          buscarComTratamento();
+        }
+      }
+    );
 
     return () => {
+      ativo = false;
       appStateSubscription.remove();
-      supabase.removeChannel(canal);
-    };
-  }, [tutorId]);
 
-  /*
-   * Ao aparecer no modal, marca como visualizado.
-   */
+      void supabase.removeChannel(canal).catch((erro) => {
+        registrarErro("Erro ao remover canal de alertas", erro);
+      });
+    };
+  }, [tutorId, buscarAlertasPendentes, adicionarNaFila]);
+
+  // =====================================================
+  // MARCAR COMO VISUALIZADO
+  // =====================================================
+
   useEffect(() => {
-    if (
-      !alertaAtual ||
-      alertaAtual.status !== "enviado"
-    ) {
+    if (!alertaAtual || alertaAtual.status !== "enviado" || !tutorId) {
       return;
     }
+
+    let ativo = true;
+    const alertaId = alertaAtual.id;
 
     const marcarComoVisualizado = async () => {
       const { error } = await supabase
@@ -281,80 +314,97 @@ export default function AlertaTutorGlobal() {
           status: "visualizado",
           visualizado_em: new Date().toISOString(),
         })
-        .eq("id", alertaAtual.id)
+        .eq("id", alertaId)
         .eq("tutor_id", tutorId);
 
       if (error) {
-        console.log(
-          "Erro ao visualizar alerta:",
-          error,
-        );
-
+        registrarErro("Erro ao visualizar alerta", error);
         return;
       }
 
+      if (!ativo) return;
+
       setFilaAlertas((filaAtual) =>
         filaAtual.map((alerta) =>
-          alerta.id === alertaAtual.id
+          alerta.id === alertaId
             ? {
                 ...alerta,
                 status: "visualizado",
               }
-            : alerta,
-        ),
+            : alerta
+        )
       );
     };
 
-    marcarComoVisualizado();
-  }, [alertaAtual?.id]);
+    void marcarComoVisualizado().catch((erro) => {
+      registrarErro(
+        "Erro inesperado ao registrar visualização",
+        erro
+      );
+    });
+
+    return () => {
+      ativo = false;
+    };
+  }, [alertaAtual?.id, alertaAtual?.status, tutorId]);
+
+  // =====================================================
+  // FECHAR ALERTA
+  // =====================================================
 
   const fecharAlerta = () => {
-    setFilaAlertas((filaAtual) =>
-      filaAtual.slice(1),
-    );
+    setFilaAlertas((filaAtual) => filaAtual.slice(1));
   };
 
+  // =====================================================
+  // MARCAR COMO ATENDIDO
+  // =====================================================
+
   const marcarComoAtendido = async () => {
-    if (!alertaAtual || !tutorId) {
-      return;
-    }
+    if (!alertaAtual || !tutorId || atendendo) return;
 
-    const { error } = await supabase
-      .from("alertas")
-      .update({
-        status: "atendido",
-        atendido_em: new Date().toISOString(),
-      })
-      .eq("id", alertaAtual.id)
-      .eq("tutor_id", tutorId);
+    try {
+      setAtendendo(true);
 
-    if (error) {
-      console.log(
-        "Erro ao atender alerta:",
-        error,
-      );
+      const { error } = await supabase
+        .from("alertas")
+        .update({
+          status: "atendido",
+          atendido_em: new Date().toISOString(),
+        })
+        .eq("id", alertaAtual.id)
+        .eq("tutor_id", tutorId);
+
+      if (error) throw error;
+
+      fecharAlerta();
+    } catch (erro) {
+      registrarErro("Erro ao atender alerta", erro);
 
       Alert.alert(
         "Erro",
-        "Não foi possível marcar o alerta como atendido.",
+        "Não foi possível marcar o alerta como atendido."
       );
-
-      return;
+    } finally {
+      setAtendendo(false);
     }
-
-    fecharAlerta();
   };
 
-  const formatarHorario = (data: string) => {
-    return new Intl.DateTimeFormat("pt-BR", {
+  // =====================================================
+  // FORMATAR HORÁRIO
+  // =====================================================
+
+  const formatarHorario = (data: string) =>
+    new Intl.DateTimeFormat("pt-BR", {
       dateStyle: "short",
       timeStyle: "short",
     }).format(new Date(data));
-  };
 
-  if (!tutorId) {
-    return null;
-  }
+  if (!tutorId) return null;
+
+  // =====================================================
+  // INTERFACE
+  // =====================================================
 
   return (
     <Modal
@@ -374,9 +424,7 @@ export default function AlertaTutorGlobal() {
           ]}
         >
           {alertaAtual && (
-            <ScrollView
-              showsVerticalScrollIndicator={false}
-            >
+            <ScrollView showsVerticalScrollIndicator={false}>
               <View style={estilos.cabecalho}>
                 <View style={estilos.icone}>
                   <Feather
@@ -396,7 +444,7 @@ export default function AlertaTutorGlobal() {
                       },
                     ]}
                   >
-                    Aluno solicitando ajuda
+                    Aluna/Aluno solicitando ajuda
                   </Text>
 
                   <Text
@@ -408,9 +456,7 @@ export default function AlertaTutorGlobal() {
                       },
                     ]}
                   >
-                    {formatarHorario(
-                      alertaAtual.criadoEm,
-                    )}
+                    {formatarHorario(alertaAtual.criadoEm)}
                   </Text>
                 </View>
               </View>
@@ -430,28 +476,24 @@ export default function AlertaTutorGlobal() {
                   cor={tema.text}
                   escala={escalaFonte}
                 />
-
                 <Dado
                   rotulo="Curso"
                   valor={alertaAtual.curso}
                   cor={tema.text}
                   escala={escalaFonte}
                 />
-
                 <Dado
                   rotulo="Turno"
                   valor={alertaAtual.turno}
                   cor={tema.text}
                   escala={escalaFonte}
                 />
-
                 <Dado
                   rotulo="Turma"
                   valor={alertaAtual.turma}
                   cor={tema.text}
                   escala={escalaFonte}
                 />
-
                 <Dado
                   rotulo="Campus"
                   valor={alertaAtual.campus}
@@ -469,7 +511,7 @@ export default function AlertaTutorGlobal() {
                   },
                 ]}
               >
-                Local informado pelo estudante
+                Local informado pela aluna/pelo aluno
               </Text>
 
               <View style={estilos.cardLocal}>
@@ -482,9 +524,7 @@ export default function AlertaTutorGlobal() {
                 <Text
                   style={[
                     estilos.local,
-                    {
-                      fontSize: 18 * escalaFonte,
-                    },
+                    { fontSize: 18 * escalaFonte },
                   ]}
                 >
                   {alertaAtual.localCampus}
@@ -501,14 +541,19 @@ export default function AlertaTutorGlobal() {
                     },
                   ]}
                 >
-                  Mais {filaAlertas.length - 1} alerta(s)
-                  aguardando.
+                  Mais {filaAlertas.length - 1} alerta(s) aguardando.
                 </Text>
               )}
 
               <TouchableOpacity
-                style={estilos.botaoAtendido}
-                onPress={marcarComoAtendido}
+                style={[
+                  estilos.botaoAtendido,
+                  atendendo && { opacity: 0.6 },
+                ]}
+                disabled={atendendo}
+                onPress={() => {
+                  void marcarComoAtendido();
+                }}
               >
                 <Feather
                   name="check-circle"
@@ -519,12 +564,10 @@ export default function AlertaTutorGlobal() {
                 <Text
                   style={[
                     estilos.textoBotao,
-                    {
-                      fontSize: 16 * escalaFonte,
-                    },
+                    { fontSize: 16 * escalaFonte },
                   ]}
                 >
-                  Marcar como atendido
+                  {atendendo ? "Salvando..." : "Marcar como atendido"}
                 </Text>
               </TouchableOpacity>
 
@@ -551,6 +594,10 @@ export default function AlertaTutorGlobal() {
     </Modal>
   );
 }
+
+// =====================================================
+// COMPONENTE DE DADOS
+// =====================================================
 
 type PropriedadesDado = {
   rotulo: string;
@@ -593,6 +640,10 @@ function Dado({
     </View>
   );
 }
+
+// =====================================================
+// ESTILOS
+// =====================================================
 
 const estilos = StyleSheet.create({
   fundo: {

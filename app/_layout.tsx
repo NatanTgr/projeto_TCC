@@ -4,6 +4,7 @@ import {
   Image,
   StyleSheet,
   Linking,
+  AppState
 } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { Session } from '@supabase/supabase-js';
@@ -12,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import * as Notifications from 'expo-notifications';
 import { registrarPushChat } from '../components/notificacoesChat';
+import { obterConversaAtiva } from "../components/conversaAtiva";
 
 import { supabase } from '../lib/supabase';
 import { styles as globalStyles, colors } from '../style';
@@ -72,22 +74,22 @@ export default function RootLayout() {
     const handleRecoveryUrl = async (url: string | null) => {
       if (!url) return;
 
-      if (!url.startsWith('meuapp://reset-password')) return;
+      if (!url.startsWith("meuapp://reset-password")) return;
 
       try {
-        const hashIndex = url.indexOf('#');
+        const hashIndex = url.indexOf("#");
 
         if (hashIndex === -1) return;
 
         const hash = url.substring(hashIndex + 1);
         const params: Record<string, string> = {};
 
-        hash.split('&').forEach((item) => {
-          const [key, ...valueParts] = item.split('=');
+        hash.split("&").forEach((item) => {
+          const [key, ...valueParts] = item.split("=");
 
           if (!key) return;
 
-          const value = valueParts.join('=');
+          const value = valueParts.join("=");
           params[key] = decodeURIComponent(value);
         });
 
@@ -95,9 +97,7 @@ export default function RootLayout() {
         const refreshToken = params.refresh_token;
 
         if (!accessToken || !refreshToken) {
-          console.log(
-            'Link de recuperação não possui os tokens necessários.'
-          );
+          console.log("Link de recuperação não possui os tokens necessários.");
           return;
         }
 
@@ -107,22 +107,16 @@ export default function RootLayout() {
         });
 
         if (error) {
-          console.error(
-            'Erro ao criar sessão de recuperação:',
-            error.message
-          );
+          console.error("Erro ao criar sessão de recuperação:", error.message);
           return;
         }
 
         isPasswordRecovery = true;
         setLoading(false);
 
-        router.replace('/reset-password');
+        router.replace("/reset-password");
       } catch (error) {
-        console.error(
-          'Erro ao processar link de recuperação:',
-          error
-        );
+        console.error("Erro ao processar link de recuperação:", error);
       }
     };
 
@@ -130,22 +124,16 @@ export default function RootLayout() {
       handleRecoveryUrl(url);
     });
 
-    const linkingSubscription = Linking.addEventListener(
-      'url',
-      ({ url }) => {
-        handleRecoveryUrl(url);
-      }
-    );
+    const linkingSubscription = Linking.addEventListener("url", ({ url }) => {
+      handleRecoveryUrl(url);
+    });
 
     const timer = setTimeout(async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.log(
-            'Erro ao recuperar sessão:',
-            error
-          );
+          console.log("Erro ao recuperar sessão:", error);
         }
 
         currentSession = data.session;
@@ -155,10 +143,7 @@ export default function RootLayout() {
           setLoading(false);
         }
       } catch (error) {
-        console.log(
-          'Erro ao recuperar sessão:',
-          error
-        );
+        console.log("Erro ao recuperar sessão:", error);
 
         if (!isPasswordRecovery) {
           handleNavigation(null);
@@ -169,22 +154,20 @@ export default function RootLayout() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (event, session: Session | null) => {
-        currentSession = session;
+    } = supabase.auth.onAuthStateChange((event, session: Session | null) => {
+      currentSession = session;
 
-        if (session?.user && event === 'SIGNED_IN') {
-          registrarPushChat(session.user.id);
-        }
-
-        if (event === 'PASSWORD_RECOVERY') {
-          isPasswordRecovery = true;
-          setLoading(false);
-
-          router.replace('/reset-password');
-        }
+      if (session?.user && event === "SIGNED_IN") {
+        registrarPushChat(session.user.id);
       }
-    );
+
+      if (event === "PASSWORD_RECOVERY") {
+        isPasswordRecovery = true;
+        setLoading(false);
+
+        router.replace("/reset-password");
+      }
+    });
 
     const registrarUsuarioAtual = async () => {
       const {
@@ -198,40 +181,38 @@ export default function RootLayout() {
 
     registrarUsuarioAtual();
 
-    const notificacaoRecebida =
-      Notifications.addNotificationReceivedListener(() => {});
+    const notificacaoRecebida = Notifications.addNotificationReceivedListener(
+      () => {},
+    );
 
     const notificacaoTocada =
-      Notifications.addNotificationResponseReceivedListener(
-        (response) => {
-          const dados =
-            response.notification.request.content.data;
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        const dados = response.notification.request.content.data;
 
-          if (
-            dados?.tipo !== 'mensagem' ||
-            typeof dados.remetenteId !== 'string'
-          ) {
-            return;
-          }
-
-          router.push({
-            pathname: '/TelaConversa' as any,
-            params: {
-              usuarioId: dados.remetenteId,
-
-              usuarioNome:
-                typeof dados.remetenteNome === 'string'
-                  ? dados.remetenteNome
-                  : 'Usuário',
-
-              usuarioTipo:
-                typeof dados.remetenteTipo === 'string'
-                  ? dados.remetenteTipo
-                  : 'estudante',
-            },
-          });
+        if (
+          dados?.tipo !== "mensagem" ||
+          typeof dados.remetenteId !== "string"
+        ) {
+          return;
         }
-      );
+
+        router.push({
+          pathname: "/TelaConversa" as any,
+          params: {
+            usuarioId: dados.remetenteId,
+
+            usuarioNome:
+              typeof dados.remetenteNome === "string"
+                ? dados.remetenteNome
+                : "Usuário",
+
+            usuarioTipo:
+              typeof dados.remetenteTipo === "string"
+                ? dados.remetenteTipo
+                : "estudante",
+          },
+        });
+      });
 
     return () => {
       clearTimeout(timer);
@@ -248,8 +229,7 @@ export default function RootLayout() {
 
   const verificarTermoLocal = async (): Promise<boolean> => {
     try {
-      const termoSalvo =
-        await AsyncStorage.getItem(TERMO_STORAGE_KEY);
+      const termoSalvo = await AsyncStorage.getItem(TERMO_STORAGE_KEY);
 
       if (!termoSalvo) {
         return false;
@@ -257,67 +237,45 @@ export default function RootLayout() {
 
       const termo = JSON.parse(termoSalvo);
 
-      return (
-        termo?.aceito === true &&
-        termo?.versao === VERSAO_TERMO
-      );
+      return termo?.aceito === true && termo?.versao === VERSAO_TERMO;
     } catch (error) {
-      console.error(
-        'Erro ao verificar aceite do termo:',
-        error
-      );
+      console.error("Erro ao verificar aceite do termo:", error);
 
       return false;
     }
   };
 
-  const registrarAceiteNoSupabase = async (
-    session: Session
-  ) => {
+  const registrarAceiteNoSupabase = async (session: Session) => {
     try {
-      const { data: aceiteExistente, error: erroConsulta } =
-        await supabase
-          .from('aceites_termos')
-          .select('id')
-          .eq('usuario_id', session.user.id)
-          .eq('versao_termo', VERSAO_TERMO)
-          .maybeSingle();
+      const { data: aceiteExistente, error: erroConsulta } = await supabase
+        .from("aceites_termos")
+        .select("id")
+        .eq("usuario_id", session.user.id)
+        .eq("versao_termo", VERSAO_TERMO)
+        .maybeSingle();
 
       if (erroConsulta) {
-        console.log(
-          'Erro ao verificar aceite do termo:',
-          erroConsulta
-        );
+        console.log("Erro ao verificar aceite do termo:", erroConsulta);
 
         return;
       }
 
       if (!aceiteExistente) {
-        const { error } = await supabase
-          .from('aceites_termos')
-          .insert({
-            usuario_id: session.user.id,
-            versao_termo: VERSAO_TERMO,
-          });
+        const { error } = await supabase.from("aceites_termos").insert({
+          usuario_id: session.user.id,
+          versao_termo: VERSAO_TERMO,
+        });
 
         if (error) {
-          console.log(
-            'Erro ao registrar aceite do termo:',
-            error
-          );
+          console.log("Erro ao registrar aceite do termo:", error);
         }
       }
     } catch (error) {
-      console.error(
-        'Erro ao registrar aceite no Supabase:',
-        error
-      );
+      console.error("Erro ao registrar aceite no Supabase:", error);
     }
   };
 
-  const handleNavigation = async (
-    session: Session | null
-  ) => {
+  const handleNavigation = async (session: Session | null) => {
     /*
      * Primeiro verificamos se o usuário já aceitou
      * a versão atual do termo.
@@ -328,7 +286,7 @@ export default function RootLayout() {
     const termoAceito = await verificarTermoLocal();
 
     if (!termoAceito) {
-      router.replace('/TelaTermo');
+      router.replace("/TelaTermo");
       return;
     }
 
@@ -337,7 +295,7 @@ export default function RootLayout() {
      * sessão, o usuário vai para a tela inicial.
      */
     if (!session) {
-      router.replace('/welcome');
+      router.replace("/welcome");
       return;
     }
 
@@ -352,16 +310,13 @@ export default function RootLayout() {
      * qual tela deve abrir.
      */
     const { data: usuario, error } = await supabase
-      .from('usuarios')
-      .select('tipo')
-      .eq('id', session.user.id)
+      .from("usuarios")
+      .select("tipo")
+      .eq("id", session.user.id)
       .single();
 
     if (error || !usuario) {
-      console.log(
-        'Erro ao buscar tipo do usuário:',
-        error
-      );
+      console.log("Erro ao buscar tipo do usuário:", error);
 
       return;
     }
@@ -369,10 +324,7 @@ export default function RootLayout() {
     /*
      * Tutor
      */
-        if (
-      usuario.tipo === "tutor" ||
-      usuario.tipo === "napne"
-    ) {
+    if (usuario.tipo === "tutor" || usuario.tipo === "napne") {
       router.replace("/(tabs)/TelaTarefasTutor");
     } else if (usuario.tipo === "professor") {
       router.replace("/(tabs)/TelaChat");
@@ -384,9 +336,8 @@ export default function RootLayout() {
   if (loading) {
     return (
       <View style={localStyles.splashContainer}>
-
         <Image
-          source={require('../assets/images/logo_PAED.png')}
+          source={require("../assets/images/logo_PAED.png")}
           style={globalStyles.logoImage}
           resizeMode="contain"
         />
@@ -398,7 +349,7 @@ export default function RootLayout() {
     return null;
   }
 
-    return (
+  return (
     <ThemeProvider>
       <FontSizeProvider>
         <NavegacaoComTema />
@@ -408,12 +359,48 @@ export default function RootLayout() {
 }
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
+  handleNotification: async (notification) => {
+    const dados = notification.request.content.data;
+
+    // Pessoa com quem estamos conversando.
+    const conversaAtiva = obterConversaAtiva();
+
+    // Verifica se o aplicativo está em primeiro plano.
+    const aplicativoAberto = AppState.currentState === "active";
+
+    // Verifica se é uma notificação de chat.
+    const notificacaoDeMensagem = dados?.tipo === "mensagem";
+
+    // Identifica quem enviou a mensagem.
+    const remetenteId =
+      typeof dados?.remetenteId === "string" ? dados.remetenteId : null;
+
+    // Não exibe notificação se já estamos
+    // conversando com a pessoa que enviou.
+    const ocultarNotificacao =
+      aplicativoAberto &&
+      notificacaoDeMensagem &&
+      remetenteId !== null &&
+      remetenteId === conversaAtiva;
+
+    if (ocultarNotificacao) {
+      return {
+        shouldShowBanner: false,
+        shouldShowList: false,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+      };
+    }
+
+    // Para todas as outras notificações,
+    // mantém o comportamento original do PAED.
+    return {
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    };
+  },
 });
 
 const localStyles = StyleSheet.create({

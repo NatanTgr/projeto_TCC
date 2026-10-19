@@ -3,7 +3,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { decode } from "base64-arraybuffer";
 import * as FileSystem from "expo-file-system/legacy";
 import * as ImagePicker from "expo-image-picker";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import {
+  Stack,
+  useFocusEffect,
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 import {
   memo,
   useCallback,
@@ -27,6 +32,7 @@ import {
   TextInput,
   View,
   useWindowDimensions,
+  AppState
 } from "react-native";
 import {
   SafeAreaView,
@@ -34,6 +40,10 @@ import {
 } from "react-native-safe-area-context";
 import * as Crypto from "expo-crypto";
 
+import {
+  definirConversaAtiva,
+  limparConversaAtiva,
+} from "../../components/conversaAtiva";
 import AvatarImagem from "../../components/AvatarImagem";
 import { buscarAvatar } from "../../components/avatares";
 import { useTheme } from "../../context/ThemeContext";
@@ -140,6 +150,25 @@ export default function Conversa() {
       ? params.usuarioId
       : params.usuarioId?.[0];
 
+  // =====================================================
+  // CONTROLE DE NOTIFICAÇÕES DA CONVERSA
+  // =====================================================
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!usuarioDestinoId) return;
+
+      // A conversa com esta pessoa está aberta.
+      definirConversaAtiva(usuarioDestinoId);
+
+      return () => {
+        // Ao sair da tela, volta a receber
+        // notificações normalmente.
+        limparConversaAtiva(usuarioDestinoId);
+      };
+    }, [usuarioDestinoId]),
+  );
+
   const usuarioDestinoNome =
     typeof params.usuarioNome === "string"
       ? params.usuarioNome
@@ -156,25 +185,20 @@ export default function Conversa() {
       ? `Prof. ${usuarioDestinoNome}`
       : usuarioDestinoNome;
 
-  const cabecalhoEmColuna =
-    width < 380 || escalaFonte * fontScale >= 1.2;
+  const cabecalhoEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
 
   const tamanhoImagem = Math.max(
     1,
-    Math.min(
-      230,
-      (width - insets.left - insets.right - 24) * 0.85 - 26
-    )
+    Math.min(230, (width - insets.left - insets.right - 24) * 0.85 - 26),
   );
 
-  const [avatarDestino, setAvatarDestino] =
-    useState<string | null>(null);
+  const [avatarDestino, setAvatarDestino] = useState<string | null>(null);
 
-  const [usuarioLogadoId, setUsuarioLogadoId] =
-    useState<string | null>(null);
+  const [usuarioLogadoId, setUsuarioLogadoId] = useState<string | null>(null);
 
-  const [tipoUsuarioLogado, setTipoUsuarioLogado] =
-    useState<string | null>(null);
+  const [tipoUsuarioLogado, setTipoUsuarioLogado] = useState<string | null>(
+    null,
+  );
 
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [novaMensagem, setNovaMensagem] = useState("");
@@ -182,13 +206,13 @@ export default function Conversa() {
   const [loading, setLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);
 
-  const [editandoId, setEditandoId] =
-    useState<number | null>(null);
+  const [editandoId, setEditandoId] = useState<number | null>(null);
 
   const [textoEditado, setTextoEditado] = useState("");
 
-  const [imagemSelecionada, setImagemSelecionada] =
-    useState<string | null>(null);
+  const [imagemSelecionada, setImagemSelecionada] = useState<string | null>(
+    null,
+  );
 
   const flatListRef = useRef<FlatList<ItemLista>>(null);
   const channelRef = useRef<any>(null);
@@ -197,6 +221,8 @@ export default function Conversa() {
   const usuarioNoFinalRef = useRef(true);
   const editandoMensagemRef = useRef(false);
   const rolarAposEnvioRef = useRef(false);
+
+  const mensagensRef = useRef<Mensagem[]>([]);
 
   const tipoBalaoMeu = obterTipoBalao(tipoUsuarioLogado);
   const tipoBalaoOutro = obterTipoBalao(usuarioDestinoTipo);
@@ -213,8 +239,8 @@ export default function Conversa() {
     usuarioDestinoTipo === "professor"
       ? colors.professor
       : usuarioDestinoTipo === "tutor"
-      ? colors.tutor
-      : colors.student;
+        ? colors.tutor
+        : colors.student;
 
   const avatarEncontrado = buscarAvatar(avatarDestino);
 
@@ -234,44 +260,125 @@ export default function Conversa() {
         .eq("lida", false);
 
       if (error) {
-        console.error(
-          "Erro ao marcar mensagens como lidas:",
-          error
-        );
+        console.error("Erro ao marcar mensagens como lidas:", error);
       }
     },
-    [usuarioDestinoId]
+    [usuarioDestinoId],
   );
 
-  const prepararImagem = useCallback((mensagem: Mensagem) => {
-    if (
-      mensagem.tipo !== "imagem" ||
-      !mensagem.arquivo_url
-    ) {
-      return mensagem;
-    }
+  const prepararImagem = useCallback(
+    async (mensagem: Mensagem): Promise<Mensagem> => {
+      if (mensagem.tipo !== "imagem" || !mensagem.arquivo_url) {
+        return mensagem;
+      }
 
-    const { data } = supabase.storage
-      .from("chat-imagens")
-      .getPublicUrl(mensagem.arquivo_url);
+      try {
+        const { data, error } = await supabase.storage
+          .from("chat-imagens")
+          .createSignedUrl(mensagem.arquivo_url, 60 * 60);
 
-    return {
-      ...mensagem,
-      imagem_url: data.publicUrl,
-    };
-  }, []);
+        if (error || !data?.signedUrl) {
+          console.error("Erro ao gerar URL da imagem:", {
+            mensagemId: mensagem.id,
+            erro: error?.message ?? "URL não retornada",
+          });
 
-  const rolarParaUltimaMensagem = useCallback(
-    (animated = true) => {
-      if (editandoMensagemRef.current) return;
+          return {
+            ...mensagem,
+            imagem_url: null,
+          };
+        }
 
-      flatListRef.current?.scrollToOffset({
-        offset: 0,
-        animated,
-      });
+        console.log("Imagem privada autorizada:", mensagem.id);
+
+        return {
+          ...mensagem,
+          imagem_url: data.signedUrl,
+        };
+      } catch (erro) {
+        console.error("Erro inesperado ao carregar imagem:", erro);
+
+        return {
+          ...mensagem,
+          imagem_url: null,
+        };
+      }
     },
-    []
+    [],
   );
+
+  useEffect(() => {
+    mensagensRef.current = mensagens;
+  }, [mensagens]);
+
+  useEffect(() => {
+    let ativo = true;
+
+    const renovarLinks = async () => {
+      const imagens = mensagensRef.current.filter(
+        (m) => m.tipo === "imagem" && !!m.arquivo_url,
+      );
+
+      if (imagens.length === 0) return;
+
+      const atualizadas = await Promise.all(
+        imagens.map((m) => prepararImagem(m)),
+      );
+
+      if (!ativo) return;
+
+      const links = new Map(
+        atualizadas.map((m) => [m.id, m.imagem_url ?? null]),
+      );
+
+      setMensagens((atual) =>
+        atual.map((m) =>
+          links.has(m.id)
+            ? {
+                ...m,
+                imagem_url: links.get(m.id) ?? null,
+              }
+            : m,
+        ),
+      );
+    };
+
+    const renovarComTratamento = () => {
+      void renovarLinks().catch((erro) => {
+        console.error("Erro ao renovar imagens privadas:", erro);
+      });
+    };
+
+    const listener = AppState.addEventListener("change", (estado) => {
+      if (estado === "active") {
+        renovarComTratamento();
+      }
+    });
+
+    const intervalo = setInterval(
+      () => {
+        if (AppState.currentState === "active") {
+          renovarComTratamento();
+        }
+      },
+      45 * 60 * 1000,
+    );
+
+    return () => {
+      ativo = false;
+      clearInterval(intervalo);
+      listener.remove();
+    };
+  }, [prepararImagem]);
+
+  const rolarParaUltimaMensagem = useCallback((animated = true) => {
+    if (editandoMensagemRef.current) return;
+
+    flatListRef.current?.scrollToOffset({
+      offset: 0,
+      animated,
+    });
+  }, []);
 
   // =====================================================
   // INICIALIZAÇÃO E REALTIME
@@ -312,11 +419,7 @@ export default function Conversa() {
         setUsuarioLogadoId(user.id);
 
         const [perfilResult, destinoResult] = await Promise.all([
-          supabase
-            .from("usuarios")
-            .select("tipo")
-            .eq("id", user.id)
-            .single(),
+          supabase.from("usuarios").select("tipo").eq("id", user.id).single(),
 
           supabase
             .from("usuarios")
@@ -328,17 +431,11 @@ export default function Conversa() {
         if (!ativo) return;
 
         if (perfilResult.error) {
-          console.error(
-            "Erro ao carregar perfil:",
-            perfilResult.error
-          );
+          console.error("Erro ao carregar perfil:", perfilResult.error);
         }
 
         if (destinoResult.error) {
-          console.error(
-            "Erro ao carregar avatar:",
-            destinoResult.error
-          );
+          console.error("Erro ao carregar avatar:", destinoResult.error);
         }
 
         setTipoUsuarioLogado(perfilResult.data?.tipo ?? null);
@@ -348,7 +445,7 @@ export default function Conversa() {
           .from("mensagens")
           .select("*")
           .or(
-            `and(remetente.eq.${user.id},destinatario.eq.${usuarioDestinoId}),and(remetente.eq.${usuarioDestinoId},destinatario.eq.${user.id})`
+            `and(remetente.eq.${user.id},destinatario.eq.${usuarioDestinoId}),and(remetente.eq.${usuarioDestinoId},destinatario.eq.${user.id})`,
           )
           .order("data_envio", { ascending: true });
 
@@ -356,22 +453,20 @@ export default function Conversa() {
 
         if (error) {
           console.error("Erro ao carregar mensagens:", error);
-          Alert.alert(
-            "Erro",
-            "Não foi possível carregar a conversa."
-          );
+          Alert.alert("Erro", "Não foi possível carregar a conversa.");
         } else {
-          setMensagens(
+          const mensagensPreparadas = await Promise.all(
             ((data || []) as Mensagem[]).map((mensagem) =>
               prepararImagem(mensagem),
             ),
           );
-        }
 
+          if (!ativo) return;
+
+          setMensagens(mensagensPreparadas);
+        }
         canalLocal = supabase
-          .channel(
-            `chat-${user.id}-${usuarioDestinoId}-${Date.now()}`
-          )
+          .channel(`chat-${user.id}-${usuarioDestinoId}-${Date.now()}`)
           .on(
             "postgres_changes",
             {
@@ -383,17 +478,19 @@ export default function Conversa() {
               if (!ativo) return;
 
               if (payload.eventType === "INSERT") {
-                const nova = prepararImagem(
-                  payload.new as Mensagem
-                );
+                const recebida = payload.new as Mensagem;
 
                 const pertenceAoChat =
-                  (nova.remetente === user.id &&
-                    nova.destinatario === usuarioDestinoId) ||
-                  (nova.remetente === usuarioDestinoId &&
-                    nova.destinatario === user.id);
+                  (recebida.remetente === user.id &&
+                    recebida.destinatario === usuarioDestinoId) ||
+                  (recebida.remetente === usuarioDestinoId &&
+                    recebida.destinatario === user.id);
 
                 if (!pertenceAoChat) return;
+
+                const nova = await prepararImagem(recebida);
+
+                if (!ativo) return;
 
                 setMensagens((atual) => {
                   if (atual.some((m) => m.id === nova.id)) {
@@ -403,7 +500,7 @@ export default function Conversa() {
                   return [...atual, nova].sort(
                     (a, b) =>
                       new Date(a.data_envio).getTime() -
-                      new Date(b.data_envio).getTime()
+                      new Date(b.data_envio).getTime(),
                   );
                 });
 
@@ -417,10 +514,12 @@ export default function Conversa() {
               if (payload.eventType === "UPDATE") {
                 const atualizada = payload.new as Mensagem;
 
+                const atualizadaPreparada = await prepararImagem(atualizada);
+
+                if (!ativo) return;
+
                 setMensagens((atual) => {
-                  const indice = atual.findIndex(
-                    (m) => m.id === atualizada.id
-                  );
+                  const indice = atual.findIndex((m) => m.id === atualizada.id);
 
                   if (indice === -1) return atual;
 
@@ -439,11 +538,11 @@ export default function Conversa() {
 
                   return atual.map((m) =>
                     m.id === atualizada.id
-                      ? prepararImagem({
+                      ? {
                           ...m,
-                          ...atualizada,
-                        })
-                      : m
+                          ...atualizadaPreparada,
+                        }
+                      : m,
                   );
                 });
 
@@ -454,10 +553,10 @@ export default function Conversa() {
                 const apagada = payload.old as Mensagem;
 
                 setMensagens((atual) =>
-                  atual.filter((m) => m.id !== apagada.id)
+                  atual.filter((m) => m.id !== apagada.id),
                 );
               }
-            }
+            },
           )
           .subscribe();
 
@@ -465,10 +564,7 @@ export default function Conversa() {
 
         await marcarMensagensComoLidas(user.id);
       } catch (error) {
-        console.error(
-          "Erro inesperado ao iniciar conversa:",
-          error
-        );
+        console.error("Erro inesperado ao iniciar conversa:", error);
       } finally {
         if (ativo) setLoading(false);
       }
@@ -487,28 +583,16 @@ export default function Conversa() {
         channelRef.current = null;
       }
     };
-  }, [
-    usuarioDestinoId,
-    marcarMensagensComoLidas,
-    prepararImagem,
-    router,
-  ]);
+  }, [usuarioDestinoId, marcarMensagensComoLidas, prepararImagem, router]);
 
   // =====================================================
   // ENVIAR MENSAGEM
   // =====================================================
 
   const enviarMensagem = async (textoParam?: string) => {
-    const texto = (
-      textoParam !== undefined ? textoParam : novaMensagem
-    ).trim();
+    const texto = (textoParam !== undefined ? textoParam : novaMensagem).trim();
 
-    if (
-      !texto ||
-      !usuarioLogadoId ||
-      !usuarioDestinoId ||
-      enviando
-    ) {
+    if (!texto || !usuarioLogadoId || !usuarioDestinoId || enviando) {
       return;
     }
 
@@ -546,7 +630,7 @@ export default function Conversa() {
           return [...atual, enviada].sort(
             (a, b) =>
               new Date(a.data_envio).getTime() -
-              new Date(b.data_envio).getTime()
+              new Date(b.data_envio).getTime(),
           );
         });
       }
@@ -570,10 +654,7 @@ export default function Conversa() {
 
   const iniciarEdicao = useCallback(
     (mensagem: Mensagem) => {
-      if (
-        mensagem.remetente !== usuarioLogadoId ||
-        mensagem.tipo !== "texto"
-      ) {
+      if (mensagem.remetente !== usuarioLogadoId || mensagem.tipo !== "texto") {
         return;
       }
 
@@ -584,7 +665,7 @@ export default function Conversa() {
       setEditandoId(mensagem.id);
       setTextoEditado(mensagem.conteudo || "");
     },
-    [usuarioLogadoId]
+    [usuarioLogadoId],
   );
 
   const cancelarEdicao = useCallback(() => {
@@ -597,11 +678,7 @@ export default function Conversa() {
   const salvarEdicao = async () => {
     const texto = textoEditado.trim();
 
-    if (
-      !texto ||
-      editandoId === null ||
-      !usuarioLogadoId
-    ) {
+    if (!texto || editandoId === null || !usuarioLogadoId) {
       return;
     }
 
@@ -629,8 +706,8 @@ export default function Conversa() {
                 editada: true,
                 data_edicao: dataEdicao,
               }
-            : m
-        )
+            : m,
+        ),
       );
 
       cancelarEdicao();
@@ -657,24 +734,15 @@ export default function Conversa() {
 
         if (error) throw error;
 
-        setMensagens((atual) =>
-          atual.filter((m) => m.id !== mensagem.id)
-        );
+        setMensagens((atual) => atual.filter((m) => m.id !== mensagem.id));
 
-        if (
-          mensagem.tipo === "imagem" &&
-          mensagem.arquivo_url
-        ) {
-          const { error: storageError } =
-            await supabase.storage
-              .from("chat-imagens")
-              .remove([mensagem.arquivo_url]);
+        if (mensagem.tipo === "imagem" && mensagem.arquivo_url) {
+          const { error: storageError } = await supabase.storage
+            .from("chat-imagens")
+            .remove([mensagem.arquivo_url]);
 
           if (storageError) {
-            console.error(
-              "Erro ao apagar imagem do Storage:",
-              storageError
-            );
+            console.error("Erro ao apagar imagem do Storage:", storageError);
           }
         }
       } catch (error) {
@@ -682,27 +750,23 @@ export default function Conversa() {
         Alert.alert("Erro", "Não foi possível apagar a mensagem.");
       }
     },
-    [usuarioLogadoId]
+    [usuarioLogadoId],
   );
 
   const confirmarExclusao = useCallback(
     (mensagem: Mensagem) => {
       if (mensagem.remetente !== usuarioLogadoId) return;
 
-      Alert.alert(
-        "Apagar mensagem",
-        "Deseja apagar esta mensagem?",
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Apagar",
-            style: "destructive",
-            onPress: () => void apagarMensagem(mensagem),
-          },
-        ]
-      );
+      Alert.alert("Apagar mensagem", "Deseja apagar esta mensagem?", [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Apagar",
+          style: "destructive",
+          onPress: () => void apagarMensagem(mensagem),
+        },
+      ]);
     },
-    [usuarioLogadoId, apagarMensagem]
+    [usuarioLogadoId, apagarMensagem],
   );
 
   // =====================================================
@@ -712,13 +776,9 @@ export default function Conversa() {
   const enviarImagem = async (
     uri: string,
     mimeType: string,
-    fileName: string
+    fileName: string,
   ) => {
-    if (
-      !usuarioLogadoId ||
-      !usuarioDestinoId ||
-      enviando
-    ) {
+    if (!usuarioLogadoId || !usuarioDestinoId || enviando) {
       return;
     }
 
@@ -760,15 +820,13 @@ export default function Conversa() {
         .single();
 
       if (mensagemError) {
-        await supabase.storage
-          .from("chat-imagens")
-          .remove([nomeArquivo]);
+        await supabase.storage.from("chat-imagens").remove([nomeArquivo]);
 
         throw mensagemError;
       }
 
       if (data) {
-        const mensagem = prepararImagem(data as Mensagem);
+        const mensagem = await prepararImagem(data as Mensagem);
 
         setMensagens((atual) => {
           if (atual.some((m) => m.id === mensagem.id)) {
@@ -778,7 +836,7 @@ export default function Conversa() {
           return [...atual, mensagem].sort(
             (a, b) =>
               new Date(a.data_envio).getTime() -
-              new Date(b.data_envio).getTime()
+              new Date(b.data_envio).getTime(),
           );
         });
       }
@@ -809,7 +867,7 @@ export default function Conversa() {
       await enviarImagem(
         imagem.uri,
         imagem.mimeType || "image/jpeg",
-        imagem.fileName || `imagem-${Date.now()}.jpg`
+        imagem.fileName || `imagem-${Date.now()}.jpg`,
       );
     } catch (error) {
       console.error("Erro ao selecionar imagem:", error);
@@ -819,13 +877,12 @@ export default function Conversa() {
 
   const tirarFoto = async () => {
     try {
-      const permissao =
-        await ImagePicker.requestCameraPermissionsAsync();
+      const permissao = await ImagePicker.requestCameraPermissionsAsync();
 
       if (!permissao.granted) {
         Alert.alert(
           "Permissão necessária",
-          "Permita o acesso à câmera para tirar uma foto."
+          "Permita o acesso à câmera para tirar uma foto.",
         );
         return;
       }
@@ -845,7 +902,7 @@ export default function Conversa() {
       await enviarImagem(
         imagem.uri,
         imagem.mimeType || "image/jpeg",
-        imagem.fileName || `foto-${Date.now()}.jpg`
+        imagem.fileName || `foto-${Date.now()}.jpg`,
       );
     } catch (error) {
       console.error("Erro ao tirar foto:", error);
@@ -903,25 +960,14 @@ export default function Conversa() {
       usuarioLogadoId,
       tema,
     }),
-    [
-      escalaFonte,
-      tipoTema,
-      editandoId,
-      textoEditado,
-      usuarioLogadoId,
-      tema,
-    ]
+    [escalaFonte, tipoTema, editandoId, textoEditado, usuarioLogadoId, tema],
   );
 
   // =====================================================
   // RENDERIZAR MENSAGENS
   // =====================================================
 
-  const renderMensagem = ({
-    item,
-  }: {
-    item: ItemLista;
-  }) => {
+  const renderMensagem = ({ item }: { item: ItemLista }) => {
     if (item.tipoItem === "data") {
       return (
         <View
@@ -953,8 +999,7 @@ export default function Conversa() {
     }
 
     const mensagem = item.mensagem;
-    const minhaMensagem =
-      mensagem.remetente === usuarioLogadoId;
+    const minhaMensagem = mensagem.remetente === usuarioLogadoId;
 
     const estaEditando = editandoId === mensagem.id;
 
@@ -965,10 +1010,7 @@ export default function Conversa() {
     if (estaEditando) {
       return (
         <View
-          style={[
-            styles.chatMessageContainer,
-            styles.chatMessageContainerMine,
-          ]}
+          style={[styles.chatMessageContainer, styles.chatMessageContainerMine]}
         >
           <View
             style={{
@@ -991,10 +1033,7 @@ export default function Conversa() {
                 color: tema.text,
                 fontSize: 15 * escalaFonte,
                 minHeight: 48,
-                maxHeight: Math.max(
-                  100,
-                  100 * escalaFonte * fontScale
-                ),
+                maxHeight: Math.max(100, 100 * escalaFonte * fontScale),
                 paddingVertical: 8,
                 textAlignVertical: "top",
                 fontFamily: "FredokaLight",
@@ -1079,23 +1118,18 @@ export default function Conversa() {
           if (!minhaMensagem) return;
 
           if (mensagem.tipo === "texto") {
-            Alert.alert(
-              "Mensagem",
-              "O que deseja fazer?",
-              [
-                {
-                  text: "Editar",
-                  onPress: () => iniciarEdicao(mensagem),
-                },
-                {
-                  text: "Apagar",
-                  style: "destructive",
-                  onPress: () =>
-                    confirmarExclusao(mensagem),
-                },
-                { text: "Cancelar", style: "cancel" },
-              ]
-            );
+            Alert.alert("Mensagem", "O que deseja fazer?", [
+              {
+                text: "Editar",
+                onPress: () => iniciarEdicao(mensagem),
+              },
+              {
+                text: "Apagar",
+                style: "destructive",
+                onPress: () => confirmarExclusao(mensagem),
+              },
+              { text: "Cancelar", style: "cancel" },
+            ]);
           } else {
             confirmarExclusao(mensagem);
           }
@@ -1110,26 +1144,17 @@ export default function Conversa() {
         <View
           style={[
             styles.chatBubble,
-            minhaMensagem
-              ? styles.chatBubbleMine
-              : styles.chatBubbleOther,
+            minhaMensagem ? styles.chatBubbleMine : styles.chatBubbleOther,
             {
-              backgroundColor: minhaMensagem
-                ? corBolhaMinha
-                : corBolhaOutra,
+              backgroundColor: minhaMensagem ? corBolhaMinha : corBolhaOutra,
               borderWidth: tipoTema === "forte" ? 2 : 0,
-              borderColor: minhaMensagem
-                ? corBordaMinha
-                : corBordaOutra,
+              borderColor: minhaMensagem ? corBordaMinha : corBordaOutra,
             },
           ]}
         >
-          {mensagem.tipo === "imagem" &&
-          mensagem.imagem_url ? (
+          {mensagem.tipo === "imagem" && mensagem.imagem_url ? (
             <Pressable
-              onPress={() =>
-                setImagemSelecionada(mensagem.imagem_url!)
-              }
+              onPress={() => setImagemSelecionada(mensagem.imagem_url!)}
             >
               <Image
                 source={{ uri: mensagem.imagem_url }}
@@ -1140,6 +1165,12 @@ export default function Conversa() {
                   backgroundColor: colors.border,
                 }}
                 resizeMode="cover"
+                onError={() => {
+                  console.warn(
+                    "Falha ao exibir imagem da mensagem:",
+                    mensagem.id,
+                  );
+                }}
               />
             </Pressable>
           ) : (
@@ -1152,7 +1183,9 @@ export default function Conversa() {
                 },
               ]}
             >
-              {mensagem.conteudo}
+              {mensagem.tipo === "imagem"
+                ? "Imagem indisponível"
+                : mensagem.conteudo}
             </Text>
           )}
 
@@ -1215,11 +1248,7 @@ export default function Conversa() {
       <Stack.Screen options={{ headerShown: false }} />
 
       <StatusBar
-        barStyle={
-          tipoTema === "claro"
-            ? "dark-content"
-            : "light-content"
-        }
+        barStyle={tipoTema === "claro" ? "dark-content" : "light-content"}
         backgroundColor={tema.background}
       />
 
@@ -1255,11 +1284,7 @@ export default function Conversa() {
               justifyContent: "center",
             }}
           >
-            <Ionicons
-              name="close"
-              size={32}
-              color="#FFFFFF"
-            />
+            <Ionicons name="close" size={32} color="#FFFFFF" />
           </Pressable>
 
           {imagemSelecionada && (
@@ -1274,9 +1299,7 @@ export default function Conversa() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={
-          Platform.OS === "ios" ? "padding" : "height"
-        }
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={0}
       >
         {/* CABEÇALHO */}
@@ -1294,30 +1317,16 @@ export default function Conversa() {
             style={styles.conversationBackButton}
             onPress={() => router.back()}
           >
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={tema.text}
-            />
+            <Ionicons name="arrow-back" size={24} color={tema.text} />
           </Pressable>
 
           <View
-            style={[
-              styles.conversationAvatar,
-              { backgroundColor: corTema },
-            ]}
+            style={[styles.conversationAvatar, { backgroundColor: corTema }]}
           >
             {avatarEncontrado ? (
-              <AvatarImagem
-                uri={avatarEncontrado.url}
-                tamanho={50}
-              />
+              <AvatarImagem uri={avatarEncontrado.url} tamanho={50} />
             ) : (
-              <Ionicons
-                name="person"
-                size={23}
-                color={colors.white}
-              />
+              <Ionicons name="person" size={23} color={colors.white} />
             )}
           </View>
 
@@ -1325,12 +1334,8 @@ export default function Conversa() {
             style={[
               styles.conversationHeaderInfo,
               {
-                flexDirection: cabecalhoEmColuna
-                  ? "column"
-                  : "row",
-                alignItems: cabecalhoEmColuna
-                  ? "flex-start"
-                  : "center",
+                flexDirection: cabecalhoEmColuna ? "column" : "row",
+                alignItems: cabecalhoEmColuna ? "flex-start" : "center",
                 gap: 8,
                 paddingRight: 8,
               },
@@ -1374,10 +1379,7 @@ export default function Conversa() {
         {/* LISTA DE MENSAGENS */}
         {loading ? (
           <View style={styles.chatLoadingContainer}>
-            <ActivityIndicator
-              size="large"
-              color={corTema}
-            />
+            <ActivityIndicator size="large" color={corTema} />
 
             <Text
               style={[
@@ -1392,9 +1394,7 @@ export default function Conversa() {
             </Text>
           </View>
         ) : mensagens.length === 0 ? (
-          <View
-            style={styles.conversationEmptyContainer}
-          >
+          <View style={styles.conversationEmptyContainer}>
             <Ionicons
               name="chatbubble-ellipses-outline"
               size={60}
@@ -1434,9 +1434,7 @@ export default function Conversa() {
             keyExtractor={(item) => item.id}
             renderItem={renderMensagem}
             extraData={dadosExtrasLista}
-            contentContainerStyle={
-              styles.conversationMessagesList
-            }
+            contentContainerStyle={styles.conversationMessagesList}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             initialNumToRender={12}
@@ -1451,8 +1449,7 @@ export default function Conversa() {
                 return;
               }
 
-              usuarioNoFinalRef.current =
-                nativeEvent.contentOffset.y < 100;
+              usuarioNoFinalRef.current = nativeEvent.contentOffset.y < 100;
             }}
             scrollEventThrottle={32}
             onContentSizeChange={() => {
@@ -1488,38 +1485,34 @@ export default function Conversa() {
               gap: 8,
             }}
           >
-            {[
-              "Ok, confirmado",
-              "Podemos agendar um horário?",
-              "Obrigado!",
-            ].map((textoPredef, index) => (
-              <Pressable
-                key={index}
-                onPress={() =>
-                  void enviarMensagem(textoPredef)
-                }
-                style={{
-                  backgroundColor: tema.card,
-                  borderWidth: 1.5,
-                  borderColor: corTema,
-                  paddingHorizontal: 14,
-                  paddingVertical: 8,
-                  borderRadius: 18,
-                  minHeight: 44,
-                  justifyContent: "center",
-                }}
-              >
-                <Text
+            {["Ok, confirmado", "Podemos agendar um horário?", "Obrigado!"].map(
+              (textoPredef, index) => (
+                <Pressable
+                  key={index}
+                  onPress={() => void enviarMensagem(textoPredef)}
                   style={{
-                    color: tema.text,
-                    fontSize: 13 * escalaFonte,
-                    fontFamily: "FredokaMedium",
+                    backgroundColor: tema.card,
+                    borderWidth: 1.5,
+                    borderColor: corTema,
+                    paddingHorizontal: 14,
+                    paddingVertical: 8,
+                    borderRadius: 18,
+                    minHeight: 44,
+                    justifyContent: "center",
                   }}
                 >
-                  {textoPredef}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    style={{
+                      color: tema.text,
+                      fontSize: 13 * escalaFonte,
+                      fontFamily: "FredokaMedium",
+                    }}
+                  >
+                    {textoPredef}
+                  </Text>
+                </Pressable>
+              ),
+            )}
           </ScrollView>
         </View>
 
@@ -1538,19 +1531,10 @@ export default function Conversa() {
               styles.messageInput,
               {
                 backgroundColor: tema.input,
-                color:
-                  tipoTema === "forte"
-                    ? "#000000"
-                    : tema.text,
+                color: tipoTema === "forte" ? "#000000" : tema.text,
                 fontSize: 15 * escalaFonte,
-                minHeight: Math.max(
-                  44,
-                  24 * escalaFonte * fontScale + 20
-                ),
-                maxHeight: Math.max(
-                  110,
-                  72 * escalaFonte * fontScale + 20
-                ),
+                minHeight: Math.max(44, 24 * escalaFonte * fontScale + 20),
+                maxHeight: Math.max(110, 72 * escalaFonte * fontScale + 20),
               },
             ]}
             value={novaMensagem}
@@ -1579,11 +1563,7 @@ export default function Conversa() {
               borderColor: colors.border,
             }}
           >
-            <Ionicons
-              name="camera"
-              size={20}
-              color={corTema}
-            />
+            <Ionicons name="camera" size={20} color={corTema} />
           </Pressable>
 
           {/* ENVIAR */}
@@ -1602,16 +1582,9 @@ export default function Conversa() {
             disabled={!novaMensagem.trim() || enviando}
           >
             {enviando ? (
-              <ActivityIndicator
-                size="small"
-                color={colors.white}
-              />
+              <ActivityIndicator size="small" color={colors.white} />
             ) : (
-              <Ionicons
-                name="send"
-                size={21}
-                color={colors.white}
-              />
+              <Ionicons name="send" size={21} color={colors.white} />
             )}
           </Pressable>
         </View>
