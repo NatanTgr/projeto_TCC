@@ -178,9 +178,6 @@ export default function Welcome() {
               Já tem uma conta? Entre aqui
             </Text>
           </Pressable>
-          <Pressable onPress={() => router.push("/registro")} style={({ pressed }) => [pressed && styles.buttonPressed]}>
-  <Text>Abrir recuperação de senha</Text>
-</Pressable>
         </View>
       </View>
     </SafeAreaView>
