@@ -907,7 +907,7 @@ useEffect(() => {
       >
         <ScrollView
           horizontal
-          showsHorizontalScrollIndicator={true}
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chatAbasConteudo}
         >
           {abasPermitidas.map((aba) => {
