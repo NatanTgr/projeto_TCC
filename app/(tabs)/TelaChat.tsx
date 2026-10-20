@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from "react";
+
 import {
   ActivityIndicator,
   FlatList,
@@ -9,20 +10,20 @@ import {
   StatusBar,
   Text,
   View,
-} from 'react-native';
+} from "react-native";
 
-import BotaoAlerta from '../../components/BotaoAlerta';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import BotaoAlerta from "../../components/BotaoAlerta";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect, useRouter } from "expo-router";
 
-import { supabase } from '../../lib/supabase';
-import { styles, colors } from '../../style';
-import { useTheme } from '../../context/ThemeContext';
-import { useFontSize } from '../../context/FontSizeContext';
+import { supabase } from "../../lib/supabase";
+import { styles, colors } from "../../style";
+import { useTheme } from "../../context/ThemeContext";
+import { useFontSize } from "../../context/FontSizeContext";
 
-import AvatarImagem from '../../components/AvatarImagem';
-import { buscarAvatar } from '../../components/avatares';
+import AvatarImagem from "../../components/AvatarImagem";
+import { buscarAvatar } from "../../components/avatares";
 
 type Usuario = {
   id: string;
@@ -42,22 +43,19 @@ export default function Chat() {
   const { tema, tipoTema, carregando: carregandoTema } = useTheme();
   const { escalaFonte } = useFontSize();
 
-  const fonte = (tamanho: number) =>
-    Math.round(tamanho * escalaFonte);
-
   const tipoBarraStatus =
-    tipoTema === 'escuro' || tipoTema === 'forte'
-      ? 'light-content'
-      : 'dark-content';
+    tipoTema === "escuro" || tipoTema === "forte"
+      ? "light-content"
+      : "dark-content";
 
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [usuariosOcultos, setUsuariosOcultos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [tipoLogado, setTipoLogado] =
-    useState<Usuario['tipo']>('estudante');
+    useState<Usuario["tipo"]>("estudante");
 
-  const [abaAtiva, setAbaAtiva] = useState<string>('professor');
+  const [abaAtiva, setAbaAtiva] = useState<string>("professor");
   const [modalFiltroVisible, setModalFiltroVisible] = useState(false);
 
   const [campusLogado, setCampusLogado] =
@@ -68,15 +66,24 @@ export default function Chat() {
   const [usuarioLogadoId, setUsuarioLogadoId] =
     useState<string | null>(null);
 
+  // =====================================================
   // CARREGAR USUÁRIOS AO ENTRAR/RETORNAR PARA A TELA
+  // =====================================================
 
   useFocusEffect(
     useCallback(() => {
-      carregarUsuarios();
+      void carregarUsuarios().catch((error) => {
+        console.error(
+          "Erro ao carregar usuários do chat:",
+          error
+        );
+      });
     }, [])
   );
 
+  // =====================================================
   // REALTIME — NOVAS MENSAGENS
+  // =====================================================
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
@@ -88,18 +95,26 @@ export default function Chat() {
         error,
       } = await supabase.auth.getUser();
 
-      if (error || !user || !ativo) return;
+      if (error) {
+        console.error(
+          "Erro ao identificar usuário para o Realtime:",
+          error
+        );
+        return;
+      }
+
+      if (!user || !ativo) return;
 
       setUsuarioLogadoId(user.id);
 
       channel = supabase
         .channel(`lista-chat-${user.id}`)
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'mensagens',
+            event: "INSERT",
+            schema: "public",
+            table: "mensagens",
             filter: `destinatario=eq.${user.id}`,
           },
           (payload) => {
@@ -131,37 +146,57 @@ export default function Chat() {
         .subscribe();
     };
 
-    iniciarRealtimeLista();
+    // Correção SonarCloud S9383:
+    // trata possíveis erros ao iniciar o Realtime.
+    void iniciarRealtimeLista().catch((error) => {
+      if (ativo) {
+        console.error(
+          "Erro ao iniciar Realtime da lista do chat:",
+          error
+        );
+      }
+    });
 
     return () => {
       ativo = false;
 
       if (channel) {
-        supabase.removeChannel(channel);
+        // Correção SonarCloud S9383:
+        // trata possíveis erros ao remover o canal.
+        void supabase.removeChannel(channel).catch((error) => {
+          console.error(
+            "Erro ao remover canal Realtime do chat:",
+            error
+          );
+        });
       }
     };
   }, []);
 
+  // =====================================================
   // ABA PADRÃO DE ACORDO COM O PAPEL
+  // =====================================================
 
   useEffect(() => {
-    if (tipoLogado === 'professor') {
-      setAbaAtiva('estudante');
+    if (tipoLogado === "professor") {
+      setAbaAtiva("estudante");
     } else {
-      setAbaAtiva('professor');
+      setAbaAtiva("professor");
     }
   }, [tipoLogado]);
 
+  // =====================================================
   // CARREGAR USUÁRIOS OCULTOS
+  // =====================================================
 
   const carregarUsuariosOcultos = async (usuarioId: string) => {
     const { data, error } = await supabase
-      .from('usuarios_filtros')
-      .select('usuario_oculto_id')
-      .eq('usuario_id', usuarioId);
+      .from("usuarios_filtros")
+      .select("usuario_oculto_id")
+      .eq("usuario_id", usuarioId);
 
     if (error) {
-      console.error('Erro ao carregar usuários ocultos:', error);
+      console.error("Erro ao carregar usuários ocultos:", error);
       return [];
     }
 
@@ -170,10 +205,13 @@ export default function Chat() {
     );
 
     setUsuariosOcultos(ocultos);
+
     return ocultos;
   };
 
+  // =====================================================
   // CARREGAR USUÁRIOS
+  // =====================================================
 
   const carregarUsuarios = async () => {
     try {
@@ -185,7 +223,7 @@ export default function Chat() {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        router.replace('/login');
+        router.replace("/login");
         return;
       }
 
@@ -196,13 +234,13 @@ export default function Chat() {
       // USUÁRIOS FIXADOS
 
       const { data: fixados, error: fixadosError } = await supabase
-        .from('usuarios_fixados')
-        .select('usuario_fixado_id')
-        .eq('usuario_id', user.id);
+        .from("usuarios_fixados")
+        .select("usuario_fixado_id")
+        .eq("usuario_id", user.id);
 
       if (fixadosError) {
         console.error(
-          'Erro ao carregar usuários fixados:',
+          "Erro ao carregar usuários fixados:",
           fixadosError
         );
       }
@@ -217,15 +255,15 @@ export default function Chat() {
         data: mensagensNaoLidas,
         error: naoLidasError,
       } = await supabase
-        .from('mensagens')
-        .select('remetente, data_envio')
-        .eq('destinatario', user.id)
-        .eq('lida', false)
-        .order('data_envio', { ascending: false });
+        .from("mensagens")
+        .select("remetente, data_envio")
+        .eq("destinatario", user.id)
+        .eq("lida", false)
+        .order("data_envio", { ascending: false });
 
       if (naoLidasError) {
         console.error(
-          'Erro ao carregar mensagens não lidas:',
+          "Erro ao carregar mensagens não lidas:",
           naoLidasError
         );
       }
@@ -244,16 +282,16 @@ export default function Chat() {
       // DADOS DO USUÁRIO LOGADO
 
       const { data: dadosUsuarioLogado } = await supabase
-        .from('usuarios')
-        .select('campus, tipo')
-        .eq('id', user.id)
+        .from("usuarios")
+        .select("campus, tipo")
+        .eq("id", user.id)
         .single();
 
       const meuCampus = dadosUsuarioLogado?.campus || null;
 
       const meuTipo = (
-        dadosUsuarioLogado?.tipo || 'estudante'
-      ) as Usuario['tipo'];
+        dadosUsuarioLogado?.tipo || "estudante"
+      ) as Usuario["tipo"];
 
       setCampusLogado(meuCampus);
       setTipoLogado(meuTipo);
@@ -261,20 +299,20 @@ export default function Chat() {
       // OUTROS USUÁRIOS DO MESMO CAMPUS
 
       let query = supabase
-        .from('usuarios')
-        .select('id, nome, email, campus, tipo, avatar')
-        .neq('id', user.id);
+        .from("usuarios")
+        .select("id, nome, email, campus, tipo, avatar")
+        .neq("id", user.id);
 
       if (meuCampus) {
-        query = query.eq('campus', meuCampus);
+        query = query.eq("campus", meuCampus);
       }
 
-      const { data, error } = await query.order('nome', {
+      const { data, error } = await query.order("nome", {
         ascending: true,
       });
 
       if (error) {
-        console.error('Erro ao carregar usuários:', error);
+        console.error("Erro ao carregar usuários:", error);
         return;
       }
 
@@ -294,15 +332,17 @@ export default function Chat() {
 
       setIdsSelecionados(idsVisiveis);
     } catch (error) {
-      console.error('Erro inesperado:', error);
+      console.error("Erro inesperado ao carregar chat:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  // =====================================================
   // ABAS PERMITIDAS
+  // =====================================================
 
-    const getAbasPermitidas = (): {
+  const getAbasPermitidas = (): {
     key: Usuario["tipo"];
     label: string;
   }[] => {
@@ -342,7 +382,9 @@ export default function Chat() {
 
   const abasPermitidas = getAbasPermitidas();
 
+  // =====================================================
   // ABRIR CONVERSA
+  // =====================================================
 
   const abrirConversa = (usuario: Usuario) => {
     setUsuarios((atual) =>
@@ -357,7 +399,7 @@ export default function Chat() {
     );
 
     router.push({
-      pathname: '/TelaConversa' as any,
+      pathname: "/TelaConversa" as any,
       params: {
         usuarioId: usuario.id,
         usuarioNome: usuario.nome,
@@ -366,7 +408,9 @@ export default function Chat() {
     });
   };
 
+  // =====================================================
   // FIXAR / DESFIXAR
+  // =====================================================
 
   const toggleFixar = async (id: string) => {
     try {
@@ -376,7 +420,7 @@ export default function Chat() {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        router.replace('/login');
+        router.replace("/login");
         return;
       }
 
@@ -386,21 +430,22 @@ export default function Chat() {
 
       if (usuario.fixado) {
         const { error } = await supabase
-          .from('usuarios_fixados')
+          .from("usuarios_fixados")
           .delete()
-          .eq('usuario_id', user.id)
-          .eq('usuario_fixado_id', id);
+          .eq("usuario_id", user.id)
+          .eq("usuario_fixado_id", id);
 
         if (error) {
           console.error(
-            'Erro ao remover usuário dos fixados:',
+            "Erro ao remover usuário dos fixados:",
             error
           );
 
           Alert.alert(
-            'Erro',
-            'Não foi possível desfixar este usuário.'
+            "Erro",
+            "Não foi possível desfixar este usuário."
           );
+
           return;
         }
 
@@ -411,28 +456,29 @@ export default function Chat() {
         );
       } else {
         const { error } = await supabase
-          .from('usuarios_fixados')
+          .from("usuarios_fixados")
           .upsert(
             {
               usuario_id: user.id,
               usuario_fixado_id: id,
             },
             {
-              onConflict: 'usuario_id,usuario_fixado_id',
+              onConflict: "usuario_id,usuario_fixado_id",
               ignoreDuplicates: true,
             }
           );
 
         if (error) {
           console.error(
-            'Erro ao adicionar usuário aos fixados:',
+            "Erro ao adicionar usuário aos fixados:",
             error
           );
 
           Alert.alert(
-            'Erro',
-            'Não foi possível fixar este usuário.'
+            "Erro",
+            "Não foi possível fixar este usuário."
           );
+
           return;
         }
 
@@ -443,16 +489,18 @@ export default function Chat() {
         );
       }
     } catch (error) {
-      console.error('Erro ao alterar usuário fixado:', error);
+      console.error("Erro ao alterar usuário fixado:", error);
 
       Alert.alert(
-        'Erro',
-        'Ocorreu um erro ao alterar a fixação do usuário.'
+        "Erro",
+        "Ocorreu um erro ao alterar a fixação do usuário."
       );
     }
   };
 
+  // =====================================================
   // FILTRO
+  // =====================================================
 
   const toggleSelecionFiltro = async (id: string) => {
     if (!usuarioLogadoId) return;
@@ -461,38 +509,40 @@ export default function Chat() {
 
     if (estaSelecionado) {
       const { error } = await supabase
-        .from('usuarios_filtros')
+        .from("usuarios_filtros")
         .upsert(
           {
             usuario_id: usuarioLogadoId,
             usuario_oculto_id: id,
           },
           {
-            onConflict: 'usuario_id,usuario_oculto_id',
+            onConflict: "usuario_id,usuario_oculto_id",
             ignoreDuplicates: true,
           }
         );
 
       if (error) {
-        console.error('Erro ao salvar filtro no banco:', error);
+        console.error("Erro ao salvar filtro no banco:", error);
       }
 
       setIdsSelecionados((prev) =>
         prev.filter((i) => i !== id)
       );
+
       setUsuariosOcultos((prev) => [...prev, id]);
     } else {
       const { error } = await supabase
-        .from('usuarios_filtros')
+        .from("usuarios_filtros")
         .delete()
-        .eq('usuario_id', usuarioLogadoId)
-        .eq('usuario_oculto_id', id);
+        .eq("usuario_id", usuarioLogadoId)
+        .eq("usuario_oculto_id", id);
 
       if (error) {
-        console.error('Erro ao remover filtro do banco:', error);
+        console.error("Erro ao remover filtro do banco:", error);
       }
 
       setIdsSelecionados((prev) => [...prev, id]);
+
       setUsuariosOcultos((prev) =>
         prev.filter((i) => i !== id)
       );
@@ -517,20 +567,21 @@ export default function Chat() {
 
       for (const id of idsDaAba) {
         await supabase
-          .from('usuarios_filtros')
+          .from("usuarios_filtros")
           .upsert(
             {
               usuario_id: usuarioLogadoId,
               usuario_oculto_id: id,
             },
             {
-              onConflict: 'usuario_id,usuario_oculto_id',
+              onConflict: "usuario_id,usuario_oculto_id",
               ignoreDuplicates: true,
             }
           );
       }
 
       setUsuariosOcultos(novosOcultos);
+
       setIdsSelecionados((prev) =>
         prev.filter((id) => !idsDaAba.includes(id))
       );
@@ -541,20 +592,23 @@ export default function Chat() {
 
       for (const id of idsDaAba) {
         await supabase
-          .from('usuarios_filtros')
+          .from("usuarios_filtros")
           .delete()
-          .eq('usuario_id', usuarioLogadoId)
-          .eq('usuario_oculto_id', id);
+          .eq("usuario_id", usuarioLogadoId)
+          .eq("usuario_oculto_id", id);
       }
 
       setUsuariosOcultos(novosOcultos);
+
       setIdsSelecionados((prev) =>
         Array.from(new Set([...prev, ...idsDaAba]))
       );
     }
   };
 
+  // =====================================================
   // CORES POR TIPO
+  // =====================================================
 
   const getCorTipo = (tipo: Usuario["tipo"]) => {
     switch (tipo) {
@@ -575,7 +629,9 @@ export default function Chat() {
     }
   };
 
+  // =====================================================
   // FORMATAÇÃO DO NOME
+  // =====================================================
 
   const formatarNome = (
     nome: string | null,
@@ -585,8 +641,8 @@ export default function Chat() {
     const nomeExibicao = nome || email;
 
     if (
-      tipo === 'professor' &&
-      !nomeExibicao.startsWith('Prof.')
+      tipo === "professor" &&
+      !nomeExibicao.startsWith("Prof.")
     ) {
       return `Prof. ${nomeExibicao}`;
     }
@@ -594,7 +650,9 @@ export default function Chat() {
     return nomeExibicao;
   };
 
+  // =====================================================
   // FIXADOS > NÃO LIDOS > DEMAIS
+  // =====================================================
 
   const usuariosFiltrados = usuarios
     .filter(
@@ -630,7 +688,9 @@ export default function Chat() {
     (u) => u.tipo === abaAtiva
   );
 
+  // =====================================================
   // CARTÃO DO USUÁRIO
+  // =====================================================
 
   const renderUsuario = ({ item }: { item: Usuario }) => {
     const cor = getCorTipo(item.tipo);
@@ -650,7 +710,7 @@ export default function Chat() {
             styles.chatUserAvatar,
             {
               backgroundColor: cor,
-              overflow: 'hidden',
+              overflow: "hidden",
             },
           ]}
         >
@@ -662,9 +722,9 @@ export default function Chat() {
           ) : (
             <Ionicons
               name={
-                item.tipo === 'professor'
-                  ? 'person'
-                  : 'people'
+                item.tipo === "professor"
+                  ? "person"
+                  : "people"
               }
               size={25}
               color={colors.white}
@@ -680,8 +740,8 @@ export default function Chat() {
         >
           <View
             style={{
-              flexDirection: 'row',
-              alignItems: 'center',
+              flexDirection: "row",
+              alignItems: "center",
             }}
           >
             <Text
@@ -724,8 +784,8 @@ export default function Chat() {
             ]}
           >
             {item.mensagemNaoLida
-              ? 'Nova mensagem'
-              : 'Última mensagem...'}
+              ? "Nova mensagem"
+              : "Última mensagem..."}
           </Text>
         </View>
 
@@ -740,20 +800,21 @@ export default function Chat() {
             minWidth: 44,
             minHeight: 44,
             padding: 8,
-            alignItems: 'center',
-            justifyContent: 'center',
+            alignItems: "center",
+            justifyContent: "center",
             flexShrink: 0,
           }}
           onPress={(event) => {
             event.stopPropagation();
+
             void toggleFixar(item.id);
           }}
         >
           <Ionicons
             name={
               item.fixado
-                ? 'bookmark'
-                : 'bookmark-outline'
+                ? "bookmark"
+                : "bookmark-outline"
             }
             size={25}
             color={
@@ -767,7 +828,9 @@ export default function Chat() {
     );
   };
 
+  // =====================================================
   // TELA
+  // =====================================================
 
   return (
     <SafeAreaView
@@ -780,7 +843,10 @@ export default function Chat() {
         },
       ]}
     >
-      <StatusBar barStyle={tipoBarraStatus} backgroundColor={tema.background} />
+      <StatusBar
+        barStyle={tipoBarraStatus}
+        backgroundColor={tema.background}
+      />
 
       {/* CABEÇALHO */}
 
@@ -804,9 +870,8 @@ export default function Chat() {
         </View>
       </View>
 
-      {/* ABAS */}
+      {/* ABAS COM ROLAGEM HORIZONTAL */}
 
-            {/* ABAS COM ROLAGEM HORIZONTAL */}
       <View
         style={[
           styles.chatAbasContainer,
@@ -844,7 +909,9 @@ export default function Chat() {
                     styles.chatAbaTexto,
                     {
                       fontSize: 15 * escalaFonte,
-                      color: selecionada ? "#222222" : tema.text,
+                      color: selecionada
+                        ? "#222222"
+                        : tema.text,
                     },
                   ]}
                 >
@@ -907,7 +974,10 @@ export default function Chat() {
 
       {loading || carregandoTema ? (
         <View style={styles.chatLoadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <ActivityIndicator
+            size="large"
+            color={colors.primary}
+          />
 
           <Text
             style={[
@@ -1028,8 +1098,9 @@ export default function Chat() {
                   }}
                 >
                   Filtrar{" "}
-                  {abasPermitidas.find((aba) => aba.key === abaAtiva)?.label ||
-                    ""}
+                  {abasPermitidas.find(
+                    (aba) => aba.key === abaAtiva
+                  )?.label || ""}
                 </Text>
 
                 <Pressable
@@ -1038,11 +1109,20 @@ export default function Chat() {
                     checked:
                       usuariosParaFiltrarNaAba.length > 0 &&
                       usuariosParaFiltrarNaAba.every((u) =>
-                        idsSelecionados.includes(u.id),
+                        idsSelecionados.includes(u.id)
                       ),
                   }}
-                  disabled={usuariosParaFiltrarNaAba.length === 0}
-                  onPress={selecionarTodosNaAba}
+                  disabled={
+                    usuariosParaFiltrarNaAba.length === 0
+                  }
+                  onPress={() => {
+                    void selecionarTodosNaAba().catch((error) => {
+                      console.error(
+                        "Erro ao selecionar usuários da aba:",
+                        error
+                      );
+                    });
+                  }}
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
@@ -1057,7 +1137,7 @@ export default function Chat() {
                     name={
                       usuariosParaFiltrarNaAba.length > 0 &&
                       usuariosParaFiltrarNaAba.every((u) =>
-                        idsSelecionados.includes(u.id),
+                        idsSelecionados.includes(u.id)
                       )
                         ? "checkbox"
                         : "square-outline"
@@ -1066,7 +1146,7 @@ export default function Chat() {
                     color={
                       usuariosParaFiltrarNaAba.length > 0 &&
                       usuariosParaFiltrarNaAba.every((u) =>
-                        idsSelecionados.includes(u.id),
+                        idsSelecionados.includes(u.id)
                       )
                         ? colors.primary
                         : tema.text
@@ -1085,7 +1165,7 @@ export default function Chat() {
                   >
                     {usuariosParaFiltrarNaAba.length > 0 &&
                     usuariosParaFiltrarNaAba.every((u) =>
-                      idsSelecionados.includes(u.id),
+                      idsSelecionados.includes(u.id)
                     )
                       ? "Desmarcar todos"
                       : "Selecionar todos"}
@@ -1121,7 +1201,9 @@ export default function Chat() {
               showsVerticalScrollIndicator={false}
             >
               {usuariosParaFiltrarNaAba.map((item) => {
-                const selecionado = idsSelecionados.includes(item.id);
+                const selecionado = idsSelecionados.includes(
+                  item.id
+                );
 
                 return (
                   <Pressable
@@ -1133,7 +1215,7 @@ export default function Chat() {
                     accessibilityLabel={formatarNome(
                       item.nome,
                       item.email,
-                      item.tipo,
+                      item.tipo
                     )}
                     style={{
                       flexDirection: "row",
@@ -1143,12 +1225,29 @@ export default function Chat() {
                       borderBottomWidth: 1,
                       borderBottomColor: tema.border,
                     }}
-                    onPress={() => toggleSelecionFiltro(item.id)}
+                    onPress={() => {
+                      void toggleSelecionFiltro(item.id).catch(
+                        (error) => {
+                          console.error(
+                            "Erro ao atualizar filtro:",
+                            error
+                          );
+                        }
+                      );
+                    }}
                   >
                     <Ionicons
-                      name={selecionado ? "checkbox" : "square-outline"}
+                      name={
+                        selecionado
+                          ? "checkbox"
+                          : "square-outline"
+                      }
                       size={22}
-                      color={selecionado ? colors.primary : tema.text}
+                      color={
+                        selecionado
+                          ? colors.primary
+                          : tema.text
+                      }
                       style={{
                         marginRight: 10,
                         flexShrink: 0,
@@ -1169,7 +1268,11 @@ export default function Chat() {
                           color: tema.text,
                         }}
                       >
-                        {formatarNome(item.nome, item.email, item.tipo)}
+                        {formatarNome(
+                          item.nome,
+                          item.email,
+                          item.tipo
+                        )}
                       </Text>
 
                       <Text
