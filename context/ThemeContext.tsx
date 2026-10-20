@@ -6,6 +6,7 @@ import React, {
   useState,
   ReactNode,
 } from "react";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type TipoTema = "claro" | "escuro" | "forte";
@@ -29,6 +30,10 @@ export function ThemeProvider({
 }) {
   const [tipoTema, setTipoTema] = useState<TipoTema>("claro");
   const [carregando, setCarregando] = useState(true);
+
+  // =====================================================
+  // CONFIGURAÇÕES DOS TEMAS
+  // =====================================================
 
   const tema =
     tipoTema === "escuro"
@@ -154,8 +159,18 @@ export function ThemeProvider({
             textoBotao: "#fff",
           };
 
+  // =====================================================
+  // CARREGAR TEMA SALVO
+  // =====================================================
+
   useEffect(() => {
-    carregarTema();
+    // Correção SonarCloud S9383
+    void carregarTema().catch((erro) => {
+      console.error(
+        "Erro inesperado ao carregar o tema:",
+        erro
+      );
+    });
   }, []);
 
   async function carregarTema() {
@@ -166,6 +181,7 @@ export function ThemeProvider({
         // Compatibilidade com o sistema antigo:
         // false = claro
         // true = escuro
+
         if (temaSalvo === "true") {
           setTipoTema("escuro");
         } else if (temaSalvo === "false") {
@@ -181,6 +197,10 @@ export function ThemeProvider({
     }
   }
 
+  // =====================================================
+  // SELECIONAR TEMA
+  // =====================================================
+
   async function selecionarTema(novoTema: TipoTema) {
     try {
       setTipoTema(novoTema);
@@ -193,6 +213,10 @@ export function ThemeProvider({
       console.log(error);
     }
   }
+
+  // =====================================================
+  // ALTERNAR ENTRE OS TEMAS
+  // =====================================================
 
   async function alternarTema() {
     let novoTema: TipoTema;
@@ -208,6 +232,10 @@ export function ThemeProvider({
     await selecionarTema(novoTema);
   }
 
+  // =====================================================
+  // PROVIDER
+  // =====================================================
+
   return (
     <ThemeContext.Provider
       value={{
@@ -222,6 +250,10 @@ export function ThemeProvider({
     </ThemeContext.Provider>
   );
 }
+
+// =====================================================
+// HOOK PARA ACESSAR O TEMA
+// =====================================================
 
 export function useTheme() {
   return useContext(ThemeContext);
