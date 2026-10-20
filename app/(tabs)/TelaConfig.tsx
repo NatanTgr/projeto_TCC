@@ -695,14 +695,17 @@ export default function TelaConfig() {
     }
   }
 
-  useEffect(() => {
-    async function iniciarTela() {
-      await testarSupabase();
-      await carregarPerfil();
-    }
+useEffect(() => {
+  async function iniciarTela() {
+    await testarSupabase();
+    await carregarPerfil();
+  }
 
-    iniciarTela();
-  }, []);
+  // SonarCloud S9383: tratar rejeições da inicialização.
+  void iniciarTela().catch((erro) => {
+    console.error("Erro ao iniciar a tela de configurações:", erro);
+  });
+}, []);
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={Estilos.container}>
