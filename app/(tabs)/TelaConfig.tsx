@@ -711,7 +711,15 @@ useEffect(() => {
     <SafeAreaView edges={["top", "left", "right"]} style={Estilos.container}>
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
-          <Text style={Estilos.headerTitle}>Configurações</Text>
+          <Text
+            style={Estilos.headerTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.55}
+          >
+            Configurações
+          </Text>
+
           {usuario?.tipo === "estudante" && <BotaoAlerta />}
         </View>
       </View>
@@ -1068,9 +1076,7 @@ useEffect(() => {
                   </View>
 
                   <View style={Estilos.informacoesTutorial}>
-                    <Text style={Estilos.nomeTutorial}>
-                      {tutorial.titulo}
-                    </Text>
+                    <Text style={Estilos.nomeTutorial}>{tutorial.titulo}</Text>
                     <Text style={Estilos.descricaoOpcaoTutorial}>
                       {tutorial.descricao}
                     </Text>

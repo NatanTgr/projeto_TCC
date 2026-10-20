@@ -1,3 +1,4 @@
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
 
@@ -28,8 +29,18 @@ export function FontSizeProvider({
   const [tamanhoFonte, setTamanhoFonte] =
     useState<TamanhoFonte>("normal");
 
+  // =====================================================
+  // CARREGAR PREFERÊNCIA DE TAMANHO DA FONTE
+  // =====================================================
+
   useEffect(() => {
-    carregarTamanhoFonte();
+    // Correção SonarCloud S9383
+    void carregarTamanhoFonte().catch((error) => {
+      console.error(
+        "Erro inesperado ao carregar tamanho da fonte:",
+        error
+      );
+    });
   }, []);
 
   async function carregarTamanhoFonte() {
@@ -45,9 +56,16 @@ export function FontSizeProvider({
         setTamanhoFonte(tamanhoSalvo);
       }
     } catch (error) {
-      console.log("Erro ao carregar tamanho da fonte:", error);
+      console.log(
+        "Erro ao carregar tamanho da fonte:",
+        error
+      );
     }
   }
+
+  // =====================================================
+  // ALTERAR E SALVAR TAMANHO DA FONTE
+  // =====================================================
 
   async function selecionarTamanhoFonte(tamanho: TamanhoFonte) {
     try {
@@ -55,9 +73,16 @@ export function FontSizeProvider({
 
       await AsyncStorage.setItem("tamanhoFonte", tamanho);
     } catch (error) {
-      console.log("Erro ao salvar tamanho da fonte:", error);
+      console.log(
+        "Erro ao salvar tamanho da fonte:",
+        error
+      );
     }
   }
+
+  // =====================================================
+  // PROVIDER
+  // =====================================================
 
   return (
     <FontSizeContext.Provider
@@ -71,6 +96,10 @@ export function FontSizeProvider({
     </FontSizeContext.Provider>
   );
 }
+
+// =====================================================
+// HOOK PARA ACESSAR O CONTEXTO
+// =====================================================
 
 export function useFontSize() {
   const contexto = useContext(FontSizeContext);

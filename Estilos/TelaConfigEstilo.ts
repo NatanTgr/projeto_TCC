@@ -27,7 +27,7 @@ export default function criarEstilos(
 
     topRow: {
       flexDirection: "row",
-      flexWrap: "wrap",
+      flexWrap: "nowrap",
       justifyContent: "space-between",
       alignItems: "center",
       width: "100%",
