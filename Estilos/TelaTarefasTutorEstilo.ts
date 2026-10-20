@@ -105,7 +105,7 @@ const Estilos = StyleSheet.create({
   },
 
   textoTag: {
-    color: "#7DAED1",
+    color: "#477FA3",
     fontSize: 11,
     fontFamily: "FredokaLight",
   },
@@ -118,9 +118,39 @@ const Estilos = StyleSheet.create({
   },
 
   textoTagTurno: {
-    color: "#83B77A",
+    color: "#477D40",
     fontSize: 11,
     fontFamily: "FredokaLight",
+  },
+
+  tagCurso: {
+    backgroundColor: "#F3ECFA",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    maxWidth: "100%",
+  },
+
+  textoTagCurso: {
+    color: "#8663A8",
+    fontSize: 11,
+    fontFamily: "FredokaLight",
+    flexShrink: 1,
+  },
+
+  tagEscolaridade: {
+    backgroundColor: "#FFF0DD",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    maxWidth: "100%",
+  },
+
+  textoTagEscolaridade: {
+    color: "#9D682C",
+    fontSize: 11,
+    fontFamily: "FredokaLight",
+    flexShrink: 1,
   },
 
   tarefasPendentes: {

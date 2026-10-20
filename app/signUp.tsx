@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Alert,
   ActivityIndicator,
@@ -860,6 +861,21 @@ export default function SignUp() {
     role?: string | string[];
   }>();
 
+  const scrollCadastroRef = useRef<ScrollView>(null);
+  const turmaEmFocoRef = useRef(false);
+
+  useEffect(() => {
+    const assinatura = Keyboard.addListener("keyboardDidShow", () => {
+      if (turmaEmFocoRef.current) {
+        scrollCadastroRef.current?.scrollToEnd({
+          animated: true,
+        });
+      }
+    });
+
+    return () => assinatura.remove();
+  }, []);
+
   const { width, height, fontScale } = useWindowDimensions();
 
   const telaCompacta = width < 360 || height < 700;
@@ -1080,6 +1096,7 @@ const tituloPerfil =
         </View>
 
         <ScrollView
+          ref={scrollCadastroRef}
           style={cadastro.scroll}
           contentContainerStyle={[
             cadastro.scrollContent,
@@ -1251,13 +1268,25 @@ const tituloPerfil =
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Turma</Text>
+
                   <TextInput
                     style={estiloInput}
-                    placeholder="Ex.: 3ºA"
+                    placeholder="Ex.: 3º"
                     placeholderTextColor={colors.placeholder}
                     value={turma}
                     onChangeText={setTurma}
                     editable={!loading}
+                    returnKeyType="done"
+                    onFocus={() => {
+                      turmaEmFocoRef.current = true;
+
+                      scrollCadastroRef.current?.scrollToEnd({
+                        animated: true,
+                      });
+                    }}
+                    onBlur={() => {
+                      turmaEmFocoRef.current = false;
+                    }}
                   />
                 </View>
               </>

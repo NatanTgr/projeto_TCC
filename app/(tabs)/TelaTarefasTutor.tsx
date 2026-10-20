@@ -27,15 +27,19 @@ import { buscarAvatar } from "../../components/avatares";
 import { colors } from "../../style";
 import Estilos from "../../Estilos/TelaTarefasTutorEstilo";
 
+
 type Aluno = {
   id: string;
   nome: string;
-  turma: string;
-  turno: string;
+  curso: string | null;
+  turno: string | null;
+  turma: string | null;
+  escolaridade: string | null;
   avatar: string | null;
   tarefasPendentes: number;
   fixado: boolean;
 };
+
 
 export default function TelaTarefasTutor() {
   const { tema } = useTheme();
@@ -65,17 +69,19 @@ export default function TelaTarefasTutor() {
         return;
       }
 
-      const { data: alunosSalvos, error: erroAlunos } = await supabase
-        .from("alunos")
-        .select(`
-          id,
-          turma,
-          turno,
-          usuarios (
-            nome,
-            avatar
-          )
-        `);
+      const { data: alunosSalvos, error: erroAlunos } = await supabase.from(
+        "alunos",
+      ).select(`
+  id,
+  curso,
+  turno,
+  turma,
+  escolaridade,
+  usuarios (
+    nome,
+    avatar
+  )
+`);
 
       if (erroAlunos) {
         console.log("Erro ao carregar alunos:", erroAlunos);
@@ -112,22 +118,22 @@ export default function TelaTarefasTutor() {
         if (tarefa.concluido === false) {
           pendentesPorAluno.set(
             tarefa.aluno_id,
-            (pendentesPorAluno.get(tarefa.aluno_id) || 0) + 1
+            (pendentesPorAluno.get(tarefa.aluno_id) || 0) + 1,
           );
         }
       });
 
-      const listaAlunos: Aluno[] = (alunosSalvos || []).map(
-        (aluno: any) => ({
-          id: aluno.id,
-          nome: aluno.usuarios?.nome || "Aluno",
-          turma: aluno.turma,
-          turno: aluno.turno,
-          avatar: aluno.usuarios?.avatar || null,
-          tarefasPendentes: pendentesPorAluno.get(aluno.id) || 0,
-          fixado: idsFixados.has(aluno.id),
-        })
-      );
+      const listaAlunos: Aluno[] = (alunosSalvos || []).map((aluno: any) => ({
+        id: aluno.id,
+        nome: aluno.usuarios?.nome || "Aluno",
+        curso: aluno.curso ?? null,
+        turno: aluno.turno ?? null,
+        turma: aluno.turma ?? null,
+        escolaridade: aluno.escolaridade ?? null,
+        avatar: aluno.usuarios?.avatar || null,
+        tarefasPendentes: pendentesPorAluno.get(aluno.id) || 0,
+        fixado: idsFixados.has(aluno.id),
+      }));
 
       setAlunos(listaAlunos);
 
@@ -366,10 +372,7 @@ export default function TelaTarefasTutor() {
             >
               <View style={Estilos.avatar}>
                 {avatarEscolhido ? (
-                  <AvatarImagem
-                    uri={avatarEscolhido.url}
-                    tamanho={44}
-                  />
+                  <AvatarImagem uri={avatarEscolhido.url} tamanho={44} />
                 ) : (
                   <Text
                     style={[
@@ -396,14 +399,22 @@ export default function TelaTarefasTutor() {
                 </Text>
 
                 <View style={Estilos.linhaInformacoes}>
-                  <View style={Estilos.tagTurma}>
+                  <View style={Estilos.tagCurso}>
                     <Text
                       style={[
-                        Estilos.textoTag,
+                        Estilos.textoTagCurso,
                         { fontSize: 11 * escalaFonte },
                       ]}
                     >
-                      {aluno.turma}
+                      Curso: {aluno.curso?.trim() || "Não informado"}
+                    </Text>
+                  </View>
+
+                  <View style={Estilos.tagTurma}>
+                    <Text
+                      style={[Estilos.textoTag, { fontSize: 11 * escalaFonte }]}
+                    >
+                      Turma: {aluno.turma?.trim() || "Não informada"}
                     </Text>
                   </View>
 
@@ -414,7 +425,19 @@ export default function TelaTarefasTutor() {
                         { fontSize: 11 * escalaFonte },
                       ]}
                     >
-                      {aluno.turno}
+                      Turno: {aluno.turno?.trim() || "Não informado"}
+                    </Text>
+                  </View>
+
+                  <View style={Estilos.tagEscolaridade}>
+                    <Text
+                      style={[
+                        Estilos.textoTagEscolaridade,
+                        { fontSize: 11 * escalaFonte },
+                      ]}
+                    >
+                      Escolaridade:{" "}
+                      {aluno.escolaridade?.trim() || "Não informada"}
                     </Text>
                   </View>
                 </View>
@@ -451,23 +474,15 @@ export default function TelaTarefasTutor() {
                   void alternarFixado(aluno).catch((erro) => {
                     console.error(
                       "Erro inesperado ao fixar/desfixar aluno:",
-                      erro
+                      erro,
                     );
                   });
                 }}
               >
                 <Ionicons
-                  name={
-                    aluno.fixado
-                      ? "bookmark"
-                      : "bookmark-outline"
-                  }
+                  name={aluno.fixado ? "bookmark" : "bookmark-outline"}
                   size={25}
-                  color={
-                    aluno.fixado
-                      ? colors.primary
-                      : colors.placeholder
-                  }
+                  color={aluno.fixado ? colors.primary : colors.placeholder}
                 />
               </Pressable>
             </TouchableOpacity>

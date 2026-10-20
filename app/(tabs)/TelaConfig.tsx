@@ -13,7 +13,6 @@ import {
   Platform,
   Linking,
 } from "react-native";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useEffect, useState, useRef } from "react";
@@ -48,6 +47,7 @@ type DadosAluno = {
   curso: string;
   turno: string;
   turma: string;
+  escolaridade: string;
 };
 
 type DadosProfessor = {
@@ -79,7 +79,6 @@ type VideoTutorial = {
   icone: keyof typeof Feather.glyphMap;
   url: string | null;
 };
-
 
 const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
   estudante: [
@@ -195,25 +194,35 @@ const OPCOES_TAMANHO = [
 
 export default function TelaConfig() {
   const { tipoTema, selecionarTema, tema } = useTheme();
-  const { tamanhoFonte, escalaFonte, selecionarTamanhoFonte } = useFontSize();
+  const {
+    tamanhoFonte,
+    escalaFonte,
+    selecionarTamanhoFonte,
+  } = useFontSize();
 
   const { width, fontScale } = useWindowDimensions();
 
   const Estilos = criarEstilos(tema, escalaFonte);
-  const perfilEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
+  const perfilEmColuna =
+    width < 380 || escalaFonte * fontScale >= 1.2;
+
+  // DADOS DO PERFIL
 
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [dadosAluno, setDadosAluno] = useState<DadosAluno | null>(null);
-  const [dadosProfessor, setDadosProfessor] = useState<DadosProfessor | null>(
-    null,
-  );
-  const [dadosTutor, setDadosTutor] = useState<DadosTutor | null>(null);
+
+  const [dadosProfessor, setDadosProfessor] =
+    useState<DadosProfessor | null>(null);
+
+  const [dadosTutor, setDadosTutor] =
+    useState<DadosTutor | null>(null);
 
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
+  // NOTIFICAÇÕES
+
   const [chatAtivo, setChatAtivo] = useState(true);
   const [tarefasAtivas, setTarefasAtivas] = useState(true);
-
   const [salvandoNotificacao, setSalvandoNotificacao] = useState(false);
 
   const preferenciasNotificacoesRef = useRef({
@@ -223,29 +232,62 @@ export default function TelaConfig() {
 
   const salvandoNotificacaoRef = useRef(false);
 
-  const [prazoLimpeza, setPrazoLimpeza] = useState<PrazoLimpeza | null>(null);
+  // LIMPEZA DE TAREFAS
+
+  const [prazoLimpeza, setPrazoLimpeza] =
+    useState<PrazoLimpeza | null>(null);
+
   const [modalLimpeza, setModalLimpeza] = useState(false);
   const [salvandoLimpeza, setSalvandoLimpeza] = useState(false);
   const [carregandoLimpeza, setCarregandoLimpeza] = useState(true);
   const [erroLimpeza, setErroLimpeza] = useState(false);
 
+  // MODAIS
+
   const [modalTamanhoFonte, setModalTamanhoFonte] = useState(false);
   const [modalAlterarSenha, setModalAlterarSenha] = useState(false);
   const [modalAvatar, setModalAvatar] = useState(false);
-
-  // MODAL DE TUTORIAIS
   const [modalTutoriais, setModalTutoriais] = useState(false);
+
+  // ALTERAR TURMA
 
   const [modalAlterarTurma, setModalAlterarTurma] = useState(false);
   const [novaTurma, setNovaTurma] = useState("");
   const [salvandoTurma, setSalvandoTurma] = useState(false);
 
+  // ALTERAR ÁREA OU DEPARTAMENTO
+
+  const [modalDadosProfissionais, setModalDadosProfissionais] =
+    useState(false);
+
+  const [novoDadoProfissional, setNovoDadoProfissional] =
+    useState("");
+
+  const [salvandoDadoProfissional, setSalvandoDadoProfissional] =
+    useState(false);
+
+  // ALTERAR SENHA
+
   const [novaSenha, setNovaSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [alterandoSenha, setAlterandoSenha] = useState(false);
 
-  // SELECIONA OS VÍDEOS DO TIPO DE USUÁRIO LOGADO
-  const tutoriaisDoUsuario = usuario ? TUTORIAIS[usuario.tipo] : [];
+  // PERFIS PROFISSIONAIS
+
+  const eProfessor = usuario?.tipo === "professor";
+
+  const eTutorOuNapne =
+    usuario?.tipo === "tutor" || usuario?.tipo === "napne";
+
+  const valorDadoProfissionalAtual = eProfessor
+    ? dadosProfessor?.area_atuacao ?? ""
+    : dadosTutor?.departamento ?? "";
+
+  // TUTORIAIS
+
+  const tutoriaisDoUsuario = usuario
+    ? TUTORIAIS[usuario.tipo]
+    : [];
 
   async function assistirTutorial(tutorial: VideoTutorial) {
     if (!tutorial.url) {
@@ -260,19 +302,20 @@ export default function TelaConfig() {
       await Linking.openURL(tutorial.url);
     } catch (erro) {
       console.error("Erro ao abrir vídeo tutorial:", erro);
-
-      Alert.alert(
-        "Erro",
-        "Não foi possível abrir o vídeo tutorial.",
-      );
+      Alert.alert("Erro", "Não foi possível abrir o vídeo tutorial.");
     }
   }
 
   const avatarPerfil = buscarAvatar(usuario?.avatar);
 
   const labelPrazoLimpeza =
-    OPCOES_LIMPEZA.find((opcao) => opcao.meses === prazoLimpeza)?.label ??
-    "Não configurada";
+    OPCOES_LIMPEZA.find(
+      (opcao) => opcao.meses === prazoLimpeza,
+    )?.label ?? "Não configurada";
+
+  // =====================================================
+  // CARREGAR PREFERÊNCIA DE LIMPEZA
+  // =====================================================
 
   async function carregarPreferenciaLimpeza(usuarioId: string) {
     setCarregandoLimpeza(true);
@@ -302,6 +345,10 @@ export default function TelaConfig() {
       setCarregandoLimpeza(false);
     }
   }
+
+  // =====================================================
+  // SALVAR PREFERÊNCIA DE LIMPEZA
+  // =====================================================
 
   async function salvarPrazoLimpeza(meses: PrazoLimpeza) {
     if (usuario?.tipo !== "estudante" || salvandoLimpeza) {
@@ -338,6 +385,10 @@ export default function TelaConfig() {
       setSalvandoLimpeza(false);
     }
   }
+
+  // =====================================================
+  // ALTERAR NOTIFICAÇÕES
+  // =====================================================
 
   async function alterarNotificacao(
     tipo: "chat" | "tarefas",
@@ -389,14 +440,16 @@ export default function TelaConfig() {
         tarefas_ativas: data.tarefas_ativas,
       };
 
-      preferenciasNotificacoesRef.current = preferenciasConfirmadas;
+      preferenciasNotificacoesRef.current =
+        preferenciasConfirmadas;
 
       setChatAtivo(preferenciasConfirmadas.chat_ativo);
       setTarefasAtivas(preferenciasConfirmadas.tarefas_ativas);
     } catch (erro) {
       console.error("Erro ao alterar notificações:", erro);
 
-      preferenciasNotificacoesRef.current = preferenciasAnteriores;
+      preferenciasNotificacoesRef.current =
+        preferenciasAnteriores;
 
       setChatAtivo(preferenciasAnteriores.chat_ativo);
       setTarefasAtivas(preferenciasAnteriores.tarefas_ativas);
@@ -410,6 +463,10 @@ export default function TelaConfig() {
       setSalvandoNotificacao(false);
     }
   }
+
+  // =====================================================
+  // SAIR DA CONTA
+  // =====================================================
 
   const sairDaConta = async () => {
     try {
@@ -435,7 +492,9 @@ export default function TelaConfig() {
       console.error("Erro ao sair da conta:", erro);
 
       const detalhe =
-        typeof erro === "object" && erro !== null && "message" in erro
+        typeof erro === "object" &&
+        erro !== null &&
+        "message" in erro
           ? String(erro.message)
           : "Erro sem detalhes disponíveis.";
 
@@ -446,12 +505,19 @@ export default function TelaConfig() {
     }
   };
 
+  // =====================================================
+  // SALVAR AVATAR
+  // =====================================================
+
   async function salvarAvatar(url: string | null) {
     if (!usuario) {
       throw new Error("Perfil inválido.");
     }
 
-    if (url !== null && !AVATARES.some((avatar) => avatar.url === url)) {
+    if (
+      url !== null &&
+      !AVATARES.some((avatar) => avatar.url === url)
+    ) {
       throw new Error("Avatar inválido.");
     }
 
@@ -471,7 +537,12 @@ export default function TelaConfig() {
       .select("id, avatar")
       .single();
 
-    if (error || !data || data.id !== user.id || data.avatar !== url) {
+    if (
+      error ||
+      !data ||
+      data.id !== user.id ||
+      data.avatar !== url
+    ) {
       console.log("Erro ao salvar avatar:", error);
       throw error ?? new Error("O banco não confirmou a alteração.");
     }
@@ -485,6 +556,10 @@ export default function TelaConfig() {
         : usuarioAtual,
     );
   }
+
+  // =====================================================
+  // CARREGAR PERFIL
+  // =====================================================
 
   async function carregarPerfil() {
     try {
@@ -505,11 +580,12 @@ export default function TelaConfig() {
         return;
       }
 
-      const { data: dadosUsuario, error: erroUsuario } = await supabase
-        .from("usuarios")
-        .select("id, nome, email, campus, tipo, estado, avatar")
-        .eq("id", user.id)
-        .single();
+      const { data: dadosUsuario, error: erroUsuario } =
+        await supabase
+          .from("usuarios")
+          .select("id, nome, email, campus, tipo, estado, avatar")
+          .eq("id", user.id)
+          .single();
 
       if (erroUsuario) {
         console.log("Erro ao buscar usuário:", erroUsuario);
@@ -522,7 +598,10 @@ export default function TelaConfig() {
         await carregarPreferenciaLimpeza(user.id);
       }
 
-      const { data: preferencias, error: erroPreferencias } = await supabase
+      const {
+        data: preferencias,
+        error: erroPreferencias,
+      } = await supabase
         .from("preferencias_notificacoes")
         .select("chat_ativo, tarefas_ativas")
         .eq("usuario_id", user.id)
@@ -535,7 +614,8 @@ export default function TelaConfig() {
         tarefas_ativas: preferencias?.tarefas_ativas ?? true,
       };
 
-      preferenciasNotificacoesRef.current = preferenciasCarregadas;
+      preferenciasNotificacoesRef.current =
+        preferenciasCarregadas;
 
       setChatAtivo(preferenciasCarregadas.chat_ativo);
       setTarefasAtivas(preferenciasCarregadas.tarefas_ativas);
@@ -543,7 +623,7 @@ export default function TelaConfig() {
       if (dadosUsuario.tipo === "estudante") {
         const { data, error } = await supabase
           .from("alunos")
-          .select("curso, turno, turma")
+          .select("curso, turno, turma, escolaridade")
           .eq("id", user.id)
           .single();
 
@@ -570,7 +650,10 @@ export default function TelaConfig() {
         setDadosProfessor(data);
       }
 
-      if (dadosUsuario.tipo === "tutor" || dadosUsuario.tipo === "napne") {
+      if (
+        dadosUsuario.tipo === "tutor" ||
+        dadosUsuario.tipo === "napne"
+      ) {
         const { data, error } = await supabase
           .from("tutores")
           .select("departamento")
@@ -578,7 +661,10 @@ export default function TelaConfig() {
           .single();
 
         if (error) {
-          console.log("Erro ao buscar departamento do tutor/NAPNE:", error);
+          console.log(
+            "Erro ao buscar departamento do tutor/NAPNE:",
+            error,
+          );
           return;
         }
 
@@ -591,8 +677,16 @@ export default function TelaConfig() {
     }
   }
 
+  // =====================================================
+  // ALTERAR TURMA
+  // =====================================================
+
   async function alterarTurma() {
-    if (usuario?.tipo !== "estudante" || !dadosAluno || salvandoTurma) {
+    if (
+      usuario?.tipo !== "estudante" ||
+      !dadosAluno ||
+      salvandoTurma
+    ) {
       return;
     }
 
@@ -634,13 +728,18 @@ export default function TelaConfig() {
       }
 
       setDadosAluno((dadosAtuais) =>
-        dadosAtuais ? { ...dadosAtuais, turma: data.turma } : dadosAtuais,
+        dadosAtuais
+          ? { ...dadosAtuais, turma: data.turma }
+          : dadosAtuais,
       );
 
       setModalAlterarTurma(false);
       setNovaTurma("");
 
-      Alert.alert("Sucesso", "Sua turma foi alterada com sucesso!");
+      Alert.alert(
+        "Sucesso",
+        "Sua turma foi alterada com sucesso!",
+      );
     } catch (erro) {
       console.error("Erro ao alterar turma:", erro);
 
@@ -653,6 +752,137 @@ export default function TelaConfig() {
     }
   }
 
+  // =====================================================
+  // ALTERAR ÁREA OU DEPARTAMENTO
+  // =====================================================
+
+  async function alterarDadoProfissional() {
+    if (
+      !usuario ||
+      !(
+        (eProfessor && dadosProfessor) ||
+        (eTutorOuNapne && dadosTutor)
+      ) ||
+      salvandoDadoProfissional
+    ) {
+      return;
+    }
+
+    const valorNovo = novoDadoProfissional.trim();
+    const valorAtual = valorDadoProfissionalAtual.trim();
+
+    if (!valorNovo) {
+      Alert.alert(
+        "Campo obrigatório",
+        eProfessor
+          ? "Informe sua nova área."
+          : "Informe seu novo departamento.",
+      );
+      return;
+    }
+
+    if (valorNovo === valorAtual) {
+      Alert.alert(
+        "Atenção",
+        "O valor informado é igual ao atual.",
+      );
+      return;
+    }
+
+    try {
+      setSalvandoDadoProfissional(true);
+
+      const {
+        data: { user },
+        error: erroAuth,
+      } = await supabase.auth.getUser();
+
+      if (erroAuth || !user || user.id !== usuario.id) {
+        throw new Error("Sessão inválida. Entre novamente.");
+      }
+
+      if (eProfessor) {
+        const { data, error } = await supabase
+          .from("professores")
+          .update({ area_atuacao: valorNovo })
+          .eq("id", user.id)
+          .select("area_atuacao")
+          .single();
+
+        if (error) throw error;
+
+        if (data?.area_atuacao !== valorNovo) {
+          throw new Error(
+            "O banco não confirmou a alteração da área.",
+          );
+        }
+
+        setDadosProfessor((atual) =>
+          atual
+            ? {
+                ...atual,
+                area_atuacao: data.area_atuacao,
+              }
+            : atual,
+        );
+      } else if (eTutorOuNapne) {
+        const { data, error } = await supabase
+          .from("tutores")
+          .update({ departamento: valorNovo })
+          .eq("id", user.id)
+          .select("departamento")
+          .single();
+
+        if (error) throw error;
+
+        if (data?.departamento !== valorNovo) {
+          throw new Error(
+            "O banco não confirmou a alteração do departamento.",
+          );
+        }
+
+        setDadosTutor((atual) =>
+          atual
+            ? {
+                ...atual,
+                departamento: data.departamento,
+              }
+            : atual,
+        );
+      } else {
+        return;
+      }
+
+      setModalDadosProfissionais(false);
+      setNovoDadoProfissional("");
+
+      Alert.alert(
+        "Sucesso",
+        eProfessor
+          ? "Sua área foi atualizada com sucesso!"
+          : "Seu departamento foi atualizado com sucesso!",
+      );
+    } catch (erro) {
+      console.error(
+        "Erro ao atualizar dado profissional:",
+        erro,
+      );
+
+      Alert.alert(
+        "Erro ao salvar",
+        erro instanceof Error
+          ? erro.message
+          : "Não foi possível atualizar seus dados. Tente novamente.",
+      );
+    } finally {
+      setSalvandoDadoProfissional(false);
+    }
+  }
+
+  // =====================================================
+  // ALTERAR SENHA
+  // =====================================================
+
   async function alterarSenha() {
     if (!novaSenha || !confirmarSenha) {
       Alert.alert("Atenção", "Preencha os dois campos.");
@@ -660,7 +890,10 @@ export default function TelaConfig() {
     }
 
     if (novaSenha.length < 6) {
-      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres.");
+      Alert.alert(
+        "Atenção",
+        "A senha deve ter pelo menos 6 caracteres.",
+      );
       return;
     }
 
@@ -695,20 +928,35 @@ export default function TelaConfig() {
     }
   }
 
-useEffect(() => {
-  async function iniciarTela() {
-    await testarSupabase();
-    await carregarPerfil();
-  }
+  // =====================================================
+  // INICIALIZAÇÃO
+  // =====================================================
 
-  // SonarCloud S9383: tratar rejeições da inicialização.
-  void iniciarTela().catch((erro) => {
-    console.error("Erro ao iniciar a tela de configurações:", erro);
-  });
-}, []);
+  useEffect(() => {
+    async function iniciarTela() {
+      await testarSupabase();
+      await carregarPerfil();
+    }
+
+    void iniciarTela().catch((erro) => {
+      console.error(
+        "Erro ao iniciar a tela de configurações:",
+        erro,
+      );
+    });
+  }, []);
+
+  // =====================================================
+  // INTERFACE
+  // =====================================================
 
   return (
-    <SafeAreaView edges={["top", "left", "right"]} style={Estilos.container}>
+    <SafeAreaView
+      edges={["top", "left", "right"]}
+      style={Estilos.container}
+    >
+      {/* CABEÇALHO */}
+
       <View style={Estilos.header}>
         <View style={Estilos.topRow}>
           <Text
@@ -726,6 +974,8 @@ useEffect(() => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={Estilos.tela}>
+          {/* PERFIL */}
+
           <View style={Estilos.cardPerfil}>
             <View
               style={[
@@ -735,7 +985,10 @@ useEffect(() => {
             >
               <View style={Estilos.avatarContainer}>
                 {avatarPerfil ? (
-                  <AvatarImagem uri={avatarPerfil.url} tamanho={90} />
+                  <AvatarImagem
+                    uri={avatarPerfil.url}
+                    tamanho={90}
+                  />
                 ) : (
                   <Text style={Estilos.avatarTexto}>👤</Text>
                 )}
@@ -744,11 +997,14 @@ useEffect(() => {
               <View
                 style={[
                   Estilos.informacoesPerfil,
-                  perfilEmColuna && Estilos.informacoesPerfilEmColuna,
+                  perfilEmColuna &&
+                    Estilos.informacoesPerfilEmColuna,
                 ]}
               >
                 <Text style={Estilos.nomePerfil}>
-                  {carregandoPerfil ? "Carregando..." : usuario?.nome}
+                  {carregandoPerfil
+                    ? "Carregando..."
+                    : usuario?.nome}
                 </Text>
 
                 <Text style={Estilos.tipoPerfil}>
@@ -763,31 +1019,54 @@ useEffect(() => {
                           : ""}
                 </Text>
 
-                {usuario?.tipo === "estudante" && dadosAluno && (
-                  <>
-                    <Text style={Estilos.detalhesPerfil}>
-                      {dadosAluno.curso} • {dadosAluno.turno}
-                    </Text>
-                    <Text style={Estilos.detalhesPerfil}>
-                      Turma: {dadosAluno.turma}
-                    </Text>
-                  </>
-                )}
+                {usuario?.tipo === "estudante" &&
+                  dadosAluno && (
+                    <>
+                      <Text style={Estilos.detalhesPerfil}>
+                        Curso:{" "}
+                        {dadosAluno.curso || "Não informado"}
+                      </Text>
 
-                {usuario?.tipo === "professor" && dadosProfessor && (
-                  <Text style={Estilos.detalhesPerfil}>
-                    Área: {dadosProfessor.area_atuacao || "Não informada"}
-                  </Text>
-                )}
+                      <Text style={Estilos.detalhesPerfil}>
+                        Turno:{" "}
+                        {dadosAluno.turno || "Não informado"}
+                      </Text>
 
-                {(usuario?.tipo === "tutor" || usuario?.tipo === "napne") &&
+                      <Text style={Estilos.detalhesPerfil}>
+                        Turma:{" "}
+                        {dadosAluno.turma || "Não informada"}
+                      </Text>
+
+                      <Text style={Estilos.detalhesPerfil}>
+                        Escolaridade:{" "}
+                        {dadosAluno.escolaridade ||
+                          "Não informada"}
+                      </Text>
+                    </>
+                  )}
+
+                {usuario?.tipo === "professor" &&
+                  dadosProfessor && (
+                    <Text style={Estilos.detalhesPerfil}>
+                      Área:{" "}
+                      {dadosProfessor.area_atuacao ||
+                        "Não informada"}
+                    </Text>
+                  )}
+
+                {(usuario?.tipo === "tutor" ||
+                  usuario?.tipo === "napne") &&
                   dadosTutor && (
                     <Text style={Estilos.detalhesPerfil}>
-                      Departamento: {dadosTutor.departamento || "Não informado"}
+                      Departamento:{" "}
+                      {dadosTutor.departamento ||
+                        "Não informado"}
                     </Text>
                   )}
               </View>
             </View>
+
+            {/* ALTERAR AVATAR */}
 
             <TouchableOpacity
               onPress={() => setModalAvatar(true)}
@@ -798,39 +1077,113 @@ useEffect(() => {
               }}
               style={[
                 Estilos.botaoAvatar,
-                (carregandoPerfil || !usuario) && Estilos.desabilitado,
+                (carregandoPerfil || !usuario) &&
+                  Estilos.desabilitado,
               ]}
             >
-              <Feather name="edit-2" size={18} color={tema.text} />
-              <Text style={Estilos.textoBotaoAvatar}>Alterar avatar</Text>
+              <Feather
+                name="edit-2"
+                size={18}
+                color={tema.text}
+              />
+
+              <Text style={Estilos.textoBotaoAvatar}>
+                Alterar avatar
+              </Text>
             </TouchableOpacity>
 
-            {usuario?.tipo === "estudante" && dadosAluno && (
+            {/* ALTERAR TURMA - ESTUDANTES */}
+
+            {usuario?.tipo === "estudante" &&
+              dadosAluno && (
+                <TouchableOpacity
+                  style={Estilos.botaoAlterarTurma}
+                  onPress={() => {
+                    setNovaTurma(dadosAluno.turma || "");
+                    setModalAlterarTurma(true);
+                  }}
+                  disabled={salvandoTurma}
+                  accessibilityRole="button"
+                  accessibilityLabel="Alterar turma"
+                >
+                  <Feather
+                    name="edit-2"
+                    size={18}
+                    color={tema.text}
+                  />
+
+                  <Text style={Estilos.textoAlterarTurma}>
+                    Alterar turma
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+            {/* ALTERAR ÁREA OU DEPARTAMENTO */}
+
+            {(
+              (eProfessor && dadosProfessor) ||
+              (eTutorOuNapne && dadosTutor)
+            ) ? (
               <TouchableOpacity
-                style={Estilos.botaoAlterarTurma}
+                style={[
+                  Estilos.botaoAlterarDadosProfissionais,
+                  (carregandoPerfil ||
+                    salvandoDadoProfissional) &&
+                    Estilos.desabilitado,
+                ]}
                 onPress={() => {
-                  setNovaTurma(dadosAluno.turma || "");
-                  setModalAlterarTurma(true);
+                  setNovoDadoProfissional(
+                    valorDadoProfissionalAtual,
+                  );
+                  setModalDadosProfissionais(true);
                 }}
-                disabled={salvandoTurma}
+                disabled={
+                  carregandoPerfil ||
+                  salvandoDadoProfissional
+                }
                 accessibilityRole="button"
-                accessibilityLabel="Alterar turma"
+                accessibilityLabel={
+                  eProfessor
+                    ? "Alterar área"
+                    : "Alterar departamento"
+                }
               >
-                <Feather name="edit-2" size={18} color={tema.text} />
-                <Text style={Estilos.textoAlterarTurma}>Alterar turma</Text>
+                <Feather
+                  name="edit-2"
+                  size={18}
+                  color={tema.text}
+                />
+
+                <Text
+                  style={
+                    Estilos.textoAlterarDadosProfissionais
+                  }
+                >
+                  {eProfessor
+                    ? "Alterar área"
+                    : "Alterar departamento"}
+                </Text>
               </TouchableOpacity>
-            )}
+            ) : null}
           </View>
+
+          {/* CONTA */}
 
           <View style={Estilos.cardConta}>
             <Text style={Estilos.tituloConta}>Conta</Text>
 
             <View style={Estilos.informacaoConta}>
               <View style={Estilos.iconeConta}>
-                <Feather name="mail" size={21} color={tema.text} />
+                <Feather
+                  name="mail"
+                  size={21}
+                  color={tema.text}
+                />
               </View>
+
               <View style={Estilos.conteudoConta}>
                 <Text style={Estilos.labelConta}>E-mail</Text>
+
                 <Text style={Estilos.valorConta}>
                   {usuario?.email || "Carregando..."}
                 </Text>
@@ -839,11 +1192,18 @@ useEffect(() => {
 
             <View style={Estilos.informacaoConta}>
               <View style={Estilos.iconeConta}>
-                <Feather name="lock" size={21} color={tema.text} />
+                <Feather
+                  name="lock"
+                  size={21}
+                  color={tema.text}
+                />
               </View>
+
               <View style={Estilos.conteudoConta}>
                 <Text style={Estilos.labelConta}>Senha</Text>
-                <Text style={Estilos.valorConta}>••••••••</Text>
+                <Text style={Estilos.valorConta}>
+                  ••••••••
+                </Text>
               </View>
             </View>
 
@@ -851,13 +1211,25 @@ useEffect(() => {
               style={Estilos.botaoAlterarSenha}
               onPress={() => setModalAlterarSenha(true)}
             >
-              <Feather name="edit-2" size={18} color={tema.text} />
-              <Text style={Estilos.textoAlterarSenha}>Alterar senha</Text>
+              <Feather
+                name="edit-2"
+                size={18}
+                color={tema.text}
+              />
+
+              <Text style={Estilos.textoAlterarSenha}>
+                Alterar senha
+              </Text>
             </TouchableOpacity>
           </View>
 
+          {/* VÍDEOS TUTORIAIS */}
+
           <TouchableOpacity
-            style={[Estilos.cardTutorial, !usuario && Estilos.desabilitado]}
+            style={[
+              Estilos.cardTutorial,
+              !usuario && Estilos.desabilitado,
+            ]}
             onPress={() => setModalTutoriais(true)}
             disabled={!usuario}
             activeOpacity={0.7}
@@ -865,62 +1237,98 @@ useEffect(() => {
             accessibilityLabel="Escolher vídeo tutorial"
           >
             <View style={Estilos.conteudoTutorial}>
-              <Feather name="play-circle" size={26} color="#4CAF50" />
-              <Text style={Estilos.textoTutorial}>Vídeos tutoriais</Text>
+              <Feather
+                name="play-circle"
+                size={26}
+                color="#4CAF50"
+              />
+
+              <Text style={Estilos.textoTutorial}>
+                Vídeos tutoriais
+              </Text>
             </View>
-            <Feather name="chevron-right" size={24} color={tema.text} />
+
+            <Feather
+              name="chevron-right"
+              size={24}
+              color={tema.text}
+            />
           </TouchableOpacity>
+
+          {/* CONFIGURAÇÕES */}
 
           <View style={Estilos.cardConfig}>
             <View style={Estilos.secaoTema}>
-              <Text style={Estilos.tituloTema}>Tema do aplicativo</Text>
+              <Text style={Estilos.tituloTema}>
+                Tema do aplicativo
+              </Text>
 
               <View style={Estilos.botoesTema}>
                 <TouchableOpacity
                   onPress={() => selecionarTema("claro")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "claro" && Estilos.botaoTemaSelecionado,
+                    tipoTema === "claro" &&
+                      Estilos.botaoTemaSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>☀️ Claro</Text>
+                  <Text style={Estilos.textoBotaoTema}>
+                    ☀️ Claro
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => selecionarTema("escuro")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "escuro" && Estilos.botaoTemaSelecionado,
+                    tipoTema === "escuro" &&
+                      Estilos.botaoTemaSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>🌙 Escuro</Text>
+                  <Text style={Estilos.textoBotaoTema}>
+                    🌙 Escuro
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => selecionarTema("forte")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "forte" && Estilos.botaoTemaForteSelecionado,
+                    tipoTema === "forte" &&
+                      Estilos.botaoTemaForteSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>🌈 Forte</Text>
+                  <Text style={Estilos.textoBotaoTema}>
+                    🌈 Forte
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
+
+            {/* TAMANHO DA FONTE */}
 
             <TouchableOpacity
               style={Estilos.cardOpcoes}
               onPress={() => setModalTamanhoFonte(true)}
             >
               <View style={Estilos.conteudoOpcao}>
-                <Text style={Estilos.tituloOpcao}>🔤 Tamanho da letra</Text>
+                <Text style={Estilos.tituloOpcao}>
+                  🔤 Tamanho da letra
+                </Text>
+
                 <Text style={Estilos.textoTamanhoAtual}>
                   Atual: {tamanhoFonte}
                 </Text>
               </View>
 
-              <Feather name="chevron-right" size={24} color={tema.text} />
+              <Feather
+                name="chevron-right"
+                size={24}
+                color={tema.text}
+              />
             </TouchableOpacity>
+
+            {/* LIMPEZA DE TAREFAS */}
 
             {usuario?.tipo === "estudante" && (
               <TouchableOpacity
@@ -929,12 +1337,16 @@ useEffect(() => {
                   (carregandoLimpeza || salvandoLimpeza) &&
                     Estilos.desabilitado,
                 ]}
-                disabled={carregandoLimpeza || salvandoLimpeza}
+                disabled={
+                  carregandoLimpeza || salvandoLimpeza
+                }
                 accessibilityRole="button"
                 accessibilityLabel="Configurar limpeza de tarefas concluídas"
                 onPress={() => {
                   if (erroLimpeza) {
-                    void carregarPreferenciaLimpeza(usuario.id);
+                    void carregarPreferenciaLimpeza(
+                      usuario.id,
+                    );
                     return;
                   }
 
@@ -957,16 +1369,26 @@ useEffect(() => {
                   </Text>
                 </View>
 
-                <Feather name="chevron-right" size={24} color={tema.text} />
+                <Feather
+                  name="chevron-right"
+                  size={24}
+                  color={tema.text}
+                />
               </TouchableOpacity>
             )}
 
+            {/* NOTIFICAÇÕES DE CHAT */}
+
             <View style={Estilos.cardNotiChat}>
-              <Text style={Estilos.textoNotificacao}>Notificações de Chat</Text>
+              <Text style={Estilos.textoNotificacao}>
+                Notificações de Chat
+              </Text>
 
               <Switch
                 value={chatAtivo}
-                onValueChange={(valor) => alterarNotificacao("chat", valor)}
+                onValueChange={(valor) =>
+                  alterarNotificacao("chat", valor)
+                }
                 disabled={!usuario}
                 trackColor={{
                   false: "#B0B0B0",
@@ -977,12 +1399,18 @@ useEffect(() => {
               />
             </View>
 
+            {/* LEMBRETES DE TAREFAS */}
+
             <View style={Estilos.cardLembrete}>
-              <Text style={Estilos.textoNotificacao}>Lembretes de Tarefas</Text>
+              <Text style={Estilos.textoNotificacao}>
+                Lembretes de Tarefas
+              </Text>
 
               <Switch
                 value={tarefasAtivas}
-                onValueChange={(valor) => alterarNotificacao("tarefas", valor)}
+                onValueChange={(valor) =>
+                  alterarNotificacao("tarefas", valor)
+                }
                 disabled={!usuario}
                 trackColor={{
                   false: "#B0B0B0",
@@ -994,22 +1422,42 @@ useEffect(() => {
             </View>
           </View>
 
+          {/* SOBRE O PAED */}
+
           <TouchableOpacity
             style={Estilos.botaoSobrePaed}
-            onPress={() => router.push("/(tabs)/TelaSobrePaed")}
+            onPress={() =>
+              router.push("/(tabs)/TelaSobrePaed")
+            }
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Sobre o PAED"
           >
-            <Feather name="info" size={24} color={tema.text} />
-            <Text style={Estilos.textoSobrePaed}>Sobre o PAED</Text>
+            <Feather
+              name="info"
+              size={24}
+              color={tema.text}
+            />
+
+            <Text style={Estilos.textoSobrePaed}>
+              Sobre o PAED
+            </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={Estilos.botaoSair} onPress={sairDaConta}>
-            <Text style={Estilos.textoBotaoSair}>Sair da conta</Text>
+          {/* SAIR DA CONTA */}
+
+          <TouchableOpacity
+            style={Estilos.botaoSair}
+            onPress={sairDaConta}
+          >
+            <Text style={Estilos.textoBotaoSair}>
+              Sair da conta
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* MODAL DE AVATAR */}
 
       {usuario && (
         <SeletorAvatar
@@ -1020,7 +1468,7 @@ useEffect(() => {
         />
       )}
 
-      {/* MODAL DE SELEÇÃO DOS TUTORIAIS */}
+      {/* MODAL DOS VÍDEOS TUTORIAIS */}
 
       <Modal
         visible={modalTutoriais}
@@ -1032,7 +1480,12 @@ useEffect(() => {
           <View style={Estilos.modalTutoriais}>
             <View style={Estilos.cabecalhoTutoriais}>
               <View style={Estilos.tituloTutoriaisContainer}>
-                <Feather name="play-circle" size={25} color={tema.text} />
+                <Feather
+                  name="play-circle"
+                  size={25}
+                  color={tema.text}
+                />
+
                 <Text style={Estilos.tituloModalTutoriais}>
                   Vídeos tutoriais
                 </Text>
@@ -1044,7 +1497,11 @@ useEffect(() => {
                 accessibilityRole="button"
                 accessibilityLabel="Fechar tutoriais"
               >
-                <Feather name="x" size={24} color={tema.text} />
+                <Feather
+                  name="x"
+                  size={24}
+                  color={tema.text}
+                />
               </TouchableOpacity>
             </View>
 
@@ -1062,7 +1519,9 @@ useEffect(() => {
                 <TouchableOpacity
                   key={tutorial.id}
                   style={Estilos.opcaoTutorial}
-                  onPress={() => void assistirTutorial(tutorial)}
+                  onPress={() =>
+                    void assistirTutorial(tutorial)
+                  }
                   activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={`Assistir tutorial de ${tutorial.titulo}`}
@@ -1076,13 +1535,22 @@ useEffect(() => {
                   </View>
 
                   <View style={Estilos.informacoesTutorial}>
-                    <Text style={Estilos.nomeTutorial}>{tutorial.titulo}</Text>
-                    <Text style={Estilos.descricaoOpcaoTutorial}>
+                    <Text style={Estilos.nomeTutorial}>
+                      {tutorial.titulo}
+                    </Text>
+
+                    <Text
+                      style={Estilos.descricaoOpcaoTutorial}
+                    >
                       {tutorial.descricao}
                     </Text>
                   </View>
 
-                  <Feather name="chevron-right" size={22} color={tema.text} />
+                  <Feather
+                    name="chevron-right"
+                    size={22}
+                    color={tema.text}
+                  />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -1092,21 +1560,29 @@ useEffect(() => {
               onPress={() => setModalTutoriais(false)}
               accessibilityRole="button"
             >
-              <Text style={Estilos.textoFecharTutoriais}>Fechar</Text>
+              <Text style={Estilos.textoFecharTutoriais}>
+                Fechar
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
+      {/* MODAL DE TAMANHO DA FONTE */}
+
       <Modal
         visible={modalTamanhoFonte}
         transparent
         animationType="fade"
-        onRequestClose={() => setModalTamanhoFonte(false)}
+        onRequestClose={() =>
+          setModalTamanhoFonte(false)
+        }
       >
         <View style={Estilos.fundoModal}>
           <View style={Estilos.modalTamanhoFonte}>
-            <Text style={Estilos.tituloModalFonte}>Tamanho da letra</Text>
+            <Text style={Estilos.tituloModalFonte}>
+              Tamanho da letra
+            </Text>
 
             {OPCOES_TAMANHO.map((opcao) => (
               <TouchableOpacity
@@ -1121,30 +1597,45 @@ useEffect(() => {
                     Estilos.opcaoTamanhoSelecionada,
                 ]}
               >
-                <Text style={[Estilos.textoOpcaoTamanho, Estilos[opcao.valor]]}>
+                <Text
+                  style={[
+                    Estilos.textoOpcaoTamanho,
+                    Estilos[opcao.valor],
+                  ]}
+                >
                   {opcao.label}
                 </Text>
               </TouchableOpacity>
             ))}
 
             <TouchableOpacity
-              onPress={() => setModalTamanhoFonte(false)}
+              onPress={() =>
+                setModalTamanhoFonte(false)
+              }
               style={Estilos.botaoFecharFonte}
             >
-              <Text style={Estilos.textoFechar}>Fechar</Text>
+              <Text style={Estilos.textoFechar}>
+                Fechar
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
+      {/* MODAL DE ALTERAR SENHA */}
+
       <Modal
         visible={modalAlterarSenha}
         transparent
         animationType="fade"
-        onRequestClose={() => setModalAlterarSenha(false)}
+        onRequestClose={() =>
+          setModalAlterarSenha(false)
+        }
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={
+            Platform.OS === "ios" ? "padding" : "height"
+          }
           style={Estilos.fundoModal}
         >
           <ScrollView
@@ -1153,7 +1644,10 @@ useEffect(() => {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={Estilos.tituloModalSenha}>Alterar senha</Text>
+            <Text style={Estilos.tituloModalSenha}>
+              Alterar senha
+            </Text>
+
             <Text style={Estilos.textoModalSenha}>
               Digite e confirme sua nova senha.
             </Text>
@@ -1182,7 +1676,9 @@ useEffect(() => {
               disabled={alterandoSenha}
             >
               <Text style={Estilos.textoConfirmarSenha}>
-                {alterandoSenha ? "Alterando..." : "Salvar nova senha"}
+                {alterandoSenha
+                  ? "Alterando..."
+                  : "Salvar nova senha"}
               </Text>
             </TouchableOpacity>
 
@@ -1195,14 +1691,21 @@ useEffect(() => {
               }}
               disabled={alterandoSenha}
             >
-              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
+              <Text style={Estilos.textoCancelarSenha}>
+                Cancelar
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* MODAL DE LIMPEZA DAS TAREFAS */}
+
       <Modal
-        visible={modalLimpeza && usuario?.tipo === "estudante"}
+        visible={
+          modalLimpeza &&
+          usuario?.tipo === "estudante"
+        }
         transparent
         animationType="fade"
         onRequestClose={() => {
@@ -1222,13 +1725,16 @@ useEffect(() => {
             </Text>
 
             <Text style={Estilos.textoModalLimpeza}>
-              Cada tarefa será excluída automaticamente após o prazo escolhido,
-              contado a partir da sua conclusão. A exclusão é permanente. Ao
-              mudar o prazo, ele também será aplicado às tarefas já concluídas.
+              Cada tarefa será excluída automaticamente após
+              o prazo escolhido, contado a partir da sua
+              conclusão. A exclusão é permanente. Ao mudar
+              o prazo, ele também será aplicado às tarefas
+              já concluídas.
             </Text>
 
             {OPCOES_LIMPEZA.map((opcao) => {
-              const selecionada = prazoLimpeza === opcao.meses;
+              const selecionada =
+                prazoLimpeza === opcao.meses;
 
               return (
                 <TouchableOpacity
@@ -1239,18 +1745,27 @@ useEffect(() => {
                     selected: selecionada,
                     disabled: salvandoLimpeza,
                   }}
-                  onPress={() => salvarPrazoLimpeza(opcao.meses)}
+                  onPress={() =>
+                    salvarPrazoLimpeza(opcao.meses)
+                  }
                   style={[
                     Estilos.opcaoLimpeza,
-                    selecionada && Estilos.opcaoLimpezaSelecionada,
-                    salvandoLimpeza && Estilos.desabilitado,
+                    selecionada &&
+                      Estilos.opcaoLimpezaSelecionada,
+                    salvandoLimpeza &&
+                      Estilos.desabilitado,
                   ]}
                 >
                   <Text style={Estilos.textoOpcaoLimpeza}>
                     Após {opcao.label}
                   </Text>
+
                   {selecionada && (
-                    <Feather name="check" size={22} color={tema.text} />
+                    <Feather
+                      name="check"
+                      size={22}
+                      color={tema.text}
+                    />
                   )}
                 </TouchableOpacity>
               );
@@ -1267,17 +1782,26 @@ useEffect(() => {
 
             <TouchableOpacity
               disabled={salvandoLimpeza}
-              onPress={() => setModalLimpeza(false)}
+              onPress={() =>
+                setModalLimpeza(false)
+              }
               style={Estilos.botaoCancelarSenha}
             >
-              <Text style={Estilos.textoFechar}>Fechar</Text>
+              <Text style={Estilos.textoFechar}>
+                Fechar
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
       </Modal>
 
+      {/* MODAL DE ALTERAR TURMA */}
+
       <Modal
-        visible={modalAlterarTurma && usuario?.tipo === "estudante"}
+        visible={
+          modalAlterarTurma &&
+          usuario?.tipo === "estudante"
+        }
         transparent
         animationType="fade"
         onRequestClose={() => {
@@ -1287,7 +1811,9 @@ useEffect(() => {
         }}
       >
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          behavior={
+            Platform.OS === "ios" ? "padding" : "height"
+          }
           style={Estilos.fundoModal}
         >
           <ScrollView
@@ -1296,13 +1822,21 @@ useEffect(() => {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={Estilos.tituloModalTurma}>Alterar turma</Text>
+            <Text style={Estilos.tituloModalTurma}>
+              Alterar turma
+            </Text>
+
             <Text style={Estilos.textoModalTurma}>
-              Informe sua nova turma para atualizar seus dados no aplicativo.
+              Informe sua nova turma para atualizar seus
+              dados no aplicativo.
             </Text>
 
             <View style={Estilos.avisoAlterarTurma}>
-              <Feather name="alert-circle" size={22} color={tema.text} />
+              <Feather
+                name="alert-circle"
+                size={22}
+                color={tema.text}
+              />
 
               <View style={Estilos.conteudoAvisoTurma}>
                 <Text style={Estilos.tituloAvisoTurma}>
@@ -1310,20 +1844,27 @@ useEffect(() => {
                 </Text>
 
                 <Text style={Estilos.textoAvisoTurma}>
-                  Mantenha sua turma sempre atualizada e informe apenas dados
-                  verdadeiros. Essa informação é importante para facilitar sua
-                  identificação e a comunicação com professoras/professores e
-                  tutoras/tutores pelo PAED.
+                  Mantenha sua turma sempre atualizada e
+                  informe apenas dados verdadeiros. Essa
+                  informação é importante para facilitar sua
+                  identificação e a comunicação com
+                  professoras/professores e tutoras/tutores
+                  pelo PAED.
                 </Text>
               </View>
             </View>
 
-            <Text style={Estilos.labelTurma}>Turma atual</Text>
+            <Text style={Estilos.labelTurma}>
+              Turma atual
+            </Text>
+
             <Text style={Estilos.valorTurmaAtual}>
               {dadosAluno?.turma || "Não informada"}
             </Text>
 
-            <Text style={Estilos.labelTurma}>Nova turma</Text>
+            <Text style={Estilos.labelTurma}>
+              Nova turma
+            </Text>
 
             <TextInput
               style={Estilos.inputTurma}
@@ -1340,13 +1881,16 @@ useEffect(() => {
             <TouchableOpacity
               style={[
                 Estilos.botaoConfirmarTurma,
-                salvandoTurma && Estilos.desabilitado,
+                salvandoTurma &&
+                  Estilos.desabilitado,
               ]}
               onPress={alterarTurma}
               disabled={salvandoTurma}
             >
               <Text style={Estilos.textoConfirmarTurma}>
-                {salvandoTurma ? "Salvando..." : "Salvar turma"}
+                {salvandoTurma
+                  ? "Salvando..."
+                  : "Salvar turma"}
               </Text>
             </TouchableOpacity>
 
@@ -1358,7 +1902,145 @@ useEffect(() => {
               }}
               disabled={salvandoTurma}
             >
-              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
+              <Text style={Estilos.textoCancelarSenha}>
+                Cancelar
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* MODAL DE ALTERAR ÁREA OU DEPARTAMENTO */}
+
+      <Modal
+        visible={
+          modalDadosProfissionais &&
+          (eProfessor || eTutorOuNapne)
+        }
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          if (!salvandoDadoProfissional) {
+            setModalDadosProfissionais(false);
+            setNovoDadoProfissional("");
+          }
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior={
+            Platform.OS === "ios" ? "padding" : "height"
+          }
+          style={Estilos.fundoModal}
+        >
+          <ScrollView
+            style={Estilos.modalTurma}
+            contentContainerStyle={Estilos.conteudoModal}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={Estilos.tituloModalTurma}>
+              {eProfessor
+                ? "Alterar área"
+                : "Alterar departamento"}
+            </Text>
+
+            <Text style={Estilos.textoModalTurma}>
+              {eProfessor
+                ? "Informe sua nova área de atuação para atualizar seu perfil no PAED."
+                : "Informe seu novo departamento para atualizar seu perfil no PAED."}
+            </Text>
+
+            <View style={Estilos.avisoAlterarTurma}>
+              <Feather
+                name="alert-circle"
+                size={22}
+                color={tema.text}
+              />
+
+              <View style={Estilos.conteudoAvisoTurma}>
+                <Text style={Estilos.tituloAvisoTurma}>
+                  Mantenha seus dados atualizados
+                </Text>
+
+                <Text style={Estilos.textoAvisoTurma}>
+                  Informe dados verdadeiros. Essas informações
+                  ajudam na identificação e na comunicação
+                  entre as pessoas pelo PAED.
+                </Text>
+              </View>
+            </View>
+
+            <Text style={Estilos.labelTurma}>
+              {eProfessor
+                ? "Área atual"
+                : "Departamento atual"}
+            </Text>
+
+            <Text style={Estilos.valorTurmaAtual}>
+              {valorDadoProfissionalAtual ||
+                "Não informado"}
+            </Text>
+
+            <Text style={Estilos.labelTurma}>
+              {eProfessor
+                ? "Nova área"
+                : "Novo departamento"}
+            </Text>
+
+            <TextInput
+              style={Estilos.inputTurma}
+              placeholder={
+                eProfessor
+                  ? "Digite sua nova área"
+                  : "Digite seu novo departamento"
+              }
+              placeholderTextColor={tema.secondaryText}
+              value={novoDadoProfissional}
+              onChangeText={setNovoDadoProfissional}
+              maxLength={100}
+              editable={!salvandoDadoProfissional}
+              autoCapitalize="sentences"
+              returnKeyType="done"
+              accessibilityLabel={
+                eProfessor
+                  ? "Nova área"
+                  : "Novo departamento"
+              }
+            />
+
+            <TouchableOpacity
+              style={[
+                Estilos.botaoConfirmarTurma,
+                salvandoDadoProfissional &&
+                  Estilos.desabilitado,
+              ]}
+              onPress={() =>
+                void alterarDadoProfissional()
+              }
+              disabled={salvandoDadoProfissional}
+              accessibilityRole="button"
+            >
+              <Text style={Estilos.textoConfirmarTurma}>
+                {salvandoDadoProfissional
+                  ? "Salvando..."
+                  : eProfessor
+                    ? "Salvar área"
+                    : "Salvar departamento"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={Estilos.botaoCancelarSenha}
+              onPress={() => {
+                setNovoDadoProfissional("");
+                setModalDadosProfissionais(false);
+              }}
+              disabled={salvandoDadoProfissional}
+              accessibilityRole="button"
+            >
+              <Text style={Estilos.textoCancelarSenha}>
+                Cancelar
+              </Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>

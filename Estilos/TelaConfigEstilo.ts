@@ -748,6 +748,28 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
+    botaoAlterarDadosProfissionais: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderWidth: 1,
+      borderRadius: 10,
+      padding: 12,
+      marginTop: 10,
+      minHeight: 48,
+    },
+
+    textoAlterarDadosProfissionais: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaLight",
+      flexShrink: 1,
+      textAlign: "center",
+    },
+
     modalTurma: {
       width: "92%",
       maxWidth: 520,
