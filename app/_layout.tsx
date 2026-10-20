@@ -483,25 +483,30 @@ export default function RootLayout() {
     // REGISTRAR PUSH DO USUÁRIO ATUAL
     // ===================================================
 
-    const registrarUsuarioAtual =
-      async (): Promise<void> => {
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser();
+    const registrarUsuarioAtual = async (): Promise<void> => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
 
-        if (!ativo) {
-          return;
-        }
+      if (!ativo) {
+        return;
+      }
 
-        if (error) {
-          throw error;
-        }
+      if (error) {
+        throw error;
+      }
 
-        if (user) {
-          await registrarPushChat(user.id);
-        }
-      };
+      // Sem sessão, não existe usuário para
+      // registrar notificações.
+      if (!session?.user) {
+        return;
+      }
+
+      // A função já verifica se o dispositivo
+      // suporta notificações push.
+      await registrarPushChat(session.user.id);
+    };
 
     void registrarUsuarioAtual().catch((error) => {
       console.error(

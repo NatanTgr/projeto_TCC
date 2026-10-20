@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -56,18 +57,30 @@ export default function ModalAlerta({
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
 
-  const [estudante, setEstudante] = useState<DadosEstudante | null>(null);
+  const [estudante, setEstudante] =
+    useState<DadosEstudante | null>(null);
+
   const [tutores, setTutores] = useState<Tutor[]>([]);
-  const [tutorSelecionado, setTutorSelecionado] = useState<string | null>(null);
+
+  const [tutorSelecionado, setTutorSelecionado] =
+    useState<string | null>(null);
+
   const [modalTutores, setModalTutores] = useState(false);
   const [localCampus, setLocalCampus] = useState("");
-  const [localSelecionado, setLocalSelecionado] = useState<string | null>(null);
+
+  const [localSelecionado, setLocalSelecionado] =
+    useState<string | null>(null);
+
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
   const nomeTutorSelecionado = tutores.find(
-    (tutor) => tutor.id === tutorSelecionado,
+    (tutor) => tutor.id === tutorSelecionado
   )?.nome;
+
+  // =====================================================
+  // LIMPAR FORMULÁRIO
+  // =====================================================
 
   const limparFormulario = () => {
     setTutorSelecionado(null);
@@ -78,9 +91,14 @@ export default function ModalAlerta({
 
   const fecharModal = () => {
     if (enviando) return;
+
     limparFormulario();
     aoFechar();
   };
+
+  // =====================================================
+  // CARREGAR DADOS DO ESTUDANTE E TUTORES
+  // =====================================================
 
   const carregarDados = async () => {
     try {
@@ -95,43 +113,48 @@ export default function ModalAlerta({
       } = await supabase.auth.getUser();
 
       if (erroAuth || !user) {
-        throw new Error("Não foi possível identificar o usuário logado.");
+        throw new Error(
+          "Não foi possível identificar o usuário logado."
+        );
       }
 
-      const { data: usuario, error: erroUsuario } = await supabase
-        .from("usuarios")
-        .select("id, nome, tipo, estado, campus")
-        .eq("id", user.id)
-        .single();
+      const { data: usuario, error: erroUsuario } =
+        await supabase
+          .from("usuarios")
+          .select("id, nome, tipo, estado, campus")
+          .eq("id", user.id)
+          .single();
 
       if (erroUsuario || !usuario) {
         throw new Error(
-          erroUsuario?.message || "Não foi possível carregar o usuário.",
+          erroUsuario?.message ||
+            "Não foi possível carregar o usuário."
         );
       }
 
       if (usuario.tipo !== "estudante") {
         throw new Error(
-          "O botão de alerta está disponível somente para estudantes.",
+          "O botão de alerta está disponível somente para estudantes."
         );
       }
 
       if (!usuario.estado || !usuario.campus) {
         throw new Error(
-          "O estado ou campus do estudante não está preenchido.",
+          "O estado ou campus do estudante não está preenchido."
         );
       }
 
-      const { data: aluno, error: erroAluno } = await supabase
-        .from("alunos")
-        .select("curso, turno, turma")
-        .eq("id", user.id)
-        .single();
+      const { data: aluno, error: erroAluno } =
+        await supabase
+          .from("alunos")
+          .select("curso, turno, turma")
+          .eq("id", user.id)
+          .single();
 
       if (erroAluno || !aluno) {
         throw new Error(
           erroAluno?.message ||
-            "Não foi possível carregar os dados do estudante.",
+            "Não foi possível carregar os dados do estudante."
         );
       }
 
@@ -145,7 +168,10 @@ export default function ModalAlerta({
         campus: usuario.campus,
       });
 
-      const { data: tutoresEncontrados, error: erroTutores } = await supabase
+      const {
+        data: tutoresEncontrados,
+        error: erroTutores,
+      } = await supabase
         .from("usuarios")
         .select("id, nome")
         .eq("tipo", "tutor")
@@ -159,7 +185,10 @@ export default function ModalAlerta({
 
       setTutores(tutoresEncontrados || []);
     } catch (erro) {
-      console.log("Erro ao carregar modal de alerta:", erro);
+      console.log(
+        "Erro ao carregar modal de alerta:",
+        erro
+      );
 
       const mensagem =
         erro instanceof Error
@@ -173,16 +202,23 @@ export default function ModalAlerta({
     }
   };
 
+  // =====================================================
+  // ENVIAR ALERTA
+  // =====================================================
+
   const enviarAlerta = async () => {
     if (!estudante) {
-      Alert.alert("Erro", "Os dados do estudante não foram carregados.");
+      Alert.alert(
+        "Erro",
+        "Os dados do estudante não foram carregados."
+      );
       return;
     }
 
     if (!tutorSelecionado) {
       Alert.alert(
         "Tutora/Tutor obrigatório",
-        "Escolha a tutora ou o tutor que deverá receber o alerta.",
+        "Escolha a tutora ou o tutor que deverá receber o alerta."
       );
       return;
     }
@@ -192,47 +228,81 @@ export default function ModalAlerta({
     if (!localSelecionado && complemento.length < 2) {
       Alert.alert(
         "Local obrigatório",
-        "Selecione um local ou escreva onde você está no campus.",
+        "Selecione um local ou escreva onde você está no campus."
       );
       return;
     }
 
-    const localTratado = [localSelecionado, complemento]
+    const localTratado = [
+      localSelecionado,
+      complemento,
+    ]
       .filter(Boolean)
       .join(" — ");
 
     try {
       setEnviando(true);
 
-      const { error } = await supabase.from("alertas").insert({
-        aluno_id: estudante.id,
-        tutor_id: tutorSelecionado,
-        local_campus: localTratado,
-        status: "enviado",
-      });
+      const { error } = await supabase
+        .from("alertas")
+        .insert({
+          aluno_id: estudante.id,
+          tutor_id: tutorSelecionado,
+          local_campus: localTratado,
+          status: "enviado",
+        });
 
       if (error) {
         console.log("Erro ao enviar alerta:", error);
-        Alert.alert("Erro", "Não foi possível enviar o alerta à tutora/ao tutor.");
+
+        Alert.alert(
+          "Erro",
+          "Não foi possível enviar o alerta à tutora/ao tutor."
+        );
         return;
       }
 
-      Alert.alert("Alerta enviado", "A tutora ou o tutor selecionado foi avisado.", [
-        { text: "OK", onPress: fecharModal },
-      ]);
+      Alert.alert(
+        "Alerta enviado",
+        "A tutora ou o tutor selecionado foi avisado.",
+        [
+          {
+            text: "OK",
+            onPress: fecharModal,
+          },
+        ]
+      );
     } catch (erro) {
       console.log("Erro ao enviar alerta:", erro);
-      Alert.alert("Erro", "Ocorreu um erro ao enviar o alerta.");
+
+      Alert.alert(
+        "Erro",
+        "Ocorreu um erro ao enviar o alerta."
+      );
     } finally {
       setEnviando(false);
     }
   };
 
+  // =====================================================
+  // CARREGAR DADOS QUANDO ABRIR O MODAL
+  // CORREÇÃO SONARCLOUD S9383
+  // =====================================================
+
   useEffect(() => {
     if (visivel) {
-      carregarDados();
+      void carregarDados().catch((erro) => {
+        console.error(
+          "Erro inesperado ao carregar modal de alerta:",
+          erro
+        );
+      });
     }
   }, [visivel]);
+
+  // =====================================================
+  // INTERFACE
+  // =====================================================
 
   return (
     <Modal
@@ -244,12 +314,15 @@ export default function ModalAlerta({
           setModalTutores(false);
           return;
         }
+
         fecharModal();
       }}
     >
       <KeyboardAvoidingView
         style={estilos.fundo}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior={
+          Platform.OS === "ios" ? "padding" : "height"
+        }
       >
         <View
           style={[
@@ -260,6 +333,8 @@ export default function ModalAlerta({
             },
           ]}
         >
+          {/* SELEÇÃO DE TUTORA/TUTOR */}
+
           {modalTutores ? (
             <ScrollView
               style={estilos.scrollModal}
@@ -296,14 +371,17 @@ export default function ModalAlerta({
 
               <View style={estilos.listaTutores}>
                 {tutores.map((tutor) => {
-                  const selecionado = tutorSelecionado === tutor.id;
+                  const selecionado =
+                    tutorSelecionado === tutor.id;
 
                   return (
                     <TouchableOpacity
                       key={tutor.id}
                       accessibilityRole="radio"
                       accessibilityLabel={tutor.nome}
-                      accessibilityState={{ selected: selecionado }}
+                      accessibilityState={{
+                        selected: selecionado,
+                      }}
                       onPress={() => {
                         setTutorSelecionado(tutor.id);
                         setModalTutores(false);
@@ -312,14 +390,22 @@ export default function ModalAlerta({
                         estilos.tutor,
                         {
                           backgroundColor: tema.card,
-                          borderColor: selecionado ? tema.text : tema.border,
-                          borderWidth: selecionado ? 2 : 1,
+                          borderColor: selecionado
+                            ? tema.text
+                            : tema.border,
+                          borderWidth: selecionado
+                            ? 2
+                            : 1,
                           gap: 12,
                           minHeight: 48,
                         },
                       ]}
                     >
-                      <Feather name="user" size={22} color={tema.text} />
+                      <Feather
+                        name="user"
+                        size={22}
+                        color={tema.text}
+                      />
 
                       <Text
                         style={[
@@ -334,7 +420,11 @@ export default function ModalAlerta({
                       </Text>
 
                       {selecionado && (
-                        <Feather name="check" size={22} color={tema.text} />
+                        <Feather
+                          name="check"
+                          size={22}
+                          color={tema.text}
+                        />
                       )}
                     </TouchableOpacity>
                   );
@@ -368,12 +458,18 @@ export default function ModalAlerta({
             </ScrollView>
           ) : carregando ? (
             <View style={estilos.carregando}>
-              <ActivityIndicator size="large" color="#FF8C42" />
+              <ActivityIndicator
+                size="large"
+                color="#FF8C42"
+              />
 
               <Text
                 style={[
                   estilos.textoCarregando,
-                  { color: tema.text, fontSize: 16 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 16 * escalaFonte,
+                  },
                 ]}
               >
                 Carregando dados...
@@ -386,20 +482,33 @@ export default function ModalAlerta({
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={
-                Platform.OS === "ios" ? "interactive" : "on-drag"
+                Platform.OS === "ios"
+                  ? "interactive"
+                  : "on-drag"
               }
-              automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+              automaticallyAdjustKeyboardInsets={
+                Platform.OS === "ios"
+              }
             >
+              {/* CABEÇALHO */}
+
               <View style={estilos.cabecalho}>
                 <View style={estilos.iconeAlerta}>
-                  <Feather name="alert-triangle" size={25} color="#FFFFFF" />
+                  <Feather
+                    name="alert-triangle"
+                    size={25}
+                    color="#FFFFFF"
+                  />
                 </View>
 
                 <View style={{ flex: 1 }}>
                   <Text
                     style={[
                       estilos.titulo,
-                      { color: tema.text, fontSize: 22 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 22 * escalaFonte,
+                      },
                     ]}
                   >
                     Solicitar ajuda
@@ -408,13 +517,19 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.subtitulo,
-                      { color: tema.text, fontSize: 14 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 14 * escalaFonte,
+                      },
                     ]}
                   >
-                    Envie um alerta para uma tutora ou um tutor do seu campus.
+                    Envie um alerta para uma tutora ou um tutor
+                    do seu campus.
                   </Text>
                 </View>
               </View>
+
+              {/* DADOS DO ESTUDANTE */}
 
               {estudante && (
                 <View
@@ -429,7 +544,10 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.tituloSecao,
-                      { color: tema.text, fontSize: 17 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 17 * escalaFonte,
+                      },
                     ]}
                   >
                     Seus dados
@@ -438,7 +556,10 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.dado,
-                      { color: tema.text, fontSize: 15 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 15 * escalaFonte,
+                      },
                     ]}
                   >
                     Nome: {estudante.nome}
@@ -447,7 +568,10 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.dado,
-                      { color: tema.text, fontSize: 15 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 15 * escalaFonte,
+                      },
                     ]}
                   >
                     Curso: {estudante.curso}
@@ -456,7 +580,10 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.dado,
-                      { color: tema.text, fontSize: 15 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 15 * escalaFonte,
+                      },
                     ]}
                   >
                     Turno: {estudante.turno}
@@ -465,7 +592,10 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.dado,
-                      { color: tema.text, fontSize: 15 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 15 * escalaFonte,
+                      },
                     ]}
                   >
                     Turma: {estudante.turma}
@@ -474,7 +604,10 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.dado,
-                      { color: tema.text, fontSize: 15 * escalaFonte },
+                      {
+                        color: tema.text,
+                        fontSize: 15 * escalaFonte,
+                      },
                     ]}
                   >
                     Campus: {estudante.campus}
@@ -482,10 +615,15 @@ export default function ModalAlerta({
                 </View>
               )}
 
+              {/* ESCOLHER TUTORA/TUTOR */}
+
               <Text
                 style={[
                   estilos.tituloCampo,
-                  { color: tema.text, fontSize: 17 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 17 * escalaFonte,
+                  },
                 ]}
               >
                 Escolha uma tutora ou um tutor
@@ -510,31 +648,51 @@ export default function ModalAlerta({
                   estilos.seletorTutor,
                   {
                     backgroundColor: tema.card,
-                    borderColor: tutorSelecionado ? tema.text : tema.border,
+                    borderColor: tutorSelecionado
+                      ? tema.text
+                      : tema.border,
                   },
-                  (enviando || tutores.length === 0) && estilos.desabilitado,
+                  (enviando || tutores.length === 0) &&
+                    estilos.desabilitado,
                 ]}
               >
-                <Feather name="user" size={22} color={tema.text} />
+                <Feather
+                  name="user"
+                  size={22}
+                  color={tema.text}
+                />
 
                 <Text
                   style={[
                     estilos.nomeTutor,
-                    { color: tema.text, fontSize: 16 * escalaFonte },
+                    {
+                      color: tema.text,
+                      fontSize: 16 * escalaFonte,
+                    },
                   ]}
                 >
                   {tutores.length === 0
                     ? "Nenhuma tutora ou tutor disponível no seu campus"
-                    : nomeTutorSelecionado || "Selecionar tutora/tutor"}
+                    : nomeTutorSelecionado ||
+                      "Selecionar tutora/tutor"}
                 </Text>
 
-                <Feather name="chevron-right" size={22} color={tema.text} />
+                <Feather
+                  name="chevron-right"
+                  size={22}
+                  color={tema.text}
+                />
               </TouchableOpacity>
+
+              {/* SELECIONAR LOCAL */}
 
               <Text
                 style={[
                   estilos.tituloCampo,
-                  { color: tema.text, fontSize: 17 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 17 * escalaFonte,
+                  },
                 ]}
               >
                 Onde você está?
@@ -542,7 +700,8 @@ export default function ModalAlerta({
 
               <View style={estilos.listaLocais}>
                 {LOCAIS_PREDEFINIDOS.map((local) => {
-                  const selecionado = localSelecionado === local;
+                  const selecionado =
+                    localSelecionado === local;
 
                   return (
                     <TouchableOpacity
@@ -556,7 +715,7 @@ export default function ModalAlerta({
                       }}
                       onPress={() =>
                         setLocalSelecionado((atual) =>
-                          atual === local ? null : local,
+                          atual === local ? null : local
                         )
                       }
                       style={[
@@ -566,14 +725,20 @@ export default function ModalAlerta({
                         },
                         {
                           backgroundColor: tema.card,
-                          borderColor: selecionado ? tema.text : tema.border,
+                          borderColor: selecionado
+                            ? tema.text
+                            : tema.border,
                           borderWidth: selecionado ? 2 : 1,
                         },
                         enviando && estilos.desabilitado,
                       ]}
                     >
                       <Feather
-                        name={selecionado ? "check-circle" : "map-pin"}
+                        name={
+                          selecionado
+                            ? "check-circle"
+                            : "map-pin"
+                        }
                         size={18 * escalaFonte}
                         color={tema.text}
                       />
@@ -581,7 +746,10 @@ export default function ModalAlerta({
                       <Text
                         style={[
                           estilos.textoLocal,
-                          { color: tema.text, fontSize: 16 * escalaFonte },
+                          {
+                            color: tema.text,
+                            fontSize: 16 * escalaFonte,
+                          },
                         ]}
                       >
                         {local === "Bloco Administrativo"
@@ -595,10 +763,15 @@ export default function ModalAlerta({
                 })}
               </View>
 
+              {/* LOCAL ADICIONAL */}
+
               <Text
                 style={[
                   estilos.tituloCampo,
-                  { color: tema.text, fontSize: 16 * escalaFonte },
+                  {
+                    color: tema.text,
+                    fontSize: 16 * escalaFonte,
+                  },
                 ]}
               >
                 Especifique o local (opcional)
@@ -624,6 +797,8 @@ export default function ModalAlerta({
                 ]}
               />
 
+              {/* BOTÕES */}
+
               <View style={estilos.botoes}>
                 <TouchableOpacity
                   style={[
@@ -636,7 +811,9 @@ export default function ModalAlerta({
                   <Text
                     style={[
                       estilos.textoBotao,
-                      { fontSize: 16 * escalaFonte },
+                      {
+                        fontSize: 16 * escalaFonte,
+                      },
                     ]}
                   >
                     Cancelar
@@ -649,16 +826,27 @@ export default function ModalAlerta({
                     (enviando || tutores.length === 0) &&
                       estilos.desabilitado,
                   ]}
-                  onPress={enviarAlerta}
+                  onPress={() => {
+                    void enviarAlerta().catch((erro) => {
+                      console.error(
+                        "Erro inesperado ao enviar alerta:",
+                        erro
+                      );
+                    });
+                  }}
                   disabled={enviando || tutores.length === 0}
                 >
                   <Text
                     style={[
                       estilos.textoBotao,
-                      { fontSize: 16 * escalaFonte },
+                      {
+                        fontSize: 16 * escalaFonte,
+                      },
                     ]}
                   >
-                    {enviando ? "Enviando..." : "Enviar alerta"}
+                    {enviando
+                      ? "Enviando..."
+                      : "Enviar alerta"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -669,6 +857,10 @@ export default function ModalAlerta({
     </Modal>
   );
 }
+
+// =====================================================
+// ESTILOS
+// =====================================================
 
 const estilos = StyleSheet.create({
   fundo: {
