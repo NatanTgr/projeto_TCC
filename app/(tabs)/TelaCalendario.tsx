@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { supabase } from "../../lib/supabase";
 import { useTheme } from "../../context/ThemeContext";
@@ -162,6 +162,20 @@ export default function TelaCalendario() {
 
     if (!validarData(dataInterna)) {
       Alert.alert("Data inválida", "Selecione uma data válida.");
+      return false;
+    }
+
+    if (
+      tarefaSelecionada &&
+      !tarefaSelecionada.concluido &&
+      tarefaSelecionada.data < hojeCalendario &&
+      dataInterna === tarefaSelecionada.data
+    ) {
+      Alert.alert(
+        "Tarefa atrasada",
+        "Para editar uma tarefa atrasada, é necessário alterar sua data para hoje ou uma data futura.",
+      );
+
       return false;
     }
 
@@ -323,7 +337,14 @@ export default function TelaCalendario() {
       setTarefasDoDia(tarefasDoDiaSelecionado);
 
       if (tarefasDoDiaSelecionado.length > 0) {
+        // Mesmo sendo um dia passado, permite consultar
+        // normalmente os detalhes das tarefas.
         setModalEscolha(true);
+      } else if (day.dateString < hojeCalendario) {
+        Alert.alert(
+          "Nenhum evento encontrado",
+          "Não existem eventos cadastrados para esta data.",
+        );
       } else {
         setModalVisible(true);
       }
@@ -403,10 +424,14 @@ export default function TelaCalendario() {
           datasMarcadas[data] = { dots: [] };
         }
 
-        datasMarcadas[data].dots.push({
-          key: tarefa.id,
-          color: cor,
-        });
+        // Exibe no máximo 5 dots por dia.
+        // Os demais eventos continuam cadastrados normalmente.
+        if (datasMarcadas[data].dots.length < 5) {
+          datasMarcadas[data].dots.push({
+            key: tarefa.id,
+            color: cor,
+          });
+        }
       });
 
       setMarkedDates(datasMarcadas);
@@ -428,6 +453,62 @@ export default function TelaCalendario() {
     String(agora.getMonth() + 1).padStart(2, "0"),
     String(agora.getDate()).padStart(2, "0"),
   ].join("-");
+
+  // MÊS EXIBIDO NO CALENDÁRIO PRINCIPAL
+
+  const [mesVisivel, setMesVisivel] = useState(hojeCalendario.slice(0, 7));
+
+  // CORES DOS DIAS QUE JÁ PASSARAM
+
+  const corFundoDiaPassado =
+    tipoTema === "forte"
+      ? "#494949"
+      : tipoTema === "escuro"
+        ? "#44403E"
+        : "#E5E5E5";
+
+  const corTextoDiaPassado =
+    tipoTema === "forte"
+      ? "#FFFFFF"
+      : tipoTema === "escuro"
+        ? "#E0E0E0"
+        : "#616161";
+
+  // MARCAÇÕES DO CALENDÁRIO COM OS DIAS PASSADOS
+
+  const marcacoesCalendario = useMemo(() => {
+    const marcacoes = { ...markedDates };
+
+    const [ano, mes] = mesVisivel.split("-").map(Number);
+
+    const ultimoDiaDoMes = new Date(ano, mes, 0).getDate();
+
+    for (let dia = 1; dia <= ultimoDiaDoMes; dia++) {
+      const dataDia = `${mesVisivel}-${String(dia).padStart(2, "0")}`;
+
+      // Hoje e datas futuras mantêm a aparência normal.
+      if (dataDia >= hojeCalendario) {
+        break;
+      }
+
+      // Preserva os indicadores coloridos já existentes.
+      marcacoes[dataDia] = {
+        ...(marcacoes[dataDia] || {}),
+        selected: true,
+        selectedColor: corFundoDiaPassado,
+        selectedTextColor: corTextoDiaPassado,
+        disableTouchEvent: false,
+      };
+    }
+
+    return marcacoes;
+  }, [
+    markedDates,
+    mesVisivel,
+    hojeCalendario,
+    corFundoDiaPassado,
+    corTextoDiaPassado,
+  ]);
 
   const abrirCalendarioData = () => {
     Keyboard.dismiss();
@@ -455,10 +536,7 @@ export default function TelaCalendario() {
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      style={[
-        Estilos.container,
-        { backgroundColor: tema.background },
-      ]}
+      style={[Estilos.container, { backgroundColor: tema.background }]}
     >
       {/* CABEÇALHO */}
       <View style={Estilos.header}>
@@ -493,12 +571,7 @@ export default function TelaCalendario() {
             { nome: "Avaliação", cor: "#9E82C0" },
           ].map((item) => (
             <View key={item.nome} style={Estilos.legendaItem}>
-              <View
-                style={[
-                  Estilos.quadrado,
-                  { backgroundColor: item.cor },
-                ]}
-              />
+              <View style={[Estilos.quadrado, { backgroundColor: item.cor }]} />
 
               <Text
                 style={[
@@ -516,17 +589,15 @@ export default function TelaCalendario() {
         </View>
 
         <View
-          style={[
-            Estilos.calendarContainer,
-            { backgroundColor: tema.card },
-          ]}
+          style={[Estilos.calendarContainer, { backgroundColor: tema.card }]}
         >
           <Calendar
             key={`calendario-${tipoTema}-${escalaFonte}`}
-            style={[
-              Estilos.calendar,
-              { backgroundColor: tema.card },
-            ]}
+            current={`${mesVisivel}-01`}
+            onMonthChange={(mes) => {
+              setMesVisivel(mes.dateString.slice(0, 7));
+            }}
+            style={[Estilos.calendar, { backgroundColor: tema.card }]}
             renderArrow={(direction: "right" | "left") => (
               <Feather
                 size={24}
@@ -546,8 +617,7 @@ export default function TelaCalendario() {
                 dayTextColor: tema.text,
                 monthTextColor: tema.text,
                 textSectionTitleColor: tema.text,
-                textDisabledColor:
-                  tipoTema === "forte" ? "#BDBDBD" : "#888888",
+                textDisabledColor: tipoTema === "forte" ? "#BDBDBD" : "#888888",
 
                 todayTextColor: corTextoHoje,
                 todayBackgroundColor: corHoje,
@@ -599,7 +669,7 @@ export default function TelaCalendario() {
             hideExtraDays
             onDayPress={handleDayPress}
             markingType="multi-dot"
-            markedDates={markedDates}
+            markedDates={marcacoesCalendario}
           />
         </View>
       </ScrollView>
@@ -613,10 +683,7 @@ export default function TelaCalendario() {
       >
         <View style={Estilos.modalOverlay}>
           <View
-            style={[
-              Estilos.cardModalEscolha,
-              { backgroundColor: tema.modal },
-            ]}
+            style={[Estilos.cardModalEscolha, { backgroundColor: tema.modal }]}
           >
             <Text
               style={[
@@ -630,24 +697,26 @@ export default function TelaCalendario() {
               O que você deseja fazer?
             </Text>
 
-            <TouchableOpacity
-              style={Estilos.botaoEscolha}
-              onPress={() => {
-                setModalEscolha(false);
-                setEditando(false);
-                setCalendarioDataAberto(false);
-                setModalVisible(true);
-              }}
-            >
-              <Text
-                style={[
-                  Estilos.textoBotaoEscolha,
-                  { fontSize: 16 * escalaFonte },
-                ]}
+            {dataInterna >= hojeCalendario && (
+              <TouchableOpacity
+                style={Estilos.botaoEscolha}
+                onPress={() => {
+                  setModalEscolha(false);
+                  setEditando(false);
+                  setCalendarioDataAberto(false);
+                  setModalVisible(true);
+                }}
               >
-                Adicionar Evento
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    Estilos.textoBotaoEscolha,
+                    { fontSize: 16 * escalaFonte },
+                  ]}
+                >
+                  Adicionar Evento
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={Estilos.botaoEscolha}
@@ -695,10 +764,7 @@ export default function TelaCalendario() {
       >
         <View style={Estilos.modalOverlay}>
           <View
-            style={[
-              Estilos.cardModalEscolha,
-              { backgroundColor: tema.modal },
-            ]}
+            style={[Estilos.cardModalEscolha, { backgroundColor: tema.modal }]}
           >
             <Text
               style={[
@@ -802,7 +868,7 @@ export default function TelaCalendario() {
                   setTarefaSelecionada(null);
                 },
               },
-            ]
+            ],
           );
         }}
       />
@@ -816,10 +882,7 @@ export default function TelaCalendario() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={[
-            Estilos.modalOverlay,
-            { paddingVertical: 16 },
-          ]}
+          style={[Estilos.modalOverlay, { paddingVertical: 16 }]}
         >
           <ScrollView
             style={[
@@ -876,12 +939,7 @@ export default function TelaCalendario() {
                     }}
                     accessibilityLabel={tipo}
                   >
-                    <View
-                      style={[
-                        Estilos.radioExterno,
-                        { borderColor: cor },
-                      ]}
-                    >
+                    <View style={[Estilos.radioExterno, { borderColor: cor }]}>
                       {selecionado && (
                         <View
                           style={[
@@ -944,16 +1002,11 @@ export default function TelaCalendario() {
               </Text>
 
               <TouchableOpacity
-                style={[
-                  estiloCampo,
-                  Estilos.campoData,
-                ]}
+                style={[estiloCampo, Estilos.campoData]}
                 onPress={abrirCalendarioData}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  data
-                    ? `Alterar data: ${data}`
-                    : "Selecionar data do evento"
+                  data ? `Alterar data: ${data}` : "Selecionar data do evento"
                 }
                 accessibilityState={{
                   expanded: calendarioDataAberto,
@@ -963,9 +1016,7 @@ export default function TelaCalendario() {
                   style={[
                     Estilos.textoCampoData,
                     {
-                      color: data
-                        ? tema.text
-                        : tema.placeholder,
+                      color: data ? tema.text : tema.placeholder,
                       fontSize: 16 * escalaFonte,
                     },
                   ]}
@@ -973,11 +1024,7 @@ export default function TelaCalendario() {
                   {data || "Selecionar data"}
                 </Text>
 
-                <Ionicons
-                  name="calendar-outline"
-                  size={24}
-                  color={tema.text}
-                />
+                <Ionicons name="calendar-outline" size={24} color={tema.text} />
               </TouchableOpacity>
 
               {/* CALENDÁRIO INTERNO */}
@@ -994,8 +1041,7 @@ export default function TelaCalendario() {
                   <Calendar
                     key={`seletor-data-${tipoTema}-${escalaFonte}`}
                     current={
-                      dataInterna &&
-                      dataInterna >= hojeCalendario
+                      dataInterna && dataInterna >= hojeCalendario
                         ? dataInterna
                         : hojeCalendario
                     }
@@ -1010,9 +1056,7 @@ export default function TelaCalendario() {
                               selected: true,
                               selectedColor: "#94C0DF",
                               selectedTextColor:
-                                tipoTema === "forte"
-                                  ? "#000000"
-                                  : "#FFFFFF",
+                                tipoTema === "forte" ? "#000000" : "#FFFFFF",
                             },
                           }
                         : {}
@@ -1031,9 +1075,7 @@ export default function TelaCalendario() {
                       arrowColor: tema.text,
 
                       textDisabledColor:
-                        tipoTema === "forte"
-                          ? "#BDBDBD"
-                          : "#888888",
+                        tipoTema === "forte" ? "#BDBDBD" : "#888888",
 
                       textDayFontSize: 14 * escalaFonte,
                       textMonthFontSize: 16 * escalaFonte,
@@ -1047,9 +1089,7 @@ export default function TelaCalendario() {
 
                   <TouchableOpacity
                     style={Estilos.botaoFecharCalendario}
-                    onPress={() =>
-                      setCalendarioDataAberto(false)
-                    }
+                    onPress={() => setCalendarioDataAberto(false)}
                   >
                     <Text
                       style={{
@@ -1203,9 +1243,7 @@ export default function TelaCalendario() {
                     },
                   ]}
                 >
-                  {editando
-                    ? "Salvar Alterações"
-                    : "Adicionar Evento"}
+                  {editando ? "Salvar Alterações" : "Adicionar Evento"}
                 </Text>
               </TouchableOpacity>
             </View>
