@@ -1,5 +1,5 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -65,6 +65,8 @@ export default function ModalAlerta({
   const [tutorSelecionado, setTutorSelecionado] =
     useState<string | null>(null);
 
+  const [avisarNapne, setAvisarNapne] = useState(false);
+
   const [modalTutores, setModalTutores] = useState(false);
   const [localCampus, setLocalCampus] = useState("");
 
@@ -73,6 +75,8 @@ export default function ModalAlerta({
 
   const [carregando, setCarregando] = useState(false);
   const [enviando, setEnviando] = useState(false);
+
+  const envioEmAndamentoRef = useRef(false);
 
   const nomeTutorSelecionado = tutores.find(
     (tutor) => tutor.id === tutorSelecionado
@@ -84,20 +88,22 @@ export default function ModalAlerta({
 
   const limparFormulario = () => {
     setTutorSelecionado(null);
+    setAvisarNapne(false);
     setLocalCampus("");
     setLocalSelecionado(null);
     setModalTutores(false);
   };
 
   const fecharModal = () => {
-    if (enviando) return;
+    if (envioEmAndamentoRef.current) return;
 
+    Keyboard.dismiss();
     limparFormulario();
     aoFechar();
   };
 
   // =====================================================
-  // CARREGAR DADOS DO ESTUDANTE E TUTORES
+  // CARREGAR ESTUDANTE E TUTORES
   // =====================================================
 
   const carregarDados = async () => {
@@ -113,14 +119,14 @@ export default function ModalAlerta({
       } = await supabase.auth.getSession();
 
       if (erroSessao) {
-        console.error("Erro ao recuperar sessão do alerta:", erroSessao);
-
-        throw new Error("Não foi possível recuperar sua sessão.");
+        throw new Error(
+          "Não foi possível recuperar sua sessão."
+        );
       }
 
       if (!session?.user) {
         throw new Error(
-          "Sua sessão não foi encontrada. Entre novamente na sua conta.",
+          "Sua sessão não foi encontrada. Entre novamente na sua conta."
         );
       }
 
@@ -129,21 +135,11 @@ export default function ModalAlerta({
         error: erroAuth,
       } = await supabase.auth.getUser();
 
-      if (erroAuth) {
-        console.error("Erro ao identificar usuário no alerta:", {
-          nome: erroAuth.name,
-          mensagem: erroAuth.message,
-          codigo: erroAuth.code,
-          status: erroAuth.status,
-        });
-
+      if (erroAuth || !user) {
         throw new Error(
-          `Não foi possível confirmar o usuário: ${erroAuth.message}`,
+          erroAuth?.message ||
+          "Não foi possível identificar o usuário logado."
         );
-      }
-
-      if (!user) {
-        throw new Error("Não foi possível identificar o usuário logado.");
       }
 
       const { data: usuario, error: erroUsuario } =
@@ -156,7 +152,7 @@ export default function ModalAlerta({
       if (erroUsuario || !usuario) {
         throw new Error(
           erroUsuario?.message ||
-            "Não foi possível carregar o usuário."
+          "Não foi possível carregar o usuário."
         );
       }
 
@@ -182,7 +178,7 @@ export default function ModalAlerta({
       if (erroAluno || !aluno) {
         throw new Error(
           erroAluno?.message ||
-            "Não foi possível carregar os dados do estudante."
+          "Não foi possível carregar os dados do estudante."
         );
       }
 
@@ -213,17 +209,18 @@ export default function ModalAlerta({
 
       setTutores(tutoresEncontrados || []);
     } catch (erro) {
-      console.log(
+      console.error(
         "Erro ao carregar modal de alerta:",
         erro
       );
 
-      const mensagem =
+      Alert.alert(
+        "Erro",
         erro instanceof Error
           ? erro.message
-          : "Não foi possível carregar o alerta.";
+          : "Não foi possível carregar o alerta."
+      );
 
-      Alert.alert("Erro", mensagem);
       aoFechar();
     } finally {
       setCarregando(false);
@@ -234,87 +231,148 @@ export default function ModalAlerta({
   // ENVIAR ALERTA
   // =====================================================
 
-  const enviarAlerta = async () => {
-    if (!estudante) {
-      Alert.alert(
-        "Erro",
-        "Os dados do estudante não foram carregados."
-      );
-      return;
+
+const enviarAlerta = async () => {
+  if (envioEmAndamentoRef.current) return;
+
+  if (!estudante) {
+    Alert.alert("Erro", "Os dados do estudante não foram carregados.");
+    return;
+  }
+
+  // Basta escolher uma tutora/tutor OU a equipe NAPNE.
+
+  if (!tutorSelecionado && !avisarNapne) {
+    Alert.alert(
+      "Selecione quem receberá o alerta",
+      "Para enviar o alerta, você precisa selecionar uma tutora ou um tutor, a equipe NAPNE ou ambos.",
+    );
+    return;
+  }
+
+
+  const complemento = localCampus.trim();
+
+  if (!localSelecionado && complemento.length < 2) {
+    Alert.alert(
+      "Local obrigatório",
+      "Selecione um local ou escreva onde você está no campus.",
+    );
+    return;
+  }
+
+  const localTratado = [localSelecionado, complemento]
+    .filter(Boolean)
+    .join(" — ");
+
+  try {
+    envioEmAndamentoRef.current = true;
+    setEnviando(true);
+
+    const destinatarios = new Set<string>();
+
+    // Adiciona a tutora/tutor somente se selecionado.
+    if (tutorSelecionado) {
+      destinatarios.add(tutorSelecionado);
     }
 
-    if (!tutorSelecionado) {
-      Alert.alert(
-        "Tutora/Tutor obrigatório",
-        "Escolha a tutora ou o tutor que deverá receber o alerta."
-      );
-      return;
-    }
+    let quantidadeNapne = 0;
 
-    const complemento = localCampus.trim();
+    // A equipe NAPNE pode receber sem tutor selecionado.
+    if (avisarNapne) {
+      const { data: equipeNapne, error: erroNapne } = await supabase
+        .from("usuarios")
+        .select("id")
+        .eq("tipo", "napne")
+        .eq("estado", estudante.estado)
+        .eq("campus", estudante.campus);
 
-    if (!localSelecionado && complemento.length < 2) {
-      Alert.alert(
-        "Local obrigatório",
-        "Selecione um local ou escreva onde você está no campus."
-      );
-      return;
-    }
+      if (erroNapne) {
+        throw new Error(
+          "Não foi possível localizar a equipe NAPNE: " + erroNapne.message,
+        );
+      }
 
-    const localTratado = [
-      localSelecionado,
-      complemento,
-    ]
-      .filter(Boolean)
-      .join(" — ");
-
-    try {
-      setEnviando(true);
-
-      const { error } = await supabase
-        .from("alertas")
-        .insert({
-          aluno_id: estudante.id,
-          tutor_id: tutorSelecionado,
-          local_campus: localTratado,
-          status: "enviado",
-        });
-
-      if (error) {
-        console.log("Erro ao enviar alerta:", error);
-
+      if (!equipeNapne || equipeNapne.length === 0) {
         Alert.alert(
-          "Erro",
-          "Não foi possível enviar o alerta à tutora/ao tutor."
+          "Equipe NAPNE indisponível",
+          tutorSelecionado
+            ? "Nenhum integrante NAPNE foi encontrado neste campus. Desmarque a opção NAPNE para enviar somente à tutora/ao tutor."
+            : "Nenhum integrante NAPNE foi encontrado neste campus. Se precisar, selecione uma tutora ou um tutor para receber o alerta.",
         );
         return;
       }
 
-      Alert.alert(
-        "Alerta enviado",
-        "A tutora ou o tutor selecionado foi avisado.",
-        [
-          {
-            text: "OK",
-            onPress: fecharModal,
-          },
-        ]
-      );
-    } catch (erro) {
-      console.log("Erro ao enviar alerta:", erro);
+      for (const integrante of equipeNapne) {
+        destinatarios.add(integrante.id);
+      }
 
-      Alert.alert(
-        "Erro",
-        "Ocorreu um erro ao enviar o alerta."
-      );
-    } finally {
-      setEnviando(false);
+      quantidadeNapne = equipeNapne.length;
     }
-  };
+
+    if (destinatarios.size === 0) {
+      Alert.alert(
+        "Nenhum destinatário",
+        "Não foi encontrado nenhum destinatário para o alerta.",
+      );
+      return;
+    }
+
+    // Um registro independente para cada destinatário.
+    const registros = Array.from(destinatarios).map((destinatarioId) => ({
+      aluno_id: estudante.id,
+      tutor_id: destinatarioId,
+      local_campus: localTratado,
+      status: "enviado",
+    }));
+
+    const { error } = await supabase.from("alertas").insert(registros);
+
+    if (error) {
+      throw error;
+    }
+
+    let mensagem = "";
+
+    if (tutorSelecionado && avisarNapne) {
+      mensagem =
+        "Alerta registrado para a tutora/o tutor selecionado e " +
+        `para ${quantidadeNapne} integrante(s) da equipe NAPNE.`;
+    } else if (avisarNapne) {
+      mensagem =
+        "Alerta registrado para " +
+        `${quantidadeNapne} integrante(s) da equipe NAPNE.`;
+    } else {
+      mensagem = "Alerta registrado para a tutora/o tutor selecionado.";
+    }
+
+    Alert.alert("Alerta enviado", mensagem, [
+      {
+        text: "OK",
+        onPress: () => {
+          limparFormulario();
+          aoFechar();
+        },
+      },
+    ]);
+  } catch (erro) {
+    console.error("Erro ao enviar alerta:", erro);
+
+    Alert.alert(
+      "Erro ao enviar alerta",
+      erro instanceof Error
+        ? erro.message
+        : "Ocorreu um erro ao enviar o alerta.",
+    );
+  } finally {
+    envioEmAndamentoRef.current = false;
+    setEnviando(false);
+  }
+};
+
 
   // =====================================================
-  // CARREGAR DADOS QUANDO ABRIR O MODAL
-  // CORREÇÃO SONARCLOUD S9383
+  // CARREGAR DADOS QUANDO O MODAL ABRIR
   // =====================================================
 
   useEffect(() => {
@@ -348,9 +406,7 @@ export default function ModalAlerta({
     >
       <KeyboardAvoidingView
         style={estilos.fundo}
-        behavior={
-          Platform.OS === "ios" ? "padding" : "height"
-        }
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <View
           style={[
@@ -361,8 +417,6 @@ export default function ModalAlerta({
             },
           ]}
         >
-          {/* SELEÇÃO DE TUTORA/TUTOR */}
-
           {modalTutores ? (
             <ScrollView
               style={estilos.scrollModal}
@@ -398,9 +452,8 @@ export default function ModalAlerta({
               </Text>
 
               <View style={estilos.listaTutores}>
-                {tutores.map((tutor) => {
-                  const selecionado =
-                    tutorSelecionado === tutor.id;
+                {[{ id: "", nome: "Nenhum" }, ...tutores].map((tutor) => {
+                  const selecionado = tutorSelecionado === (tutor.id || null);
 
                   return (
                     <TouchableOpacity
@@ -411,29 +464,21 @@ export default function ModalAlerta({
                         selected: selecionado,
                       }}
                       onPress={() => {
-                        setTutorSelecionado(tutor.id);
+                        setTutorSelecionado(tutor.id || null);
                         setModalTutores(false);
                       }}
                       style={[
                         estilos.tutor,
                         {
                           backgroundColor: tema.card,
-                          borderColor: selecionado
-                            ? tema.text
-                            : tema.border,
-                          borderWidth: selecionado
-                            ? 2
-                            : 1,
+                          borderColor: selecionado ? tema.text : tema.border,
+                          borderWidth: selecionado ? 2 : 1,
                           gap: 12,
                           minHeight: 48,
                         },
                       ]}
                     >
-                      <Feather
-                        name="user"
-                        size={22}
-                        color={tema.text}
-                      />
+                      <Feather name="user" size={22} color={tema.text} />
 
                       <Text
                         style={[
@@ -448,11 +493,7 @@ export default function ModalAlerta({
                       </Text>
 
                       {selecionado && (
-                        <Feather
-                          name="check"
-                          size={22}
-                          color={tema.text}
-                        />
+                        <Feather name="check" size={22} color={tema.text} />
                       )}
                     </TouchableOpacity>
                   );
@@ -486,10 +527,7 @@ export default function ModalAlerta({
             </ScrollView>
           ) : carregando ? (
             <View style={estilos.carregando}>
-              <ActivityIndicator
-                size="large"
-                color="#FF8C42"
-              />
+              <ActivityIndicator size="large" color="#FF8C42" />
 
               <Text
                 style={[
@@ -510,23 +548,15 @@ export default function ModalAlerta({
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode={
-                Platform.OS === "ios"
-                  ? "interactive"
-                  : "on-drag"
+                Platform.OS === "ios" ? "interactive" : "on-drag"
               }
-              automaticallyAdjustKeyboardInsets={
-                Platform.OS === "ios"
-              }
+              automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
             >
               {/* CABEÇALHO */}
 
               <View style={estilos.cabecalho}>
                 <View style={estilos.iconeAlerta}>
-                  <Feather
-                    name="alert-triangle"
-                    size={25}
-                    color="#FFFFFF"
-                  />
+                  <Feather name="alert-triangle" size={25} color="#FFFFFF" />
                 </View>
 
                 <View style={{ flex: 1 }}>
@@ -551,8 +581,8 @@ export default function ModalAlerta({
                       },
                     ]}
                   >
-                    Envie um alerta para uma tutora ou um tutor
-                    do seu campus.
+                    Envie um alerta para uma tutora ou um tutor, para a equipe
+                    NAPNE ou para ambos.
                   </Text>
                 </View>
               </View>
@@ -581,65 +611,26 @@ export default function ModalAlerta({
                     Seus dados
                   </Text>
 
-                  <Text
-                    style={[
-                      estilos.dado,
-                      {
-                        color: tema.text,
-                        fontSize: 15 * escalaFonte,
-                      },
-                    ]}
-                  >
-                    Nome: {estudante.nome}
-                  </Text>
-
-                  <Text
-                    style={[
-                      estilos.dado,
-                      {
-                        color: tema.text,
-                        fontSize: 15 * escalaFonte,
-                      },
-                    ]}
-                  >
-                    Curso: {estudante.curso}
-                  </Text>
-
-                  <Text
-                    style={[
-                      estilos.dado,
-                      {
-                        color: tema.text,
-                        fontSize: 15 * escalaFonte,
-                      },
-                    ]}
-                  >
-                    Turno: {estudante.turno}
-                  </Text>
-
-                  <Text
-                    style={[
-                      estilos.dado,
-                      {
-                        color: tema.text,
-                        fontSize: 15 * escalaFonte,
-                      },
-                    ]}
-                  >
-                    Turma: {estudante.turma}
-                  </Text>
-
-                  <Text
-                    style={[
-                      estilos.dado,
-                      {
-                        color: tema.text,
-                        fontSize: 15 * escalaFonte,
-                      },
-                    ]}
-                  >
-                    Campus: {estudante.campus}
-                  </Text>
+                  {[
+                    ["Nome", estudante.nome],
+                    ["Curso", estudante.curso],
+                    ["Turno", estudante.turno],
+                    ["Turma", estudante.turma],
+                    ["Campus", estudante.campus],
+                  ].map(([rotulo, valor]) => (
+                    <Text
+                      key={rotulo}
+                      style={[
+                        estilos.dado,
+                        {
+                          color: tema.text,
+                          fontSize: 15 * escalaFonte,
+                        },
+                      ]}
+                    >
+                      {rotulo}: {valor}
+                    </Text>
+                  ))}
                 </View>
               )}
 
@@ -654,7 +645,7 @@ export default function ModalAlerta({
                   },
                 ]}
               >
-                Escolha uma tutora ou um tutor
+                Escolha uma Tutora/Tutor (opcional)
               </Text>
 
               <TouchableOpacity
@@ -676,19 +667,12 @@ export default function ModalAlerta({
                   estilos.seletorTutor,
                   {
                     backgroundColor: tema.card,
-                    borderColor: tutorSelecionado
-                      ? tema.text
-                      : tema.border,
+                    borderColor: tutorSelecionado ? tema.text : tema.border,
                   },
-                  (enviando || tutores.length === 0) &&
-                    estilos.desabilitado,
+                  (enviando || tutores.length === 0) && estilos.desabilitado,
                 ]}
               >
-                <Feather
-                  name="user"
-                  size={22}
-                  color={tema.text}
-                />
+                <Feather name="user" size={22} color={tema.text} />
 
                 <Text
                   style={[
@@ -701,15 +685,82 @@ export default function ModalAlerta({
                 >
                   {tutores.length === 0
                     ? "Nenhuma tutora ou tutor disponível no seu campus"
-                    : nomeTutorSelecionado ||
-                      "Selecionar tutora/tutor"}
+                    : nomeTutorSelecionado || "Selecionar tutora/tutor"}
                 </Text>
 
+                <Feather name="chevron-right" size={22} color={tema.text} />
+              </TouchableOpacity>
+
+              {/* EQUIPE NAPNE - OPCIONAL */}
+
+              <Text
+                style={[
+                  estilos.tituloCampo,
+                  {
+                    color: tema.text,
+                    fontSize: 17 * escalaFonte,
+                  },
+                ]}
+              >
+                Equipe NAPNE (opcional)
+              </Text>
+
+              <TouchableOpacity
+                disabled={enviando}
+                accessibilityRole="checkbox"
+                accessibilityLabel="Avisar também toda a equipe NAPNE do campus"
+                accessibilityState={{
+                  checked: avisarNapne,
+                  disabled: enviando,
+                }}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setAvisarNapne((atual) => !atual);
+                }}
+                style={[
+                  estilos.seletorNapne,
+                  {
+                    backgroundColor: tema.card,
+                    borderColor: avisarNapne ? tema.text : tema.border,
+                    borderWidth: avisarNapne ? 2 : 1,
+                  },
+                  enviando && estilos.desabilitado,
+                ]}
+              >
                 <Feather
-                  name="chevron-right"
-                  size={22}
+                  name={avisarNapne ? "check-square" : "square"}
+                  size={24}
                   color={tema.text}
                 />
+
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      estilos.nomeNapne,
+                      {
+                        color: tema.text,
+                        fontSize: 16 * escalaFonte,
+                      },
+                    ]}
+                  >
+                    Avisar a equipe NAPNE
+                  </Text>
+
+                  <Text
+                    style={[
+                      estilos.descricaoNapne,
+                      {
+                        color: tema.text,
+                        fontSize: 13 * escalaFonte,
+                      },
+                    ]}
+                  >
+                    Todos os integrantes NAPNE do mesmo campus receberão o
+                    alerta, sem precisar selecionar nomes.
+                  </Text>
+                </View>
+
+                <Feather name="users" size={22} color={tema.text} />
               </TouchableOpacity>
 
               {/* SELECIONAR LOCAL */}
@@ -728,8 +779,7 @@ export default function ModalAlerta({
 
               <View style={estilos.listaLocais}>
                 {LOCAIS_PREDEFINIDOS.map((local) => {
-                  const selecionado =
-                    localSelecionado === local;
+                  const selecionado = localSelecionado === local;
 
                   return (
                     <TouchableOpacity
@@ -743,7 +793,7 @@ export default function ModalAlerta({
                       }}
                       onPress={() =>
                         setLocalSelecionado((atual) =>
-                          atual === local ? null : local
+                          atual === local ? null : local,
                         )
                       }
                       style={[
@@ -753,20 +803,14 @@ export default function ModalAlerta({
                         },
                         {
                           backgroundColor: tema.card,
-                          borderColor: selecionado
-                            ? tema.text
-                            : tema.border,
+                          borderColor: selecionado ? tema.text : tema.border,
                           borderWidth: selecionado ? 2 : 1,
                         },
                         enviando && estilos.desabilitado,
                       ]}
                     >
                       <Feather
-                        name={
-                          selecionado
-                            ? "check-circle"
-                            : "map-pin"
-                        }
+                        name={selecionado ? "check-circle" : "map-pin"}
                         size={18 * escalaFonte}
                         color={tema.text}
                       />
@@ -851,18 +895,14 @@ export default function ModalAlerta({
                 <TouchableOpacity
                   style={[
                     estilos.botaoEnviar,
-                    (enviando || tutores.length === 0) &&
-                      estilos.desabilitado,
+                    enviando && estilos.desabilitado,
                   ]}
+                  disabled={enviando}
                   onPress={() => {
                     void enviarAlerta().catch((erro) => {
-                      console.error(
-                        "Erro inesperado ao enviar alerta:",
-                        erro
-                      );
+                      console.error("Erro inesperado ao enviar alerta:", erro);
                     });
                   }}
-                  disabled={enviando || tutores.length === 0}
                 >
                   <Text
                     style={[
@@ -872,9 +912,7 @@ export default function ModalAlerta({
                       },
                     ]}
                   >
-                    {enviando
-                      ? "Enviando..."
-                      : "Enviar alerta"}
+                    {enviando ? "Enviando..." : "Enviar alerta"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -985,33 +1023,41 @@ const estilos = StyleSheet.create({
     padding: 13,
   },
 
-  radioExterno: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: "#777",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 10,
-  },
-
-  radioInterno: {
-    width: 11,
-    height: 11,
-    borderRadius: 6,
-    backgroundColor: "#4B6CB7",
-  },
-
   nomeTutor: {
     flex: 1,
     fontFamily: "FredokaLight",
   },
 
-  semTutor: {
-    fontFamily: "FredokaLight",
+  seletorTutor: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 15,
     marginBottom: 20,
-    opacity: 0.7,
+  },
+
+  seletorNapne: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 60,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+  },
+
+  nomeNapne: {
+    fontFamily: "FredokaMedium",
+  },
+
+  descricaoNapne: {
+    fontFamily: "FredokaLight",
+    opacity: 0.75,
+    marginTop: 4,
+    flexShrink: 1,
   },
 
   inputLocal: {
@@ -1092,17 +1138,6 @@ const estilos = StyleSheet.create({
 
   conteudoModal: {
     paddingBottom: 20,
-  },
-
-  seletorTutor: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    minHeight: 48,
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 20,
   },
 
   voltarTutores: {

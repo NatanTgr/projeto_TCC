@@ -3,11 +3,13 @@ import React, {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   ReactNode,
 } from "react";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { supabase } from "../bd/supabase";
 
 type TipoTema = "claro" | "escuro" | "forte";
 
@@ -23,13 +25,53 @@ const ThemeContext = createContext<ThemeContextType>(
   {} as ThemeContextType
 );
 
+const TEMA_PADRAO: TipoTema = "claro";
+
+function validarTema(valor: string | null): TipoTema {
+  if (!valor) return TEMA_PADRAO;
+
+  try {
+    // Compatibilidade com formatos de armazenamento.
+    const temaSalvo =
+      valor === "true"
+        ? "escuro"
+        : valor === "false"
+          ? "claro"
+          : valor.startsWith('"')
+            ? JSON.parse(valor)
+            : valor;
+
+    if (
+      temaSalvo === "claro" ||
+      temaSalvo === "escuro" ||
+      temaSalvo === "forte"
+    ) {
+      return temaSalvo;
+    }
+  } catch (erro) {
+    console.error("Erro ao interpretar tema salvo:", erro);
+  }
+
+  return TEMA_PADRAO;
+}
+
+function chaveTema(usuarioId: string): string {
+  return `@paed:tema:${usuarioId}`;
+}
+
 export function ThemeProvider({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [tipoTema, setTipoTema] = useState<TipoTema>("claro");
+  const [tipoTema, setTipoTema] =
+    useState<TipoTema>(TEMA_PADRAO);
+
   const [carregando, setCarregando] = useState(true);
+
+  const usuarioAtualRef = useRef<string | null>(null);
+  const geracaoRef = useRef(0);
+  const inicializadoRef = useRef(false);
 
   // =====================================================
   // CONFIGURAÇÕES DOS TEMAS
@@ -50,7 +92,6 @@ export function ThemeProvider({
           Tutores: "#88c688",
           balaoChat: "#524c4c",
 
-          // Botões Cancelar e Fechar
           botaoCancelar: "#655854",
           textoBotaoCancelar: "#FFFDD0",
           bordaBotaoCancelar: "#655854",
@@ -91,7 +132,6 @@ export function ThemeProvider({
             Tutores: "#88c688",
             balaoChat: "#0057FF",
 
-            // Botões Cancelar e Fechar
             botaoCancelar: "#303030",
             textoBotaoCancelar: "#FFEA00",
             bordaBotaoCancelar: "#FFEA00",
@@ -131,7 +171,6 @@ export function ThemeProvider({
             Tutores: "#88c688",
             balaoChat: "#ffb1638f",
 
-            // Botões Cancelar e Fechar
             botaoCancelar: "#8C7B75",
             textoBotaoCancelar: "#FFFFFF",
             bordaBotaoCancelar: "#8C7B75",
@@ -155,70 +194,151 @@ export function ThemeProvider({
               },
             },
 
-            placeholder: "#836F68" + 80,
+            placeholder: "#836F6880",
             textoBotao: "#fff",
           };
 
   // =====================================================
-  // CARREGAR TEMA SALVO
+  // CARREGAR TEMA ESPECÍFICO DE CADA CONTA
   // =====================================================
 
   useEffect(() => {
-    // Correção SonarCloud S9383
-    void carregarTema().catch((erro) => {
-      console.error(
-        "Erro inesperado ao carregar o tema:",
-        erro
-      );
-    });
-  }, []);
+    let ativo = true;
+    let recebeuEventoAuth = false;
 
-  async function carregarTema() {
-    try {
-      const temaSalvo = await AsyncStorage.getItem("tema");
+    const atualizarUsuario = (usuarioId: string | null) => {
+      if (!ativo) return;
 
-      if (temaSalvo !== null) {
-        // Compatibilidade com o sistema antigo:
-        // false = claro
-        // true = escuro
-
-        if (temaSalvo === "true") {
-          setTipoTema("escuro");
-        } else if (temaSalvo === "false") {
-          setTipoTema("claro");
-        } else {
-          setTipoTema(JSON.parse(temaSalvo));
-        }
+      if (
+        inicializadoRef.current &&
+        usuarioAtualRef.current === usuarioId
+      ) {
+        return;
       }
-    } catch (error) {
-      console.log(error);
-    } finally {
-      setCarregando(false);
-    }
-  }
+
+      inicializadoRef.current = true;
+      usuarioAtualRef.current = usuarioId;
+
+      const geracaoAtual = ++geracaoRef.current;
+
+      // Impede que o tema da conta anterior apareça.
+      setTipoTema(TEMA_PADRAO);
+
+      if (!usuarioId) {
+        setCarregando(false);
+        return;
+      }
+
+      setCarregando(true);
+
+      void AsyncStorage.getItem(chaveTema(usuarioId))
+        .then((valorSalvo) => {
+          if (
+            !ativo ||
+            geracaoAtual !== geracaoRef.current
+          ) {
+            return;
+          }
+
+          setTipoTema(validarTema(valorSalvo));
+        })
+        .catch((erro) => {
+          if (
+            !ativo ||
+            geracaoAtual !== geracaoRef.current
+          ) {
+            return;
+          }
+
+          console.error(
+            "Erro ao carregar tema da conta:",
+            erro
+          );
+
+          setTipoTema(TEMA_PADRAO);
+        })
+        .finally(() => {
+          if (
+            ativo &&
+            geracaoAtual === geracaoRef.current
+          ) {
+            setCarregando(false);
+          }
+        });
+    };
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_evento, session) => {
+      if (!ativo) return;
+
+      recebeuEventoAuth = true;
+      atualizarUsuario(session?.user?.id ?? null);
+    });
+
+    void supabase.auth
+      .getSession()
+      .then(({ data: { session }, error }) => {
+        if (!ativo || recebeuEventoAuth) return;
+
+        if (error) {
+          console.error(
+            "Erro ao recuperar sessão para o tema:",
+            error
+          );
+        }
+
+        atualizarUsuario(session?.user?.id ?? null);
+      })
+      .catch((erro) => {
+        if (!ativo || recebeuEventoAuth) return;
+
+        console.error(
+          "Erro inesperado ao recuperar sessão do tema:",
+          erro
+        );
+
+        atualizarUsuario(null);
+      });
+
+    return () => {
+      ativo = false;
+      geracaoRef.current++;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // =====================================================
   // SELECIONAR TEMA
   // =====================================================
 
-  async function selecionarTema(novoTema: TipoTema) {
-    try {
-      setTipoTema(novoTema);
+  function selecionarTema(novoTema: TipoTema) {
+    if (carregando) return;
 
-      await AsyncStorage.setItem(
-        "tema",
-        JSON.stringify(novoTema)
-      );
-    } catch (error) {
-      console.log(error);
+    const usuarioId = usuarioAtualRef.current;
+
+    if (!usuarioId) {
+      return;
     }
+
+    setTipoTema(novoTema);
+
+    void AsyncStorage.setItem(
+      chaveTema(usuarioId),
+      novoTema
+    ).catch((erro) => {
+      console.error(
+        "Erro ao salvar tema da conta:",
+        erro
+      );
+    });
   }
 
   // =====================================================
   // ALTERNAR ENTRE OS TEMAS
   // =====================================================
 
-  async function alternarTema() {
+  function alternarTema() {
     let novoTema: TipoTema;
 
     if (tipoTema === "claro") {
@@ -229,7 +349,7 @@ export function ThemeProvider({
       novoTema = "claro";
     }
 
-    await selecionarTema(novoTema);
+    selecionarTema(novoTema);
   }
 
   // =====================================================

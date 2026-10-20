@@ -163,7 +163,7 @@ export default function AlertaTutorGlobal({
 
   useEffect(() => {
     const idTutor =
-      tipoUsuario === "tutor" ? usuarioId : null;
+      tipoUsuario === "tutor" || tipoUsuario === "napne" ? usuarioId : null;
 
     setTutorId(idTutor);
     setFilaAlertas([]);

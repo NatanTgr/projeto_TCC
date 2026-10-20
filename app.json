@@ -4,7 +4,7 @@
     "slug": "calteste",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icone_menor_PAED.png",
+    "icon": "./assets/images/icone.png",
     "scheme": "meuapp",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -15,9 +15,7 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FFFDD0",
-        "foregroundImage": "./assets/images/icone_PAED.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icone_sem_fundo.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -30,8 +28,8 @@
       [
       "expo-notifications",
         {
-          "icon": "./assets/images/icone_menor_PAED.png",
-          "color": "#88C688"
+          "icon": "./assets/images/icone_sem_fundo.png",
+          "color": "#FFFDD0"
         }
       ],
       "expo-font",
