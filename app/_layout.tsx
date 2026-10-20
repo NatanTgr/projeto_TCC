@@ -1,32 +1,43 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+
 import {
   View,
   Image,
   StyleSheet,
   Linking,
-  AppState
-} from 'react-native';
-import { Stack, router } from 'expo-router';
-import { Session } from '@supabase/supabase-js';
-import { useFonts } from 'expo-font';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+  AppState,
+} from "react-native";
 
-import * as Notifications from 'expo-notifications';
-import { registrarPushChat } from '../components/notificacoesChat';
+import { Stack, router } from "expo-router";
+import type { Session } from "@supabase/supabase-js";
+import { useFonts } from "expo-font";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+import * as Notifications from "expo-notifications";
+
+import { registrarPushChat } from "../components/notificacoesChat";
 import { obterConversaAtiva } from "../components/conversaAtiva";
 
-import { supabase } from '../lib/supabase';
-import { styles as globalStyles, colors } from '../style';
+import { supabase } from "../lib/supabase";
+import { styles as globalStyles, colors } from "../style";
 
 import {
   ThemeProvider,
   useTheme,
 } from "../context/ThemeContext";
 
-import { FontSizeProvider } from '../context/FontSizeContext';
+import { FontSizeProvider } from "../context/FontSizeContext";
 
-const VERSAO_TERMO = '1.0';
-const TERMO_STORAGE_KEY = '@paed:termo_autorizacao';
+// =====================================================
+// CONSTANTES
+// =====================================================
+
+const VERSAO_TERMO = "1.0";
+const TERMO_STORAGE_KEY = "@paed:termo_autorizacao";
+
+// =====================================================
+// NAVEGAÇÃO COM TEMA
+// =====================================================
 
 function NavegacaoComTema() {
   const { tema, tipoTema } = useTheme();
@@ -56,6 +67,156 @@ function NavegacaoComTema() {
   );
 }
 
+// =====================================================
+// VERIFICAR ACEITE LOCAL DOS TERMOS
+// =====================================================
+
+async function verificarTermoLocal(): Promise<boolean> {
+  try {
+    const termoSalvo = await AsyncStorage.getItem(
+      TERMO_STORAGE_KEY
+    );
+
+    if (!termoSalvo) {
+      return false;
+    }
+
+    const termo = JSON.parse(termoSalvo);
+
+    return (
+      termo?.aceito === true &&
+      termo?.versao === VERSAO_TERMO
+    );
+  } catch (error) {
+    console.error(
+      "Erro ao verificar aceite do termo:",
+      error
+    );
+
+    return false;
+  }
+}
+
+// =====================================================
+// REGISTRAR ACEITE NO SUPABASE
+// =====================================================
+
+async function registrarAceiteNoSupabase(
+  session: Session
+): Promise<void> {
+  try {
+    const {
+      data: aceiteExistente,
+      error: erroConsulta,
+    } = await supabase
+      .from("aceites_termos")
+      .select("id")
+      .eq("usuario_id", session.user.id)
+      .eq("versao_termo", VERSAO_TERMO)
+      .maybeSingle();
+
+    if (erroConsulta) {
+      console.error(
+        "Erro ao verificar aceite do termo:",
+        erroConsulta
+      );
+
+      return;
+    }
+
+    if (!aceiteExistente) {
+      const { error } = await supabase
+        .from("aceites_termos")
+        .insert({
+          usuario_id: session.user.id,
+          versao_termo: VERSAO_TERMO,
+        });
+
+      if (error) {
+        console.error(
+          "Erro ao registrar aceite do termo:",
+          error
+        );
+      }
+    }
+  } catch (error) {
+    console.error(
+      "Erro ao registrar aceite no Supabase:",
+      error
+    );
+  }
+}
+
+// =====================================================
+// NAVEGAÇÃO INICIAL
+// =====================================================
+
+async function handleNavigation(
+  session: Session | null
+): Promise<void> {
+  // Verifica se o usuário aceitou os termos.
+
+  const termoAceito = await verificarTermoLocal();
+
+  if (!termoAceito) {
+    router.replace("/TelaTermo");
+    return;
+  }
+
+  // Sem sessão, abre as boas-vindas.
+
+  if (!session) {
+    router.replace("/welcome");
+    return;
+  }
+
+  // Registra o aceite no Supabase.
+
+  await registrarAceiteNoSupabase(session);
+
+  // Busca o tipo do usuário.
+
+  const { data: usuario, error } = await supabase
+    .from("usuarios")
+    .select("tipo")
+    .eq("id", session.user.id)
+    .single();
+
+  if (error || !usuario) {
+    console.error(
+      "Erro ao buscar tipo do usuário:",
+      error
+    );
+
+    return;
+  }
+
+  // Tutora/Tutor e NAPNE
+
+  if (
+    usuario.tipo === "tutor" ||
+    usuario.tipo === "napne"
+  ) {
+    router.replace("/(tabs)/TelaTarefasTutor");
+    return;
+  }
+
+  // Professora/Professor
+
+  if (usuario.tipo === "professor") {
+    router.replace("/(tabs)/TelaChat");
+    return;
+  }
+
+  // Estudante
+
+  router.replace("/(tabs)/TelaTarefas");
+}
+
+// =====================================================
+// LAYOUT PRINCIPAL
+// =====================================================
+
 export default function RootLayout() {
   const [loading, setLoading] = useState(true);
 
@@ -64,32 +225,78 @@ export default function RootLayout() {
     FredokaMedium: require("../assets/fonts/Fredoka-Medium.ttf"),
   });
 
-  console.log("Fontes carregadas:", fontesCarregadas);
-  console.log("Erro nas fontes:", erroFontes);
+  // =====================================================
+  // SESSÃO, RECUPERAÇÃO E NOTIFICAÇÕES
+  // =====================================================
 
   useEffect(() => {
-    let currentSession: Session | null = null;
+    let ativo = true;
     let isPasswordRecovery = false;
 
-    const handleRecoveryUrl = async (url: string | null) => {
-      if (!url) return;
+    // ===================================================
+    // AGENDAR NAVEGAÇÃO SEM BLOQUEAR A TELA
+    // ===================================================
 
-      if (!url.startsWith("meuapp://reset-password")) return;
+    const agendarNavegacao = (
+      session: Session | null
+    ) => {
+      // Libera a tela da logo antes de navegar.
+      setLoading(false);
+
+      // Aguarda a próxima atualização da interface
+      // para permitir que o Expo Router monte o Stack.
+
+      requestAnimationFrame(() => {
+        if (!ativo || isPasswordRecovery) {
+          return;
+        }
+
+        void handleNavigation(session).catch((error) => {
+          console.error(
+            "Erro ao executar navegação inicial:",
+            error
+          );
+        });
+      });
+    };
+
+    // ===================================================
+    // PROCESSAR LINK DE RECUPERAÇÃO
+    // ===================================================
+
+    const handleRecoveryUrl = async (
+      url: string | null
+    ): Promise<void> => {
+      if (!url || !ativo) {
+        return;
+      }
+
+      if (
+        !url.startsWith("meuapp://reset-password")
+      ) {
+        return;
+      }
 
       try {
         const hashIndex = url.indexOf("#");
 
-        if (hashIndex === -1) return;
+        if (hashIndex === -1) {
+          return;
+        }
 
         const hash = url.substring(hashIndex + 1);
+
         const params: Record<string, string> = {};
 
         hash.split("&").forEach((item) => {
           const [key, ...valueParts] = item.split("=");
 
-          if (!key) return;
+          if (!key) {
+            return;
+          }
 
           const value = valueParts.join("=");
+
           params[key] = decodeURIComponent(value);
         });
 
@@ -97,7 +304,10 @@ export default function RootLayout() {
         const refreshToken = params.refresh_token;
 
         if (!accessToken || !refreshToken) {
-          console.log("Link de recuperação não possui os tokens necessários.");
+          console.log(
+            "Link de recuperação não possui os tokens necessários."
+          );
+
           return;
         }
 
@@ -106,115 +316,259 @@ export default function RootLayout() {
           refresh_token: refreshToken,
         });
 
+        if (!ativo) {
+          return;
+        }
+
         if (error) {
-          console.error("Erro ao criar sessão de recuperação:", error.message);
+          console.error(
+            "Erro ao criar sessão de recuperação:",
+            error.message
+          );
+
           return;
         }
 
         isPasswordRecovery = true;
+
         setLoading(false);
 
-        router.replace("/reset-password");
+        requestAnimationFrame(() => {
+          if (ativo) {
+            router.replace("/reset-password");
+          }
+        });
       } catch (error) {
-        console.error("Erro ao processar link de recuperação:", error);
+        console.error(
+          "Erro ao processar link de recuperação:",
+          error
+        );
       }
     };
 
-    Linking.getInitialURL().then((url) => {
-      handleRecoveryUrl(url);
-    });
+    // ===================================================
+    // VERIFICAR LINK INICIAL
+    // ===================================================
 
-    const linkingSubscription = Linking.addEventListener("url", ({ url }) => {
-      handleRecoveryUrl(url);
-    });
-
-    const timer = setTimeout(async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-
-        if (error) {
-          console.log("Erro ao recuperar sessão:", error);
+    void Linking.getInitialURL()
+      .then(async (url) => {
+        if (!ativo) {
+          return;
         }
 
-        currentSession = data.session;
+        await handleRecoveryUrl(url);
+      })
+      .catch((error) => {
+        console.error(
+          "Erro ao verificar link inicial:",
+          error
+        );
+      });
 
-        if (!isPasswordRecovery) {
-          handleNavigation(currentSession);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.log("Erro ao recuperar sessão:", error);
+    // ===================================================
+    // OUVIR LINKS RECEBIDOS
+    // ===================================================
 
-        if (!isPasswordRecovery) {
-          handleNavigation(null);
-          setLoading(false);
-        }
+    const linkingSubscription = Linking.addEventListener(
+      "url",
+      ({ url }) => {
+        void handleRecoveryUrl(url).catch((error) => {
+          console.error(
+            "Erro ao processar link recebido:",
+            error
+          );
+        });
       }
+    );
+
+    // ===================================================
+    // CARREGAR SESSÃO INICIAL
+    // ===================================================
+
+    const carregarSessaoInicial =
+      async (): Promise<void> => {
+        try {
+          const { data, error } =
+            await supabase.auth.getSession();
+
+          if (!ativo) {
+            return;
+          }
+
+          if (error) {
+            console.error(
+              "Erro ao recuperar sessão:",
+              error
+            );
+          }
+
+          if (!isPasswordRecovery) {
+            // Não aguardamos as consultas de navegação
+            // para liberar a tela da logo.
+
+            agendarNavegacao(data.session);
+          }
+        } catch (error) {
+          console.error(
+            "Erro inesperado ao recuperar sessão:",
+            error
+          );
+
+          if (ativo && !isPasswordRecovery) {
+            agendarNavegacao(null);
+          }
+        }
+      };
+
+    // Mantém o intervalo original do PAED.
+
+    const timer = setTimeout(() => {
+      void carregarSessaoInicial().catch((error) => {
+        console.error(
+          "Falha ao iniciar a sessão:",
+          error
+        );
+
+        if (ativo && !isPasswordRecovery) {
+          agendarNavegacao(null);
+        }
+      });
     }, 1100);
+
+    // ===================================================
+    // MONITORAR AUTENTICAÇÃO
+    // ===================================================
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session: Session | null) => {
-      currentSession = session;
-
-      if (session?.user && event === "SIGNED_IN") {
-        registrarPushChat(session.user.id);
-      }
-
-      if (event === "PASSWORD_RECOVERY") {
-        isPasswordRecovery = true;
-        setLoading(false);
-
-        router.replace("/reset-password");
-      }
-    });
-
-    const registrarUsuarioAtual = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        await registrarPushChat(user.id);
-      }
-    };
-
-    registrarUsuarioAtual();
-
-    const notificacaoRecebida = Notifications.addNotificationReceivedListener(
-      () => {},
-    );
-
-    const notificacaoTocada =
-      Notifications.addNotificationResponseReceivedListener((response) => {
-        const dados = response.notification.request.content.data;
-
-        if (
-          dados?.tipo !== "mensagem" ||
-          typeof dados.remetenteId !== "string"
-        ) {
+    } = supabase.auth.onAuthStateChange(
+      (event, session: Session | null) => {
+        if (!ativo) {
           return;
         }
 
-        router.push({
-          pathname: "/TelaConversa" as any,
-          params: {
-            usuarioId: dados.remetenteId,
+        // Registrar push quando entrar na conta.
 
-            usuarioNome:
-              typeof dados.remetenteNome === "string"
-                ? dados.remetenteNome
-                : "Usuário",
+        if (
+          session?.user &&
+          event === "SIGNED_IN"
+        ) {
+          void registrarPushChat(
+            session.user.id
+          ).catch((error) => {
+            console.error(
+              "Erro ao registrar push após login:",
+              error
+            );
+          });
+        }
 
-            usuarioTipo:
-              typeof dados.remetenteTipo === "string"
-                ? dados.remetenteTipo
-                : "estudante",
-          },
-        });
-      });
+        // Recuperação de senha.
+
+        if (event === "PASSWORD_RECOVERY") {
+          isPasswordRecovery = true;
+
+          setLoading(false);
+
+          requestAnimationFrame(() => {
+            if (ativo) {
+              router.replace("/reset-password");
+            }
+          });
+        }
+      }
+    );
+
+    // ===================================================
+    // REGISTRAR PUSH DO USUÁRIO ATUAL
+    // ===================================================
+
+    const registrarUsuarioAtual =
+      async (): Promise<void> => {
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (!ativo) {
+          return;
+        }
+
+        if (error) {
+          throw error;
+        }
+
+        if (user) {
+          await registrarPushChat(user.id);
+        }
+      };
+
+    void registrarUsuarioAtual().catch((error) => {
+      console.error(
+        "Erro ao registrar push do usuário atual:",
+        error
+      );
+    });
+
+    // ===================================================
+    // NOTIFICAÇÕES RECEBIDAS
+    // ===================================================
+
+    const notificacaoRecebida =
+      Notifications.addNotificationReceivedListener(
+        () => {
+          // A apresentação das notificações
+          // é controlada pelo handler global.
+        }
+      );
+
+    // ===================================================
+    // NOTIFICAÇÕES TOCADAS
+    // ===================================================
+
+    const notificacaoTocada =
+      Notifications.addNotificationResponseReceivedListener(
+        (response) => {
+          if (!ativo) {
+            return;
+          }
+
+          const dados =
+            response.notification.request.content.data;
+
+          if (
+            dados?.tipo !== "mensagem" ||
+            typeof dados.remetenteId !== "string"
+          ) {
+            return;
+          }
+
+          router.push({
+            pathname: "/TelaConversa" as any,
+            params: {
+              usuarioId: dados.remetenteId,
+
+              usuarioNome:
+                typeof dados.remetenteNome === "string"
+                  ? dados.remetenteNome
+                  : "Usuário",
+
+              usuarioTipo:
+                typeof dados.remetenteTipo === "string"
+                  ? dados.remetenteTipo
+                  : "estudante",
+            },
+          });
+        }
+      );
+
+    // ===================================================
+    // LIMPEZA DOS LISTENERS
+    // ===================================================
 
     return () => {
+      ativo = false;
+
       clearTimeout(timer);
 
       subscription.unsubscribe();
@@ -227,111 +581,9 @@ export default function RootLayout() {
     };
   }, []);
 
-  const verificarTermoLocal = async (): Promise<boolean> => {
-    try {
-      const termoSalvo = await AsyncStorage.getItem(TERMO_STORAGE_KEY);
-
-      if (!termoSalvo) {
-        return false;
-      }
-
-      const termo = JSON.parse(termoSalvo);
-
-      return termo?.aceito === true && termo?.versao === VERSAO_TERMO;
-    } catch (error) {
-      console.error("Erro ao verificar aceite do termo:", error);
-
-      return false;
-    }
-  };
-
-  const registrarAceiteNoSupabase = async (session: Session) => {
-    try {
-      const { data: aceiteExistente, error: erroConsulta } = await supabase
-        .from("aceites_termos")
-        .select("id")
-        .eq("usuario_id", session.user.id)
-        .eq("versao_termo", VERSAO_TERMO)
-        .maybeSingle();
-
-      if (erroConsulta) {
-        console.log("Erro ao verificar aceite do termo:", erroConsulta);
-
-        return;
-      }
-
-      if (!aceiteExistente) {
-        const { error } = await supabase.from("aceites_termos").insert({
-          usuario_id: session.user.id,
-          versao_termo: VERSAO_TERMO,
-        });
-
-        if (error) {
-          console.log("Erro ao registrar aceite do termo:", error);
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao registrar aceite no Supabase:", error);
-    }
-  };
-
-  const handleNavigation = async (session: Session | null) => {
-    /*
-     * Primeiro verificamos se o usuário já aceitou
-     * a versão atual do termo.
-     *
-     * Não existe mais nenhuma referência à tela
-     * "quem-somos".
-     */
-    const termoAceito = await verificarTermoLocal();
-
-    if (!termoAceito) {
-      router.replace("/TelaTermo");
-      return;
-    }
-
-    /*
-     * Se o termo já foi aceito, mas não existe
-     * sessão, o usuário vai para a tela inicial.
-     */
-    if (!session) {
-      router.replace("/welcome");
-      return;
-    }
-
-    /*
-     * Usuário autenticado:
-     * registramos o aceite no Supabase.
-     */
-    await registrarAceiteNoSupabase(session);
-
-    /*
-     * Buscamos o tipo do usuário para definir
-     * qual tela deve abrir.
-     */
-    const { data: usuario, error } = await supabase
-      .from("usuarios")
-      .select("tipo")
-      .eq("id", session.user.id)
-      .single();
-
-    if (error || !usuario) {
-      console.log("Erro ao buscar tipo do usuário:", error);
-
-      return;
-    }
-
-    /*
-     * Tutor
-     */
-    if (usuario.tipo === "tutor" || usuario.tipo === "napne") {
-      router.replace("/(tabs)/TelaTarefasTutor");
-    } else if (usuario.tipo === "professor") {
-      router.replace("/(tabs)/TelaChat");
-    } else {
-      router.replace("/(tabs)/TelaTarefas");
-    }
-  };
+  // =====================================================
+  // TELA DE CARREGAMENTO
+  // =====================================================
 
   if (loading) {
     return (
@@ -345,9 +597,15 @@ export default function RootLayout() {
     );
   }
 
+  // Aguarda o carregamento das fontes.
+
   if (!fontesCarregadas && !erroFontes) {
     return null;
   }
+
+  // =====================================================
+  // PROVIDERS E NAVEGAÇÃO
+  // =====================================================
 
   return (
     <ThemeProvider>
@@ -358,25 +616,38 @@ export default function RootLayout() {
   );
 }
 
+// =====================================================
+// CONFIGURAÇÃO GLOBAL DAS NOTIFICAÇÕES
+// =====================================================
+
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
     const dados = notification.request.content.data;
 
     // Pessoa com quem estamos conversando.
+
     const conversaAtiva = obterConversaAtiva();
 
-    // Verifica se o aplicativo está em primeiro plano.
-    const aplicativoAberto = AppState.currentState === "active";
+    // Verifica se o aplicativo está aberto.
 
-    // Verifica se é uma notificação de chat.
-    const notificacaoDeMensagem = dados?.tipo === "mensagem";
+    const aplicativoAberto =
+      AppState.currentState === "active";
 
-    // Identifica quem enviou a mensagem.
+    // Verifica se é uma notificação de mensagem.
+
+    const notificacaoDeMensagem =
+      dados?.tipo === "mensagem";
+
+    // Identifica quem enviou.
+
     const remetenteId =
-      typeof dados?.remetenteId === "string" ? dados.remetenteId : null;
+      typeof dados?.remetenteId === "string"
+        ? dados.remetenteId
+        : null;
 
-    // Não exibe notificação se já estamos
-    // conversando com a pessoa que enviou.
+    // Oculta a notificação se o usuário
+    // já está na conversa correspondente.
+
     const ocultarNotificacao =
       aplicativoAberto &&
       notificacaoDeMensagem &&
@@ -392,8 +663,8 @@ Notifications.setNotificationHandler({
       };
     }
 
-    // Para todas as outras notificações,
-    // mantém o comportamento original do PAED.
+    // Mantém as demais notificações normalmente.
+
     return {
       shouldShowBanner: true,
       shouldShowList: true,
@@ -403,11 +674,15 @@ Notifications.setNotificationHandler({
   },
 });
 
+// =====================================================
+// ESTILOS
+// =====================================================
+
 const localStyles = StyleSheet.create({
   splashContainer: {
     flex: 1,
     backgroundColor: colors.background,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
