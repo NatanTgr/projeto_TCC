@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from "react";
+
 import {
   Alert,
   AppState,
@@ -11,12 +13,18 @@ import { supabase } from "../bd/supabase";
 import { useFontSize } from "../context/FontSizeContext";
 import ModalAlerta from "./ModalAlerta";
 
+// =====================================================
+// HORÁRIO DE FUNCIONAMENTO DO ALERTA
+// =====================================================
+
 const HORARIO_INICIO = 7 * 60 + 20;
 const HORARIO_FIM = 22 * 60 + 30;
 
 function estaNoHorarioPermitido() {
   const agora = new Date();
-  const minutosAtuais = agora.getHours() * 60 + agora.getMinutes();
+
+  const minutosAtuais =
+    agora.getHours() * 60 + agora.getMinutes();
 
   return (
     minutosAtuais >= HORARIO_INICIO &&
@@ -24,14 +32,23 @@ function estaNoHorarioPermitido() {
   );
 }
 
+// =====================================================
+// COMPONENTE BOTÃO ALERTA
+// =====================================================
+
 export default function BotaoAlerta() {
   const { escalaFonte } = useFontSize();
 
   const [modalVisivel, setModalVisivel] = useState(false);
   const [ehEstudante, setEhEstudante] = useState(false);
+
   const [horarioPermitido, setHorarioPermitido] = useState(
     estaNoHorarioPermitido
   );
+
+  // =====================================================
+  // VERIFICAR HORÁRIO DE FUNCIONAMENTO
+  // =====================================================
 
   useEffect(() => {
     const atualizarHorario = () => {
@@ -46,7 +63,10 @@ export default function BotaoAlerta() {
 
     atualizarHorario();
 
-    const intervalo = setInterval(atualizarHorario, 1000);
+    const intervalo = setInterval(
+      atualizarHorario,
+      1000
+    );
 
     const subscription = AppState.addEventListener(
       "change",
@@ -63,11 +83,28 @@ export default function BotaoAlerta() {
     };
   }, []);
 
+  // =====================================================
+  // VERIFICAR SE O USUÁRIO É ESTUDANTE
+  // =====================================================
+
   useEffect(() => {
     let componenteAtivo = true;
     let verificacaoAtual = 0;
 
-    const verificarUsuario = async (usuarioId: string | null) => {
+    // Armazena os temporizadores para removê-los
+    // quando o componente for desmontado.
+
+    const temporizadores = new Set<
+      ReturnType<typeof setTimeout>
+    >();
+
+    // ===================================================
+    // CONSULTAR TIPO DO USUÁRIO
+    // ===================================================
+
+    const verificarUsuario = async (
+      usuarioId: string | null
+    ): Promise<void> => {
       if (!componenteAtivo) {
         return;
       }
@@ -87,6 +124,9 @@ export default function BotaoAlerta() {
         .eq("id", usuarioId)
         .single();
 
+      // Ignora resultados de verificações antigas
+      // ou de um componente já desmontado.
+
       if (
         !componenteAtivo ||
         numeroVerificacao !== verificacaoAtual
@@ -95,62 +135,145 @@ export default function BotaoAlerta() {
       }
 
       if (error) {
-        console.log("Erro ao verificar usuário do alerta:", error);
+        console.error(
+          "Erro ao verificar usuário do alerta:",
+          error
+        );
         return;
       }
 
       setEhEstudante(data?.tipo === "estudante");
     };
 
-    const carregarUsuarioAtual = async () => {
-      const verificacaoAntesDaConsulta = verificacaoAtual;
+    // ===================================================
+    // CARREGAR USUÁRIO ATUAL
+    // ===================================================
 
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+    const carregarUsuarioAtual =
+      async (): Promise<void> => {
+        const verificacaoAntesDaConsulta =
+          verificacaoAtual;
 
-      if (
-        !componenteAtivo ||
-        verificacaoAntesDaConsulta !== verificacaoAtual
-      ) {
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
+
+        if (
+          !componenteAtivo ||
+          verificacaoAntesDaConsulta !==
+            verificacaoAtual
+        ) {
+          return;
+        }
+
+        if (error) {
+          console.error(
+            "Erro ao recuperar usuário do alerta:",
+            error
+          );
+
+          setEhEstudante(false);
+          setModalVisivel(false);
+
+          return;
+        }
+
+        await verificarUsuario(user?.id ?? null);
+      };
+
+    // Correção SonarCloud S9383:
+    // trata rejeições da consulta inicial.
+
+    void carregarUsuarioAtual().catch((error) => {
+      if (!componenteAtivo) {
         return;
       }
 
-      if (error) {
-        console.log("Erro ao recuperar usuário do alerta:", error);
-        setEhEstudante(false);
-        setModalVisivel(false);
-        return;
-      }
+      console.error(
+        "Erro inesperado ao carregar usuário do alerta:",
+        error
+      );
+    });
 
-      await verificarUsuario(user?.id ?? null);
-    };
-
-    carregarUsuarioAtual();
+    // ===================================================
+    // MONITORAR ALTERAÇÕES DE AUTENTICAÇÃO
+    // ===================================================
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_evento, sessao) => {
-      /*
-       * Executa fora do callback imediato da autenticação,
-       * evitando conflito com o controle interno do Supabase.
-       */
-      setTimeout(() => {
-        if (componenteAtivo) {
-          verificarUsuario(sessao?.user?.id ?? null);
-        }
-      }, 0);
-    });
+    } = supabase.auth.onAuthStateChange(
+      (_evento, sessao) => {
+        // Invalida consultas iniciadas antes
+        // da alteração da autenticação.
+
+        verificacaoAtual += 1;
+
+        const usuarioId =
+          sessao?.user?.id ?? null;
+
+        /*
+         * Executa fora do callback imediato
+         * de autenticação para evitar conflitos
+         * com o controle interno do Supabase.
+         */
+
+        const temporizador = setTimeout(() => {
+          temporizadores.delete(temporizador);
+
+          if (!componenteAtivo) {
+            return;
+          }
+
+          // Correção SonarCloud S9383:
+          // trata rejeições da verificação.
+
+          void verificarUsuario(usuarioId).catch(
+            (error) => {
+              if (!componenteAtivo) {
+                return;
+              }
+
+              console.error(
+                "Erro inesperado ao verificar usuário após autenticação:",
+                error
+              );
+            }
+          );
+        }, 0);
+
+        temporizadores.add(temporizador);
+      }
+    );
+
+    // ===================================================
+    // LIMPEZA
+    // ===================================================
 
     return () => {
       componenteAtivo = false;
+
+      // Invalida consultas ainda em andamento.
+      verificacaoAtual += 1;
+
+      // Remove verificações agendadas.
+      temporizadores.forEach((temporizador) => {
+        clearTimeout(temporizador);
+      });
+
+      temporizadores.clear();
+
       subscription.unsubscribe();
     };
   }, []);
 
+  // =====================================================
+  // ABRIR MODAL DE ALERTA
+  // =====================================================
+
   const abrirAlerta = () => {
     // Confere novamente no momento do toque.
+
     const permitido = estaNoHorarioPermitido();
 
     setHorarioPermitido(permitido);
@@ -169,16 +292,25 @@ export default function BotaoAlerta() {
     setModalVisivel(true);
   };
 
+  // =====================================================
+  // VISIBILIDADE DO BOTÃO
+  // =====================================================
+
   if (!ehEstudante) {
     return null;
   }
+
+  // =====================================================
+  // INTERFACE
+  // =====================================================
 
   return (
     <>
       <TouchableOpacity
         style={[
           estilos.botao,
-          !horarioPermitido && estilos.botaoIndisponivel,
+          !horarioPermitido &&
+            estilos.botaoIndisponivel,
         ]}
         onPress={abrirAlerta}
         accessibilityRole="button"
@@ -202,12 +334,18 @@ export default function BotaoAlerta() {
       </TouchableOpacity>
 
       <ModalAlerta
-        visivel={modalVisivel && horarioPermitido}
+        visivel={
+          modalVisivel && horarioPermitido
+        }
         aoFechar={() => setModalVisivel(false)}
       />
     </>
   );
 }
+
+// =====================================================
+// ESTILOS
+// =====================================================
 
 const estilos = StyleSheet.create({
   botao: {
