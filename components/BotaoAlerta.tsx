@@ -17,20 +17,35 @@ import ModalAlerta from "./ModalAlerta";
 // HORÁRIO DE FUNCIONAMENTO DO ALERTA
 // =====================================================
 
-const HORARIO_INICIO = 7 * 60 + 20;
-const HORARIO_FIM = 22 * 60 + 30;
+
+const HORARIO_INICIO = 7 * 60 + 20; // 07:20
+const HORARIO_FIM = 22 * 60 + 30; // 22:30
+
+// Simula um horário somente durante o desenvolvimento.
+// Altere para "06:00" para testar o bloqueio.
+// Use null para voltar ao horário real.
+const HORARIO_TESTE = __DEV__ ? "10:00" : null;
 
 function estaNoHorarioPermitido() {
   const agora = new Date();
 
-  const minutosAtuais =
+  let minutosAtuais =
     agora.getHours() * 60 + agora.getMinutes();
+
+  if (HORARIO_TESTE !== null) {
+    const [horas, minutos] = HORARIO_TESTE
+      .split(":")
+      .map(Number);
+
+    minutosAtuais = horas * 60 + minutos;
+  }
 
   return (
     minutosAtuais >= HORARIO_INICIO &&
-    minutosAtuais < HORARIO_FIM
+    minutosAtuais <= HORARIO_FIM
   );
 }
+
 
 // =====================================================
 // COMPONENTE BOTÃO ALERTA
@@ -149,38 +164,55 @@ export default function BotaoAlerta() {
     // CARREGAR USUÁRIO ATUAL
     // ===================================================
 
-    const carregarUsuarioAtual =
-      async (): Promise<void> => {
-        const verificacaoAntesDaConsulta =
-          verificacaoAtual;
+    
+const carregarUsuarioAtual = async (): Promise<void> => {
+  const verificacaoAntesDaConsulta = verificacaoAtual;
 
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser();
+  // Primeiro verifica se existe uma sessão.
+  const {
+    data: { session },
+    error: erroSessao,
+  } = await supabase.auth.getSession();
 
-        if (
-          !componenteAtivo ||
-          verificacaoAntesDaConsulta !==
-            verificacaoAtual
-        ) {
-          return;
-        }
+  if (!componenteAtivo || verificacaoAntesDaConsulta !== verificacaoAtual) {
+    return;
+  }
 
-        if (error) {
-          console.error(
-            "Erro ao recuperar usuário do alerta:",
-            error
-          );
+  if (erroSessao) {
+    console.error("Erro ao recuperar sessão do alerta:", erroSessao);
 
-          setEhEstudante(false);
-          setModalVisivel(false);
+    await verificarUsuario(null);
+    return;
+  }
 
-          return;
-        }
+  // Sem sessão, não chama getUser().
+  if (!session?.user) {
+    await verificarUsuario(null);
+    return;
+  }
 
-        await verificarUsuario(user?.id ?? null);
-      };
+  // Confirma a identidade quando existe uma sessão.
+  const {
+    data: { user },
+    error: erroAuth,
+  } = await supabase.auth.getUser();
+
+  if (!componenteAtivo || verificacaoAntesDaConsulta !== verificacaoAtual) {
+    return;
+  }
+
+  if (erroAuth) {
+    if (erroAuth.name !== "AuthSessionMissingError") {
+      console.error("Erro ao recuperar usuário do alerta:", erroAuth);
+    }
+
+    await verificarUsuario(null);
+    return;
+  }
+
+  await verificarUsuario(user?.id ?? null);
+};
+
 
     // Correção SonarCloud S9383:
     // trata rejeições da consulta inicial.

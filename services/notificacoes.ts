@@ -15,34 +15,36 @@ export async function registrarNotificacoes(): Promise<string | null> {
   // Push deve ser testado em dispositivo físico.
   if (!Device.isDevice) {
     console.log(
-      "As notificações devem ser testadas em um dispositivo."
+      "[Push] Notificações devem ser testadas em dispositivo físico."
     );
     return null;
   }
 
-  // Verifica se existe uma sessão autenticada.
+  // Verifica se existe uma sessão.
   const {
     data: { session: sessaoInicial },
     error: erroSessao,
   } = await supabase.auth.getSession();
 
   if (erroSessao) {
+    console.error("[Push] Erro ao recuperar sessão:", erroSessao);
     throw erroSessao;
   }
 
   if (!sessaoInicial?.user) {
+    console.log("[Push] Registro ignorado: usuário sem sessão.");
     return null;
   }
 
+  const usuarioInicialId = sessaoInicial.user.id;
+
+  // Configura o canal de notificações do Android.
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync(
-      "tarefas",
-      {
-        name: "Tarefas e reuniões",
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-      }
-    );
+    await Notifications.setNotificationChannelAsync("tarefas", {
+      name: "Tarefas e reuniões",
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+    });
   }
 
   // Verifica a permissão das notificações.
@@ -59,9 +61,7 @@ export async function registrarNotificacoes(): Promise<string | null> {
   }
 
   if (statusFinal !== "granted") {
-    console.log(
-      "Permissão de notificações recusada."
-    );
+    console.log("[Push] Permissão de notificações recusada.");
     return null;
   }
 
@@ -71,20 +71,17 @@ export async function registrarNotificacoes(): Promise<string | null> {
     Constants.easConfig?.projectId;
 
   if (!projectId) {
-    throw new Error(
-      "projectId do EAS não encontrado."
-    );
+    throw new Error("[Push] projectId do EAS não encontrado.");
   }
 
-  // Obtém o Expo Push Token.
+  // Obtém o token Expo.
   const token = (
     await Notifications.getExpoPushTokenAsync({
       projectId,
     })
   ).data;
 
-  // Confere a sessão novamente, pois o usuário
-  // pode ter saído da conta durante a operação.
+  // Verifica se a sessão continua sendo a mesma.
   const {
     data: { session: sessaoAtual },
     error: erroSessaoAtual,
@@ -96,22 +93,50 @@ export async function registrarNotificacoes(): Promise<string | null> {
 
   if (
     !sessaoAtual?.user ||
-    sessaoAtual.user.id !== sessaoInicial.user.id
+    sessaoAtual.user.id !== usuarioInicialId
   ) {
     console.log(
-      "Registro de notificações cancelado: sessão alterada."
+      "[Push] Registro cancelado: sessão ausente ou alterada."
     );
     return null;
   }
 
-  // Registra o token no Supabase.
-  // A política RLS deve restringir o registro
-  // ao usuário autenticado.
+  // Confirma o usuário diretamente com o servidor Supabase Auth.
+  const {
+    data: { user },
+    error: erroAuth,
+  } = await supabase.auth.getUser();
+
+  if (erroAuth || !user) {
+    console.error(
+      "[Push] Falha ao validar usuário:",
+      erroAuth
+    );
+
+    throw erroAuth ?? new Error(
+      "Não foi possível confirmar o usuário autenticado."
+    );
+  }
+
+  // Evita registrar um token para outra conta.
+  if (user.id !== usuarioInicialId) {
+    console.error(
+      "[Push] O usuário validado é diferente do usuário inicial."
+    );
+
+    return null;
+  }
+
+  console.log(
+    "[Push] Usuário validado. Registrando dispositivo..."
+  );
+
+  // Registra o dispositivo usando o ID confirmado pelo Auth.
   const { error } = await supabase
     .from("dispositivos_push")
     .upsert(
       {
-        usuario_id: sessaoAtual.user.id,
+        usuario_id: user.id,
         expo_push_token: token,
         plataforma: Platform.OS,
         atualizado_em: new Date().toISOString(),
@@ -122,8 +147,19 @@ export async function registrarNotificacoes(): Promise<string | null> {
     );
 
   if (error) {
+    console.error("[Push] Erro ao salvar dispositivo:", {
+      codigo: error.code,
+      mensagem: error.message,
+      detalhes: error.details,
+      dica: error.hint,
+    });
+
     throw error;
   }
+
+  console.log(
+    "[Push] Dispositivo registrado com sucesso."
+  );
 
   return token;
 }

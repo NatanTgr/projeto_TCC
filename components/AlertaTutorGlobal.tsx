@@ -91,7 +91,19 @@ async function carregarDetalhes(
   };
 }
 
-export default function AlertaTutorGlobal() {
+
+type PropriedadesAlertaTutorGlobal = {
+  usuarioId: string | null;
+  tipoUsuario: string | null;
+};
+
+
+
+export default function AlertaTutorGlobal({
+  usuarioId,
+  tipoUsuario,
+}: PropriedadesAlertaTutorGlobal) {
+
   const { tema } = useTheme();
   const { escalaFonte } = useFontSize();
 
@@ -144,86 +156,19 @@ export default function AlertaTutorGlobal() {
     [adicionarNaFila]
   );
 
+ 
   // =====================================================
-  // VERIFICAR USUÁRIO LOGADO
+  // IDENTIFICAR TUTORA/TUTOR PELO PERFIL JÁ CARREGADO
   // =====================================================
 
   useEffect(() => {
-    let componenteAtivo = true;
+    const idTutor =
+      tipoUsuario === "tutor" ? usuarioId : null;
 
-    const temporizadores = new Set<ReturnType<typeof setTimeout>>();
+    setTutorId(idTutor);
+    setFilaAlertas([]);
+  }, [usuarioId, tipoUsuario]);
 
-    const verificarUsuario = async (usuarioId: string | null) => {
-      if (!usuarioId) {
-        if (componenteAtivo) {
-          setTutorId(null);
-          setFilaAlertas([]);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("usuarios")
-        .select("tipo")
-        .eq("id", usuarioId)
-        .single();
-
-      if (!componenteAtivo) return;
-
-      if (error) {
-        registrarErro("Erro ao verificar perfil", error);
-      }
-
-      if (error || data?.tipo !== "tutor") {
-        setTutorId(null);
-        setFilaAlertas([]);
-        return;
-      }
-
-      setTutorId(usuarioId);
-    };
-
-    const carregarSessao = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error) throw error;
-
-      await verificarUsuario(user?.id ?? null);
-    };
-
-    void carregarSessao().catch((erro) => {
-      registrarErro("Erro ao carregar sessão", erro);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_evento, sessao) => {
-      // Adiamos a consulta para fora do callback de autenticação.
-      const temporizador = setTimeout(() => {
-        temporizadores.delete(temporizador);
-
-        if (!componenteAtivo) return;
-
-        void verificarUsuario(sessao?.user?.id ?? null).catch((erro) => {
-          registrarErro("Erro ao atualizar usuário autenticado", erro);
-        });
-      }, 0);
-
-      temporizadores.add(temporizador);
-    });
-
-    return () => {
-      componenteAtivo = false;
-
-      temporizadores.forEach(clearTimeout);
-      temporizadores.clear();
-
-      subscription.unsubscribe();
-    };
-  }, []);
 
   // =====================================================
   // REALTIME DOS ALERTAS

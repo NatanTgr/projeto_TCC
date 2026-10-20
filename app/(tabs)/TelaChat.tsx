@@ -85,93 +85,120 @@ export default function Chat() {
   // REALTIME — NOVAS MENSAGENS
   // =====================================================
 
-  useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-    let ativo = true;
+ 
+useEffect(() => {
+  let ativo = true;
 
-    const iniciarRealtimeLista = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+  let channel: ReturnType<typeof supabase.channel> | null = null;
+  let usuarioDoCanal: string | null = null;
+  let recebeuEventoAuth = false;
 
-      if (error) {
-        console.error(
-          "Erro ao identificar usuário para o Realtime:",
-          error
-        );
+  const atualizarRealtime = (usuarioId: string | null) => {
+    if (!ativo || usuarioDoCanal === usuarioId) {
+      return;
+    }
+
+    // Remove o canal antigo ao trocar de usuário ou sair.
+    if (channel) {
+      const canalAnterior = channel;
+      channel = null;
+
+      void supabase.removeChannel(canalAnterior).catch((erro) => {
+        if (ativo) {
+          console.error("Erro ao remover Realtime do chat:", erro);
+        }
+      });
+    }
+
+    usuarioDoCanal = usuarioId;
+    setUsuarioLogadoId(usuarioId);
+
+    if (!usuarioId) {
+      return;
+    }
+
+    // Cria o canal apenas quando existe uma sessão.
+    channel = supabase
+      .channel(`lista-chat-${usuarioId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "mensagens",
+          filter: `destinatario=eq.${usuarioId}`,
+        },
+        (payload) => {
+          if (!ativo) return;
+
+          const novaMensagem = payload.new as {
+            remetente: string;
+            destinatario: string;
+            data_envio: string;
+            lida?: boolean;
+          };
+
+          if (novaMensagem.destinatario !== usuarioId) return;
+          if (novaMensagem.lida === true) return;
+
+          setUsuarios((atual) =>
+            atual.map((usuario) =>
+              usuario.id === novaMensagem.remetente
+                ? {
+                    ...usuario,
+                    mensagemNaoLida: true,
+                    ultimaMensagemData: novaMensagem.data_envio,
+                  }
+                : usuario,
+            ),
+          );
+        },
+      )
+      .subscribe();
+  };
+
+  // Escuta login, logout e alterações de sessão.
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_evento, session) => {
+    recebeuEventoAuth = true;
+    atualizarRealtime(session?.user?.id ?? null);
+  });
+
+  // Recupera a sessão inicial sem chamar getUser()
+  // desnecessariamente.
+  void supabase.auth
+    .getSession()
+    .then(({ data: { session }, error }) => {
+      if (!ativo || recebeuEventoAuth) {
         return;
       }
 
-      if (!user || !ativo) return;
+      if (error) {
+        console.error("Erro ao recuperar sessão do Realtime:", error);
+        return;
+      }
 
-      setUsuarioLogadoId(user.id);
-
-      channel = supabase
-        .channel(`lista-chat-${user.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "mensagens",
-            filter: `destinatario=eq.${user.id}`,
-          },
-          (payload) => {
-            if (!ativo) return;
-
-            const novaMensagem = payload.new as {
-              remetente: string;
-              destinatario: string;
-              data_envio: string;
-              lida?: boolean;
-            };
-
-            if (novaMensagem.destinatario !== user.id) return;
-            if (novaMensagem.lida === true) return;
-
-            setUsuarios((atual) =>
-              atual.map((usuario) =>
-                usuario.id === novaMensagem.remetente
-                  ? {
-                      ...usuario,
-                      mensagemNaoLida: true,
-                      ultimaMensagemData: novaMensagem.data_envio,
-                    }
-                  : usuario
-              )
-            );
-          }
-        )
-        .subscribe();
-    };
-
-    // Correção SonarCloud S9383:
-    // trata possíveis erros ao iniciar o Realtime.
-    void iniciarRealtimeLista().catch((error) => {
+      atualizarRealtime(session?.user?.id ?? null);
+    })
+    .catch((erro) => {
       if (ativo) {
-        console.error(
-          "Erro ao iniciar Realtime da lista do chat:",
-          error
-        );
+        console.error("Erro inesperado ao iniciar Realtime:", erro);
       }
     });
 
-    return () => {
-      ativo = false;
+  return () => {
+    ativo = false;
+    subscription.unsubscribe();
 
-      if (channel) {
-        // Correção SonarCloud S9383:
-        // trata possíveis erros ao remover o canal.
-        void supabase.removeChannel(channel).catch((error) => {
-          console.error(
-            "Erro ao remover canal Realtime do chat:",
-            error
-          );
-        });
-      }
-    };
-  }, []);
+    if (channel) {
+      void supabase.removeChannel(channel).catch((erro) => {
+        console.error("Erro ao remover canal do chat:", erro);
+      });
+    }
+  };
+}, []);
+
 
   // =====================================================
   // ABA PADRÃO DE ACORDO COM O PAPEL

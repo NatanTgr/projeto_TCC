@@ -108,14 +108,42 @@ export default function ModalAlerta({
       limparFormulario();
 
       const {
+        data: { session },
+        error: erroSessao,
+      } = await supabase.auth.getSession();
+
+      if (erroSessao) {
+        console.error("Erro ao recuperar sessão do alerta:", erroSessao);
+
+        throw new Error("Não foi possível recuperar sua sessão.");
+      }
+
+      if (!session?.user) {
+        throw new Error(
+          "Sua sessão não foi encontrada. Entre novamente na sua conta.",
+        );
+      }
+
+      const {
         data: { user },
         error: erroAuth,
       } = await supabase.auth.getUser();
 
-      if (erroAuth || !user) {
+      if (erroAuth) {
+        console.error("Erro ao identificar usuário no alerta:", {
+          nome: erroAuth.name,
+          mensagem: erroAuth.message,
+          codigo: erroAuth.code,
+          status: erroAuth.status,
+        });
+
         throw new Error(
-          "Não foi possível identificar o usuário logado."
+          `Não foi possível confirmar o usuário: ${erroAuth.message}`,
         );
+      }
+
+      if (!user) {
+        throw new Error("Não foi possível identificar o usuário logado.");
       }
 
       const { data: usuario, error: erroUsuario } =

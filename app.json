@@ -4,7 +4,7 @@
     "slug": "calteste",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icone_PAED.png",
+    "icon": "./assets/images/icone_menor_PAED.png",
     "scheme": "meuapp",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -30,7 +30,7 @@
       [
       "expo-notifications",
         {
-          "icon": "./assets/images/icone_PAED.png",
+          "icon": "./assets/images/icone_menor_PAED.png",
           "color": "#88C688"
         }
       ],
