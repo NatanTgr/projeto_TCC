@@ -28,7 +28,7 @@
       [
       "expo-notifications",
         {
-          "icon": "./assets/images/icone_sem_fundo_PAED.png",
+          "icon": "./assets/images/icone_maior_sem_fundo.jpg",
           "color": "#FFFDD0"
         }
       ],
