@@ -28,7 +28,7 @@
       [
       "expo-notifications",
         {
-          "icon": "./assets/images/icone_maior_sem_fundo.jpg",
+          "icon": "./assets/images/icone_maior_sem_fundo.png",
           "color": "#FFFDD0"
         }
       ],
