@@ -19,6 +19,7 @@ import { router } from "expo-router";
 import { useEffect, useState, useRef } from "react";
 import { Feather } from "@expo/vector-icons";
 
+
 import { useTheme } from "../../context/ThemeContext";
 import { useFontSize } from "../../context/FontSizeContext";
 import criarEstilos from "../../Estilos/TelaConfigEstilo";
@@ -31,6 +32,7 @@ import SeletorAvatar from "../../components/SeletorAvatar";
 import { AVATARES, buscarAvatar } from "../../components/avatares";
 import BotaoAlerta from "../../components/BotaoAlerta";
 import { removerPushChatDesteAparelho } from "../../components/notificacoesChat";
+import ReprodutorTutorial from "../../components/ReprodutorTutorial";
 
 type PrazoLimpeza = 3 | 6 | 12;
 
@@ -78,7 +80,7 @@ type VideoTutorial = {
   titulo: string;
   descricao: string;
   icone: keyof typeof Feather.glyphMap;
-  url: string | null;
+  arquivo: number | null;
 };
 
 const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
@@ -88,35 +90,35 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Calendário",
       descricao: "Consultar datas, eventos e avaliações.",
       icone: "calendar",
-      url: null,
+      arquivo: null,
     },
     {
       id: "tarefas",
       titulo: "Tarefas",
       descricao: "Criar, acompanhar e concluir tarefas.",
       icone: "check-square",
-      url: null,
+      arquivo: null,
     },
     {
       id: "chat",
       titulo: "Chat",
       descricao: "Conversar com professoras/professores e tutoras/tutores.",
       icone: "message-circle",
-      url: null,
+      arquivo: null,
     },
     {
       id: "alerta",
       titulo: "Botão de alerta",
       descricao: "Aprender a solicitar ajuda.",
       icone: "alert-circle",
-      url: null,
+      arquivo: null,
     },
     {
       id: "configuracoes",
       titulo: "Configurações",
       descricao: "Personalizar aparência, notificações e conta.",
       icone: "settings",
-      url: null,
+      arquivo: null,
     },
   ],
 
@@ -126,14 +128,14 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Chat",
       descricao: "Conversar com estudantes e tutoras/tutores.",
       icone: "message-circle",
-      url: null,
+      arquivo: null,
     },
     {
       id: "config-professor",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      url: null,
+      arquivo: null,
     },
   ],
 
@@ -143,21 +145,21 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Chat",
       descricao: "Conversar com estudantes e professoras/professores.",
       icone: "message-circle",
-      url: null,
+      arquivo: null,
     },
     {
       id: "tarefas-tutor",
       titulo: "Tarefas",
       descricao: "Cadastrar, editar e acompanhar tarefas dos estudantes.",
       icone: "clipboard",
-      url: null,
+      arquivo: null,
     },
     {
       id: "config-tutor",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      url: null,
+      arquivo: null,
     },
   ],
 
@@ -167,21 +169,21 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Chat",
       descricao: "Aprender a usar as conversas do aplicativo.",
       icone: "message-circle",
-      url: null,
+      arquivo: null,
     },
     {
       id: "tarefas-napne",
       titulo: "Tarefas",
       descricao: "Cadastrar, editar e acompanhar tarefas dos estudantes.",
       icone: "clipboard",
-      url: null,
+      arquivo: null,
     },
     {
       id: "config-napne",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      url: null,
+      arquivo: null,
     },
   ],
 };
@@ -252,6 +254,9 @@ export default function TelaConfig() {
   const [modalAvatar, setModalAvatar] = useState(false);
   const [modalTutoriais, setModalTutoriais] = useState(false);
 
+  const [tutorialSelecionado, setTutorialSelecionado] =
+  useState<VideoTutorial | null>(null);
+
   // ALTERAR TURMA
 
   const [modalAlterarTurma, setModalAlterarTurma] = useState(false);
@@ -288,29 +293,28 @@ export default function TelaConfig() {
 
   // TUTORIAIS
 
-  const tutoriaisDoUsuario = usuario
-    ? TUTORIAIS[usuario.tipo]
-    : [];
+  const tutoriaisDoUsuario = usuario ? TUTORIAIS[usuario.tipo] : [];
 
-  async function assistirTutorial(tutorial: VideoTutorial) {
-    if (!tutorial.url) {
+  function fecharModalTutoriais() {
+    setTutorialSelecionado(null);
+    setModalTutoriais(false);
+  }
+
+  function assistirTutorial(tutorial: VideoTutorial) {
+    // Enquanto nenhum arquivo estiver associado,
+    // mostra a mensagem de tutorial em preparação.
+    if (tutorial.arquivo === null) {
       Alert.alert(
         "Tutorial em preparação",
         `O vídeo de ${tutorial.titulo} ainda não está disponível.`,
       );
+
       return;
     }
 
-    try {
-      await Linking.openURL(tutorial.url);
-    } catch (erro) {
-      console.error("Erro ao abrir vídeo tutorial:", erro);
-
-      Alert.alert(
-        "Erro",
-        "Não foi possível abrir o vídeo tutorial.",
-      );
-    }
+    // Quando existir um vídeo, abre o reprodutor
+    // dentro do próprio modal.
+    setTutorialSelecionado(tutorial);
   }
 
   const avatarPerfil = buscarAvatar(usuario?.avatar);
@@ -963,10 +967,7 @@ export default function TelaConfig() {
   // =====================================================
 
   return (
-    <SafeAreaView
-      edges={["top", "left", "right"]}
-      style={Estilos.container}
-    >
+    <SafeAreaView edges={["top", "left", "right"]} style={Estilos.container}>
       {/* CABEÇALHO */}
 
       <View style={Estilos.header}>
@@ -997,10 +998,7 @@ export default function TelaConfig() {
             >
               <View style={Estilos.avatarContainer}>
                 {avatarPerfil ? (
-                  <AvatarImagem
-                    uri={avatarPerfil.url}
-                    tamanho={90}
-                  />
+                  <AvatarImagem uri={avatarPerfil.url} tamanho={90} />
                 ) : (
                   <Text style={Estilos.avatarTexto}>👤</Text>
                 )}
@@ -1009,14 +1007,11 @@ export default function TelaConfig() {
               <View
                 style={[
                   Estilos.informacoesPerfil,
-                  perfilEmColuna &&
-                    Estilos.informacoesPerfilEmColuna,
+                  perfilEmColuna && Estilos.informacoesPerfilEmColuna,
                 ]}
               >
                 <Text style={Estilos.nomePerfil}>
-                  {carregandoPerfil
-                    ? "Carregando..."
-                    : usuario?.nome}
+                  {carregandoPerfil ? "Carregando..." : usuario?.nome}
                 </Text>
 
                 <Text style={Estilos.tipoPerfil}>
@@ -1031,48 +1026,36 @@ export default function TelaConfig() {
                           : ""}
                 </Text>
 
-                {usuario?.tipo === "estudante" &&
-                  dadosAluno && (
-                    <>
-                      <Text style={Estilos.detalhesPerfil}>
-                        Curso:{" "}
-                        {dadosAluno.curso || "Não informado"}
-                      </Text>
-
-                      <Text style={Estilos.detalhesPerfil}>
-                        Turno:{" "}
-                        {dadosAluno.turno || "Não informado"}
-                      </Text>
-
-                      <Text style={Estilos.detalhesPerfil}>
-                        Turma:{" "}
-                        {dadosAluno.turma || "Não informada"}
-                      </Text>
-
-                      <Text style={Estilos.detalhesPerfil}>
-                        Escolaridade:{" "}
-                        {dadosAluno.escolaridade ||
-                          "Não informada"}
-                      </Text>
-                    </>
-                  )}
-
-                {usuario?.tipo === "professor" &&
-                  dadosProfessor && (
+                {usuario?.tipo === "estudante" && dadosAluno && (
+                  <>
                     <Text style={Estilos.detalhesPerfil}>
-                      Área:{" "}
-                      {dadosProfessor.area_atuacao ||
-                        "Não informada"}
+                      Curso: {dadosAluno.curso || "Não informado"}
                     </Text>
-                  )}
 
-                {(usuario?.tipo === "tutor" ||
-                  usuario?.tipo === "napne") &&
+                    <Text style={Estilos.detalhesPerfil}>
+                      Turno: {dadosAluno.turno || "Não informado"}
+                    </Text>
+
+                    <Text style={Estilos.detalhesPerfil}>
+                      Turma: {dadosAluno.turma || "Não informada"}
+                    </Text>
+
+                    <Text style={Estilos.detalhesPerfil}>
+                      Escolaridade: {dadosAluno.escolaridade || "Não informada"}
+                    </Text>
+                  </>
+                )}
+
+                {usuario?.tipo === "professor" && dadosProfessor && (
+                  <Text style={Estilos.detalhesPerfil}>
+                    Área: {dadosProfessor.area_atuacao || "Não informada"}
+                  </Text>
+                )}
+
+                {(usuario?.tipo === "tutor" || usuario?.tipo === "napne") &&
                   dadosTutor && (
                     <Text style={Estilos.detalhesPerfil}>
-                      Departamento:{" "}
-                      {dadosTutor.departamento ||
-                        "Não informado"}
+                      Departamento: {dadosTutor.departamento || "Não informado"}
                     </Text>
                   )}
               </View>
@@ -1089,91 +1072,56 @@ export default function TelaConfig() {
               }}
               style={[
                 Estilos.botaoAvatar,
-                (carregandoPerfil || !usuario) &&
-                  Estilos.desabilitado,
+                (carregandoPerfil || !usuario) && Estilos.desabilitado,
               ]}
             >
-              <Feather
-                name="edit-2"
-                size={18}
-                color={tema.text}
-              />
+              <Feather name="edit-2" size={18} color={tema.text} />
 
-              <Text style={Estilos.textoBotaoAvatar}>
-                Alterar avatar
-              </Text>
+              <Text style={Estilos.textoBotaoAvatar}>Alterar avatar</Text>
             </TouchableOpacity>
 
             {/* ALTERAR TURMA - ESTUDANTES */}
 
-            {usuario?.tipo === "estudante" &&
-              dadosAluno && (
-                <TouchableOpacity
-                  style={Estilos.botaoAlterarTurma}
-                  onPress={() => {
-                    setNovaTurma(dadosAluno.turma || "");
-                    setModalAlterarTurma(true);
-                  }}
-                  disabled={salvandoTurma}
-                  accessibilityRole="button"
-                  accessibilityLabel="Alterar turma"
-                >
-                  <Feather
-                    name="edit-2"
-                    size={18}
-                    color={tema.text}
-                  />
+            {usuario?.tipo === "estudante" && dadosAluno && (
+              <TouchableOpacity
+                style={Estilos.botaoAlterarTurma}
+                onPress={() => {
+                  setNovaTurma(dadosAluno.turma || "");
+                  setModalAlterarTurma(true);
+                }}
+                disabled={salvandoTurma}
+                accessibilityRole="button"
+                accessibilityLabel="Alterar turma"
+              >
+                <Feather name="edit-2" size={18} color={tema.text} />
 
-                  <Text style={Estilos.textoAlterarTurma}>
-                    Alterar turma
-                  </Text>
-                </TouchableOpacity>
-              )}
+                <Text style={Estilos.textoAlterarTurma}>Alterar turma</Text>
+              </TouchableOpacity>
+            )}
 
             {/* ALTERAR ÁREA OU DEPARTAMENTO */}
 
-            {(
-              (eProfessor && dadosProfessor) ||
-              (eTutorOuNapne && dadosTutor)
-            ) ? (
+            {(eProfessor && dadosProfessor) || (eTutorOuNapne && dadosTutor) ? (
               <TouchableOpacity
                 style={[
                   Estilos.botaoAlterarDadosProfissionais,
-                  (carregandoPerfil ||
-                    salvandoDadoProfissional) &&
+                  (carregandoPerfil || salvandoDadoProfissional) &&
                     Estilos.desabilitado,
                 ]}
                 onPress={() => {
-                  setNovoDadoProfissional(
-                    valorDadoProfissionalAtual,
-                  );
+                  setNovoDadoProfissional(valorDadoProfissionalAtual);
                   setModalDadosProfissionais(true);
                 }}
-                disabled={
-                  carregandoPerfil ||
-                  salvandoDadoProfissional
-                }
+                disabled={carregandoPerfil || salvandoDadoProfissional}
                 accessibilityRole="button"
                 accessibilityLabel={
-                  eProfessor
-                    ? "Alterar área"
-                    : "Alterar departamento"
+                  eProfessor ? "Alterar área" : "Alterar departamento"
                 }
               >
-                <Feather
-                  name="edit-2"
-                  size={18}
-                  color={tema.text}
-                />
+                <Feather name="edit-2" size={18} color={tema.text} />
 
-                <Text
-                  style={
-                    Estilos.textoAlterarDadosProfissionais
-                  }
-                >
-                  {eProfessor
-                    ? "Alterar área"
-                    : "Alterar departamento"}
+                <Text style={Estilos.textoAlterarDadosProfissionais}>
+                  {eProfessor ? "Alterar área" : "Alterar departamento"}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -1186,11 +1134,7 @@ export default function TelaConfig() {
 
             <View style={Estilos.informacaoConta}>
               <View style={Estilos.iconeConta}>
-                <Feather
-                  name="mail"
-                  size={21}
-                  color={tema.text}
-                />
+                <Feather name="mail" size={21} color={tema.text} />
               </View>
 
               <View style={Estilos.conteudoConta}>
@@ -1204,18 +1148,12 @@ export default function TelaConfig() {
 
             <View style={Estilos.informacaoConta}>
               <View style={Estilos.iconeConta}>
-                <Feather
-                  name="lock"
-                  size={21}
-                  color={tema.text}
-                />
+                <Feather name="lock" size={21} color={tema.text} />
               </View>
 
               <View style={Estilos.conteudoConta}>
                 <Text style={Estilos.labelConta}>Senha</Text>
-                <Text style={Estilos.valorConta}>
-                  ••••••••
-                </Text>
+                <Text style={Estilos.valorConta}>••••••••</Text>
               </View>
             </View>
 
@@ -1223,25 +1161,16 @@ export default function TelaConfig() {
               style={Estilos.botaoAlterarSenha}
               onPress={() => setModalAlterarSenha(true)}
             >
-              <Feather
-                name="edit-2"
-                size={18}
-                color={tema.text}
-              />
+              <Feather name="edit-2" size={18} color={tema.text} />
 
-              <Text style={Estilos.textoAlterarSenha}>
-                Alterar senha
-              </Text>
+              <Text style={Estilos.textoAlterarSenha}>Alterar senha</Text>
             </TouchableOpacity>
           </View>
 
           {/* VÍDEOS TUTORIAIS */}
 
           <TouchableOpacity
-            style={[
-              Estilos.cardTutorial,
-              !usuario && Estilos.desabilitado,
-            ]}
+            style={[Estilos.cardTutorial, !usuario && Estilos.desabilitado]}
             onPress={() => setModalTutoriais(true)}
             disabled={!usuario}
             activeOpacity={0.7}
@@ -1249,70 +1178,49 @@ export default function TelaConfig() {
             accessibilityLabel="Escolher vídeo tutorial"
           >
             <View style={Estilos.conteudoTutorial}>
-              <Feather
-                name="play-circle"
-                size={26}
-                color="#4CAF50"
-              />
+              <Feather name="play-circle" size={26} color="#4CAF50" />
 
-              <Text style={Estilos.textoTutorial}>
-                Vídeos tutoriais
-              </Text>
+              <Text style={Estilos.textoTutorial}>Vídeos tutoriais</Text>
             </View>
 
-            <Feather
-              name="chevron-right"
-              size={24}
-              color={tema.text}
-            />
+            <Feather name="chevron-right" size={24} color={tema.text} />
           </TouchableOpacity>
 
           {/* CONFIGURAÇÕES */}
 
           <View style={Estilos.cardConfig}>
             <View style={Estilos.secaoTema}>
-              <Text style={Estilos.tituloTema}>
-                Tema do aplicativo
-              </Text>
+              <Text style={Estilos.tituloTema}>Tema do aplicativo</Text>
 
               <View style={Estilos.botoesTema}>
                 <TouchableOpacity
                   onPress={() => selecionarTema("claro")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "claro" &&
-                      Estilos.botaoTemaSelecionado,
+                    tipoTema === "claro" && Estilos.botaoTemaSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>
-                    ☀️ Claro
-                  </Text>
+                  <Text style={Estilos.textoBotaoTema}>☀️ Claro</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => selecionarTema("escuro")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "escuro" &&
-                      Estilos.botaoTemaSelecionado,
+                    tipoTema === "escuro" && Estilos.botaoTemaSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>
-                    🌙 Escuro
-                  </Text>
+                  <Text style={Estilos.textoBotaoTema}>🌙 Escuro</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => selecionarTema("forte")}
                   style={[
                     Estilos.botaoTema,
-                    tipoTema === "forte" &&
-                      Estilos.botaoTemaForteSelecionado,
+                    tipoTema === "forte" && Estilos.botaoTemaForteSelecionado,
                   ]}
                 >
-                  <Text style={Estilos.textoBotaoTema}>
-                    🌈 Forte
-                  </Text>
+                  <Text style={Estilos.textoBotaoTema}>🌈 Forte</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1324,20 +1232,14 @@ export default function TelaConfig() {
               onPress={() => setModalTamanhoFonte(true)}
             >
               <View style={Estilos.conteudoOpcao}>
-                <Text style={Estilos.tituloOpcao}>
-                  🔤 Tamanho da letra
-                </Text>
+                <Text style={Estilos.tituloOpcao}>🔤 Tamanho da letra</Text>
 
                 <Text style={Estilos.textoTamanhoAtual}>
                   Atual: {tamanhoFonte}
                 </Text>
               </View>
 
-              <Feather
-                name="chevron-right"
-                size={24}
-                color={tema.text}
-              />
+              <Feather name="chevron-right" size={24} color={tema.text} />
             </TouchableOpacity>
 
             {/* LIMPEZA DE TAREFAS */}
@@ -1349,16 +1251,12 @@ export default function TelaConfig() {
                   (carregandoLimpeza || salvandoLimpeza) &&
                     Estilos.desabilitado,
                 ]}
-                disabled={
-                  carregandoLimpeza || salvandoLimpeza
-                }
+                disabled={carregandoLimpeza || salvandoLimpeza}
                 accessibilityRole="button"
                 accessibilityLabel="Configurar limpeza de tarefas concluídas"
                 onPress={() => {
                   if (erroLimpeza) {
-                    void carregarPreferenciaLimpeza(
-                      usuario.id,
-                    );
+                    void carregarPreferenciaLimpeza(usuario.id);
                     return;
                   }
 
@@ -1381,26 +1279,18 @@ export default function TelaConfig() {
                   </Text>
                 </View>
 
-                <Feather
-                  name="chevron-right"
-                  size={24}
-                  color={tema.text}
-                />
+                <Feather name="chevron-right" size={24} color={tema.text} />
               </TouchableOpacity>
             )}
 
             {/* NOTIFICAÇÕES DE CHAT - TODOS OS PERFIS */}
 
             <View style={Estilos.cardNotiChat}>
-              <Text style={Estilos.textoNotificacao}>
-                Notificações de Chat
-              </Text>
+              <Text style={Estilos.textoNotificacao}>Notificações de Chat</Text>
 
               <Switch
                 value={chatAtivo}
-                onValueChange={(valor) =>
-                  alterarNotificacao("chat", valor)
-                }
+                onValueChange={(valor) => alterarNotificacao("chat", valor)}
                 disabled={!usuario}
                 trackColor={{
                   false: "#B0B0B0",
@@ -1440,33 +1330,20 @@ export default function TelaConfig() {
 
           <TouchableOpacity
             style={Estilos.botaoSobrePaed}
-            onPress={() =>
-              router.push("/(tabs)/TelaSobrePaed")
-            }
+            onPress={() => router.push("/(tabs)/TelaSobrePaed")}
             activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel="Sobre o PAED"
           >
-            <Feather
-              name="info"
-              size={24}
-              color={tema.text}
-            />
+            <Feather name="info" size={24} color={tema.text} />
 
-            <Text style={Estilos.textoSobrePaed}>
-              Sobre o PAED
-            </Text>
+            <Text style={Estilos.textoSobrePaed}>Sobre o PAED</Text>
           </TouchableOpacity>
 
           {/* SAIR DA CONTA */}
 
-          <TouchableOpacity
-            style={Estilos.botaoSair}
-            onPress={sairDaConta}
-          >
-            <Text style={Estilos.textoBotaoSair}>
-              Sair da conta
-            </Text>
+          <TouchableOpacity style={Estilos.botaoSair} onPress={sairDaConta}>
+            <Text style={Estilos.textoBotaoSair}>Sair da conta</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -1481,24 +1358,28 @@ export default function TelaConfig() {
           aoSalvar={salvarAvatar}
         />
       )}
-
+      
       {/* MODAL DOS VÍDEOS TUTORIAIS */}
 
       <Modal
         visible={modalTutoriais}
         transparent
         animationType="fade"
-        onRequestClose={() => setModalTutoriais(false)}
+        onRequestClose={() => {
+          if (tutorialSelecionado) {
+            setTutorialSelecionado(null);
+          } else {
+            fecharModalTutoriais();
+          }
+        }}
       >
         <View style={Estilos.fundoModal}>
           <View style={Estilos.modalTutoriais}>
+            {/* CABEÇALHO */}
+
             <View style={Estilos.cabecalhoTutoriais}>
               <View style={Estilos.tituloTutoriaisContainer}>
-                <Feather
-                  name="play-circle"
-                  size={25}
-                  color={tema.text}
-                />
+                <Feather name="play-circle" size={25} color={tema.text} />
 
                 <Text style={Estilos.tituloModalTutoriais}>
                   Vídeos tutoriais
@@ -1506,78 +1387,107 @@ export default function TelaConfig() {
               </View>
 
               <TouchableOpacity
-                onPress={() => setModalTutoriais(false)}
+                onPress={fecharModalTutoriais}
                 style={Estilos.botaoXTutoriais}
                 accessibilityRole="button"
                 accessibilityLabel="Fechar tutoriais"
               >
-                <Feather
-                  name="x"
-                  size={24}
-                  color={tema.text}
-                />
+                <Feather name="x" size={24} color={tema.text} />
               </TouchableOpacity>
             </View>
 
-            <Text style={Estilos.descricaoTutoriais}>
-              Selecione a tela que deseja aprender a utilizar.
-            </Text>
+            {/* REPRODUTOR OU LISTA DE TUTORIAIS */}
 
-            <ScrollView
-              style={Estilos.rolagemTutoriais}
-              contentContainerStyle={Estilos.listaTutoriais}
-              showsVerticalScrollIndicator={false}
-              nestedScrollEnabled
-            >
-              {tutoriaisDoUsuario.map((tutorial) => (
+            {tutorialSelecionado?.arquivo != null ? (
+              /* REPRODUÇÃO DO VÍDEO */
+
+              <View
+                style={{
+                  gap: 12,
+                  marginTop: 12,
+                }}
+              >
+                <Text style={Estilos.nomeTutorial}>
+                  {tutorialSelecionado.titulo}
+                </Text>
+
+                <ReprodutorTutorial
+                  key={tutorialSelecionado.id}
+                  arquivo={tutorialSelecionado.arquivo}
+                />
+
                 <TouchableOpacity
-                  key={tutorial.id}
-                  style={Estilos.opcaoTutorial}
-                  onPress={() =>
-                    void assistirTutorial(tutorial)
-                  }
-                  activeOpacity={0.7}
+                  style={Estilos.botaoFecharTutoriais}
+                  onPress={() => {
+                    setTutorialSelecionado(null);
+                  }}
                   accessibilityRole="button"
-                  accessibilityLabel={`Assistir tutorial de ${tutorial.titulo}`}
+                  accessibilityLabel="Voltar à lista de tutoriais"
                 >
-                  <View style={Estilos.iconeTutorial}>
-                    <Feather
-                      name={tutorial.icone}
-                      size={23}
-                      color={tema.text}
-                    />
-                  </View>
-
-                  <View style={Estilos.informacoesTutorial}>
-                    <Text style={Estilos.nomeTutorial}>
-                      {tutorial.titulo}
-                    </Text>
-
-                    <Text
-                      style={Estilos.descricaoOpcaoTutorial}
-                    >
-                      {tutorial.descricao}
-                    </Text>
-                  </View>
-
-                  <Feather
-                    name="chevron-right"
-                    size={22}
-                    color={tema.text}
-                  />
+                  <Text style={Estilos.textoFecharTutoriais}>
+                    Voltar aos tutoriais
+                  </Text>
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              </View>
+            ) : (
+              /* LISTA DE TUTORIAIS */
 
-            <TouchableOpacity
-              style={Estilos.botaoFecharTutoriais}
-              onPress={() => setModalTutoriais(false)}
-              accessibilityRole="button"
-            >
-              <Text style={Estilos.textoFecharTutoriais}>
-                Fechar
-              </Text>
-            </TouchableOpacity>
+              <>
+                <Text style={Estilos.descricaoTutoriais}>
+                  Selecione a tela que deseja aprender a utilizar.
+                </Text>
+
+                <ScrollView
+                  style={Estilos.rolagemTutoriais}
+                  contentContainerStyle={Estilos.listaTutoriais}
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                >
+                  {tutoriaisDoUsuario.map((tutorial) => (
+                    <TouchableOpacity
+                      key={tutorial.id}
+                      style={Estilos.opcaoTutorial}
+                      onPress={() => assistirTutorial(tutorial)}
+                      activeOpacity={0.7}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Assistir tutorial de ${tutorial.titulo}`}
+                    >
+                      <View style={Estilos.iconeTutorial}>
+                        <Feather
+                          name={tutorial.icone}
+                          size={23}
+                          color={tema.text}
+                        />
+                      </View>
+
+                      <View style={Estilos.informacoesTutorial}>
+                        <Text style={Estilos.nomeTutorial}>
+                          {tutorial.titulo}
+                        </Text>
+
+                        <Text style={Estilos.descricaoOpcaoTutorial}>
+                          {tutorial.descricao}
+                        </Text>
+                      </View>
+
+                      <Feather
+                        name="chevron-right"
+                        size={22}
+                        color={tema.text}
+                      />
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                <TouchableOpacity
+                  style={Estilos.botaoFecharTutoriais}
+                  onPress={fecharModalTutoriais}
+                  accessibilityRole="button"
+                >
+                  <Text style={Estilos.textoFecharTutoriais}>Fechar</Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         </View>
       </Modal>
@@ -1588,15 +1498,11 @@ export default function TelaConfig() {
         visible={modalTamanhoFonte}
         transparent
         animationType="fade"
-        onRequestClose={() =>
-          setModalTamanhoFonte(false)
-        }
+        onRequestClose={() => setModalTamanhoFonte(false)}
       >
         <View style={Estilos.fundoModal}>
           <View style={Estilos.modalTamanhoFonte}>
-            <Text style={Estilos.tituloModalFonte}>
-              Tamanho da letra
-            </Text>
+            <Text style={Estilos.tituloModalFonte}>Tamanho da letra</Text>
 
             {OPCOES_TAMANHO.map((opcao) => (
               <TouchableOpacity
@@ -1611,26 +1517,17 @@ export default function TelaConfig() {
                     Estilos.opcaoTamanhoSelecionada,
                 ]}
               >
-                <Text
-                  style={[
-                    Estilos.textoOpcaoTamanho,
-                    Estilos[opcao.valor],
-                  ]}
-                >
+                <Text style={[Estilos.textoOpcaoTamanho, Estilos[opcao.valor]]}>
                   {opcao.label}
                 </Text>
               </TouchableOpacity>
             ))}
 
             <TouchableOpacity
-              onPress={() =>
-                setModalTamanhoFonte(false)
-              }
+              onPress={() => setModalTamanhoFonte(false)}
               style={Estilos.botaoFecharFonte}
             >
-              <Text style={Estilos.textoFechar}>
-                Fechar
-              </Text>
+              <Text style={Estilos.textoFechar}>Fechar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1642,14 +1539,10 @@ export default function TelaConfig() {
         visible={modalAlterarSenha}
         transparent
         animationType="fade"
-        onRequestClose={() =>
-          setModalAlterarSenha(false)
-        }
+        onRequestClose={() => setModalAlterarSenha(false)}
       >
         <KeyboardAvoidingView
-          behavior={
-            Platform.OS === "ios" ? "padding" : "height"
-          }
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={Estilos.fundoModal}
         >
           <ScrollView
@@ -1658,9 +1551,7 @@ export default function TelaConfig() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={Estilos.tituloModalSenha}>
-              Alterar senha
-            </Text>
+            <Text style={Estilos.tituloModalSenha}>Alterar senha</Text>
 
             <Text style={Estilos.textoModalSenha}>
               Digite e confirme sua nova senha.
@@ -1690,9 +1581,7 @@ export default function TelaConfig() {
               disabled={alterandoSenha}
             >
               <Text style={Estilos.textoConfirmarSenha}>
-                {alterandoSenha
-                  ? "Alterando..."
-                  : "Salvar nova senha"}
+                {alterandoSenha ? "Alterando..." : "Salvar nova senha"}
               </Text>
             </TouchableOpacity>
 
@@ -1705,9 +1594,7 @@ export default function TelaConfig() {
               }}
               disabled={alterandoSenha}
             >
-              <Text style={Estilos.textoCancelarSenha}>
-                Cancelar
-              </Text>
+              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -1716,10 +1603,7 @@ export default function TelaConfig() {
       {/* MODAL DE LIMPEZA DAS TAREFAS */}
 
       <Modal
-        visible={
-          modalLimpeza &&
-          usuario?.tipo === "estudante"
-        }
+        visible={modalLimpeza && usuario?.tipo === "estudante"}
         transparent
         animationType="fade"
         onRequestClose={() => {
@@ -1739,16 +1623,13 @@ export default function TelaConfig() {
             </Text>
 
             <Text style={Estilos.textoModalLimpeza}>
-              Cada tarefa será excluída automaticamente após
-              o prazo escolhido, contado a partir da sua
-              conclusão. A exclusão é permanente. Ao mudar
-              o prazo, ele também será aplicado às tarefas
-              já concluídas.
+              Cada tarefa será excluída automaticamente após o prazo escolhido,
+              contado a partir da sua conclusão. A exclusão é permanente. Ao
+              mudar o prazo, ele também será aplicado às tarefas já concluídas.
             </Text>
 
             {OPCOES_LIMPEZA.map((opcao) => {
-              const selecionada =
-                prazoLimpeza === opcao.meses;
+              const selecionada = prazoLimpeza === opcao.meses;
 
               return (
                 <TouchableOpacity
@@ -1759,15 +1640,11 @@ export default function TelaConfig() {
                     selected: selecionada,
                     disabled: salvandoLimpeza,
                   }}
-                  onPress={() =>
-                    salvarPrazoLimpeza(opcao.meses)
-                  }
+                  onPress={() => salvarPrazoLimpeza(opcao.meses)}
                   style={[
                     Estilos.opcaoLimpeza,
-                    selecionada &&
-                      Estilos.opcaoLimpezaSelecionada,
-                    salvandoLimpeza &&
-                      Estilos.desabilitado,
+                    selecionada && Estilos.opcaoLimpezaSelecionada,
+                    salvandoLimpeza && Estilos.desabilitado,
                   ]}
                 >
                   <Text style={Estilos.textoOpcaoLimpeza}>
@@ -1775,11 +1652,7 @@ export default function TelaConfig() {
                   </Text>
 
                   {selecionada && (
-                    <Feather
-                      name="check"
-                      size={22}
-                      color={tema.text}
-                    />
+                    <Feather name="check" size={22} color={tema.text} />
                   )}
                 </TouchableOpacity>
               );
@@ -1796,14 +1669,10 @@ export default function TelaConfig() {
 
             <TouchableOpacity
               disabled={salvandoLimpeza}
-              onPress={() =>
-                setModalLimpeza(false)
-              }
+              onPress={() => setModalLimpeza(false)}
               style={Estilos.botaoCancelarSenha}
             >
-              <Text style={Estilos.textoFechar}>
-                Fechar
-              </Text>
+              <Text style={Estilos.textoFechar}>Fechar</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -1812,10 +1681,7 @@ export default function TelaConfig() {
       {/* MODAL DE ALTERAR TURMA */}
 
       <Modal
-        visible={
-          modalAlterarTurma &&
-          usuario?.tipo === "estudante"
-        }
+        visible={modalAlterarTurma && usuario?.tipo === "estudante"}
         transparent
         animationType="fade"
         onRequestClose={() => {
@@ -1825,9 +1691,7 @@ export default function TelaConfig() {
         }}
       >
         <KeyboardAvoidingView
-          behavior={
-            Platform.OS === "ios" ? "padding" : "height"
-          }
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={Estilos.fundoModal}
         >
           <ScrollView
@@ -1836,21 +1700,14 @@ export default function TelaConfig() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={Estilos.tituloModalTurma}>
-              Alterar turma
-            </Text>
+            <Text style={Estilos.tituloModalTurma}>Alterar turma</Text>
 
             <Text style={Estilos.textoModalTurma}>
-              Informe sua nova turma para atualizar seus
-              dados no aplicativo.
+              Informe sua nova turma para atualizar seus dados no aplicativo.
             </Text>
 
             <View style={Estilos.avisoAlterarTurma}>
-              <Feather
-                name="alert-circle"
-                size={22}
-                color={tema.text}
-              />
+              <Feather name="alert-circle" size={22} color={tema.text} />
 
               <View style={Estilos.conteudoAvisoTurma}>
                 <Text style={Estilos.tituloAvisoTurma}>
@@ -1858,27 +1715,21 @@ export default function TelaConfig() {
                 </Text>
 
                 <Text style={Estilos.textoAvisoTurma}>
-                  Mantenha sua turma sempre atualizada e
-                  informe apenas dados verdadeiros. Essa
-                  informação é importante para facilitar sua
-                  identificação e a comunicação com
-                  professoras/professores e tutoras/tutores
-                  pelo PAED.
+                  Mantenha sua turma sempre atualizada e informe apenas dados
+                  verdadeiros. Essa informação é importante para facilitar sua
+                  identificação e a comunicação com professoras/professores e
+                  tutoras/tutores pelo PAED.
                 </Text>
               </View>
             </View>
 
-            <Text style={Estilos.labelTurma}>
-              Turma atual
-            </Text>
+            <Text style={Estilos.labelTurma}>Turma atual</Text>
 
             <Text style={Estilos.valorTurmaAtual}>
               {dadosAluno?.turma || "Não informada"}
             </Text>
 
-            <Text style={Estilos.labelTurma}>
-              Nova turma
-            </Text>
+            <Text style={Estilos.labelTurma}>Nova turma</Text>
 
             <TextInput
               style={Estilos.inputTurma}
@@ -1895,16 +1746,13 @@ export default function TelaConfig() {
             <TouchableOpacity
               style={[
                 Estilos.botaoConfirmarTurma,
-                salvandoTurma &&
-                  Estilos.desabilitado,
+                salvandoTurma && Estilos.desabilitado,
               ]}
               onPress={alterarTurma}
               disabled={salvandoTurma}
             >
               <Text style={Estilos.textoConfirmarTurma}>
-                {salvandoTurma
-                  ? "Salvando..."
-                  : "Salvar turma"}
+                {salvandoTurma ? "Salvando..." : "Salvar turma"}
               </Text>
             </TouchableOpacity>
 
@@ -1916,9 +1764,7 @@ export default function TelaConfig() {
               }}
               disabled={salvandoTurma}
             >
-              <Text style={Estilos.textoCancelarSenha}>
-                Cancelar
-              </Text>
+              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
@@ -1927,10 +1773,7 @@ export default function TelaConfig() {
       {/* MODAL DE ALTERAR ÁREA OU DEPARTAMENTO */}
 
       <Modal
-        visible={
-          modalDadosProfissionais &&
-          (eProfessor || eTutorOuNapne)
-        }
+        visible={modalDadosProfissionais && (eProfessor || eTutorOuNapne)}
         transparent
         animationType="fade"
         onRequestClose={() => {
@@ -1941,9 +1784,7 @@ export default function TelaConfig() {
         }}
       >
         <KeyboardAvoidingView
-          behavior={
-            Platform.OS === "ios" ? "padding" : "height"
-          }
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={Estilos.fundoModal}
         >
           <ScrollView
@@ -1953,9 +1794,7 @@ export default function TelaConfig() {
             showsVerticalScrollIndicator={false}
           >
             <Text style={Estilos.tituloModalTurma}>
-              {eProfessor
-                ? "Alterar área"
-                : "Alterar departamento"}
+              {eProfessor ? "Alterar área" : "Alterar departamento"}
             </Text>
 
             <Text style={Estilos.textoModalTurma}>
@@ -1965,11 +1804,7 @@ export default function TelaConfig() {
             </Text>
 
             <View style={Estilos.avisoAlterarTurma}>
-              <Feather
-                name="alert-circle"
-                size={22}
-                color={tema.text}
-              />
+              <Feather name="alert-circle" size={22} color={tema.text} />
 
               <View style={Estilos.conteudoAvisoTurma}>
                 <Text style={Estilos.tituloAvisoTurma}>
@@ -1977,28 +1812,22 @@ export default function TelaConfig() {
                 </Text>
 
                 <Text style={Estilos.textoAvisoTurma}>
-                  Informe dados verdadeiros. Essas informações
-                  ajudam na identificação e na comunicação
-                  entre as pessoas pelo PAED.
+                  Informe dados verdadeiros. Essas informações ajudam na
+                  identificação e na comunicação entre as pessoas pelo PAED.
                 </Text>
               </View>
             </View>
 
             <Text style={Estilos.labelTurma}>
-              {eProfessor
-                ? "Área atual"
-                : "Departamento atual"}
+              {eProfessor ? "Área atual" : "Departamento atual"}
             </Text>
 
             <Text style={Estilos.valorTurmaAtual}>
-              {valorDadoProfissionalAtual ||
-                "Não informado"}
+              {valorDadoProfissionalAtual || "Não informado"}
             </Text>
 
             <Text style={Estilos.labelTurma}>
-              {eProfessor
-                ? "Nova área"
-                : "Novo departamento"}
+              {eProfessor ? "Nova área" : "Novo departamento"}
             </Text>
 
             <TextInput
@@ -2016,21 +1845,16 @@ export default function TelaConfig() {
               autoCapitalize="sentences"
               returnKeyType="done"
               accessibilityLabel={
-                eProfessor
-                  ? "Nova área"
-                  : "Novo departamento"
+                eProfessor ? "Nova área" : "Novo departamento"
               }
             />
 
             <TouchableOpacity
               style={[
                 Estilos.botaoConfirmarTurma,
-                salvandoDadoProfissional &&
-                  Estilos.desabilitado,
+                salvandoDadoProfissional && Estilos.desabilitado,
               ]}
-              onPress={() =>
-                void alterarDadoProfissional()
-              }
+              onPress={() => void alterarDadoProfissional()}
               disabled={salvandoDadoProfissional}
               accessibilityRole="button"
             >
@@ -2052,9 +1876,7 @@ export default function TelaConfig() {
               disabled={salvandoDadoProfissional}
               accessibilityRole="button"
             >
-              <Text style={Estilos.textoCancelarSenha}>
-                Cancelar
-              </Text>
+              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>
