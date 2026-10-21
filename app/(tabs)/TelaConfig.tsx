@@ -13,6 +13,7 @@ import {
   Platform,
   Linking,
 } from "react-native";
+
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useEffect, useState, useRef } from "react";
@@ -194,6 +195,7 @@ const OPCOES_TAMANHO = [
 
 export default function TelaConfig() {
   const { tipoTema, selecionarTema, tema } = useTheme();
+
   const {
     tamanhoFonte,
     escalaFonte,
@@ -203,10 +205,11 @@ export default function TelaConfig() {
   const { width, fontScale } = useWindowDimensions();
 
   const Estilos = criarEstilos(tema, escalaFonte);
+
   const perfilEmColuna =
     width < 380 || escalaFonte * fontScale >= 1.2;
 
-  // DADOS DO PERFIL
+  // PERFIL
 
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [dadosAluno, setDadosAluno] = useState<DadosAluno | null>(null);
@@ -302,7 +305,11 @@ export default function TelaConfig() {
       await Linking.openURL(tutorial.url);
     } catch (erro) {
       console.error("Erro ao abrir vídeo tutorial:", erro);
-      Alert.alert("Erro", "Não foi possível abrir o vídeo tutorial.");
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível abrir o vídeo tutorial.",
+      );
     }
   }
 
@@ -380,7 +387,11 @@ export default function TelaConfig() {
       setModalLimpeza(false);
     } catch (erro) {
       console.error("Erro ao salvar limpeza de tarefas:", erro);
-      Alert.alert("Erro", "Não foi possível salvar o prazo de limpeza.");
+
+      Alert.alert(
+        "Erro",
+        "Não foi possível salvar o prazo de limpeza.",
+      );
     } finally {
       setSalvandoLimpeza(false);
     }
@@ -544,6 +555,7 @@ export default function TelaConfig() {
       data.avatar !== url
     ) {
       console.log("Erro ao salvar avatar:", error);
+
       throw error ?? new Error("O banco não confirmou a alteração.");
     }
 
@@ -1377,7 +1389,7 @@ export default function TelaConfig() {
               </TouchableOpacity>
             )}
 
-            {/* NOTIFICAÇÕES DE CHAT */}
+            {/* NOTIFICAÇÕES DE CHAT - TODOS OS PERFIS */}
 
             <View style={Estilos.cardNotiChat}>
               <Text style={Estilos.textoNotificacao}>
@@ -1399,27 +1411,29 @@ export default function TelaConfig() {
               />
             </View>
 
-            {/* LEMBRETES DE TAREFAS */}
+            {/* LEMBRETES DE TAREFAS - APENAS ESTUDANTES */}
 
-            <View style={Estilos.cardLembrete}>
-              <Text style={Estilos.textoNotificacao}>
-                Lembretes de Tarefas
-              </Text>
+            {usuario?.tipo === "estudante" && (
+              <View style={Estilos.cardLembrete}>
+                <Text style={Estilos.textoNotificacao}>
+                  Lembretes de Tarefas
+                </Text>
 
-              <Switch
-                value={tarefasAtivas}
-                onValueChange={(valor) =>
-                  alterarNotificacao("tarefas", valor)
-                }
-                disabled={!usuario}
-                trackColor={{
-                  false: "#B0B0B0",
-                  true: "#88C688",
-                }}
-                thumbColor="#FFFFFF"
-                accessibilityLabel="Lembretes de Tarefas"
-              />
-            </View>
+                <Switch
+                  value={tarefasAtivas}
+                  onValueChange={(valor) =>
+                    alterarNotificacao("tarefas", valor)
+                  }
+                  disabled={!usuario}
+                  trackColor={{
+                    false: "#B0B0B0",
+                    true: "#88C688",
+                  }}
+                  thumbColor="#FFFFFF"
+                  accessibilityLabel="Lembretes de Tarefas"
+                />
+              </View>
+            )}
           </View>
 
           {/* SOBRE O PAED */}
