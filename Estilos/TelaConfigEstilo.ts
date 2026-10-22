@@ -206,6 +206,18 @@ export default function criarEstilos(
       textAlign: "center",
     },
 
+    areaReproducaoTutorial: {
+      alignItems: "center",
+      gap: 12,
+      paddingTop: 12,
+      paddingBottom: 4,
+    },
+
+    botaoVoltarTutorial: {
+      alignSelf: "stretch",
+      width: "100%",
+    },
+
     // CONFIGURAÇÕES
 
     cardConfig: {

@@ -80,8 +80,9 @@ type VideoTutorial = {
   titulo: string;
   descricao: string;
   icone: keyof typeof Feather.glyphMap;
-  arquivo: number | null;
+  arquivo: string | null;
 };
+
 
 const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
   estudante: [
@@ -90,35 +91,37 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Calendário",
       descricao: "Consultar datas, eventos e avaliações.",
       icone: "calendar",
-      arquivo: null,
+      arquivo: "Calendario.mp4",
     },
     {
       id: "tarefas",
       titulo: "Tarefas",
       descricao: "Criar, acompanhar e concluir tarefas.",
       icone: "check-square",
-      arquivo: null,
+      arquivo: "TarefasAluno.mp4",
     },
     {
       id: "chat",
       titulo: "Chat",
-      descricao: "Conversar com professoras/professores e tutoras/tutores.",
+      descricao:
+        "Conversar com professoras/professores e tutoras/tutores.",
       icone: "message-circle",
-      arquivo: null,
+      arquivo: "ChatAluno.mp4",
     },
     {
       id: "alerta",
       titulo: "Botão de alerta",
       descricao: "Aprender a solicitar ajuda.",
       icone: "alert-circle",
-      arquivo: null,
+      arquivo: "AlertaAluno.mp4",
     },
     {
       id: "configuracoes",
       titulo: "Configurações",
-      descricao: "Personalizar aparência, notificações e conta.",
+      descricao:
+        "Personalizar aparência, notificações e conta.",
       icone: "settings",
-      arquivo: null,
+      arquivo: "ConfigAluno.mp4",
     },
   ],
 
@@ -128,14 +131,14 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Chat",
       descricao: "Conversar com estudantes e tutoras/tutores.",
       icone: "message-circle",
-      arquivo: null,
+      arquivo: "ChatProfessor.mp4",
     },
     {
       id: "config-professor",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      arquivo: null,
+      arquivo: "ConfigProfessor.mp4",
     },
   ],
 
@@ -143,23 +146,25 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
     {
       id: "chat-tutor",
       titulo: "Chat",
-      descricao: "Conversar com estudantes e professoras/professores.",
+      descricao:
+        "Conversar com estudantes e professoras/professores.",
       icone: "message-circle",
-      arquivo: null,
+      arquivo: "ChatTutor.mp4",
     },
     {
       id: "tarefas-tutor",
       titulo: "Tarefas",
-      descricao: "Cadastrar, editar e acompanhar tarefas dos estudantes.",
+      descricao:
+        "Cadastrar, editar e acompanhar tarefas dos estudantes.",
       icone: "clipboard",
-      arquivo: null,
+      arquivo: "TarefasTutor.mp4",
     },
     {
       id: "config-tutor",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      arquivo: null,
+      arquivo: "ConfigTutor.mp4",
     },
   ],
 
@@ -169,24 +174,26 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Chat",
       descricao: "Aprender a usar as conversas do aplicativo.",
       icone: "message-circle",
-      arquivo: null,
+      arquivo: "ChatTutor.mp4",
     },
     {
       id: "tarefas-napne",
       titulo: "Tarefas",
-      descricao: "Cadastrar, editar e acompanhar tarefas dos estudantes.",
+      descricao:
+        "Cadastrar, editar e acompanhar tarefas dos estudantes.",
       icone: "clipboard",
-      arquivo: null,
+      arquivo: "TarefasTutor.mp4",
     },
     {
       id: "config-napne",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      arquivo: null,
+      arquivo: "ConfigTutor.mp4",
     },
   ],
 };
+
 
 const OPCOES_TAMANHO = [
   { valor: "pequeno", label: "A — Pequeno" },
@@ -1358,7 +1365,7 @@ export default function TelaConfig() {
           aoSalvar={salvarAvatar}
         />
       )}
-      
+
       {/* MODAL DOS VÍDEOS TUTORIAIS */}
 
       <Modal
@@ -1399,13 +1406,11 @@ export default function TelaConfig() {
             {/* REPRODUTOR OU LISTA DE TUTORIAIS */}
 
             {tutorialSelecionado?.arquivo != null ? (
-              /* REPRODUÇÃO DO VÍDEO */
-
-              <View
-                style={{
-                  gap: 12,
-                  marginTop: 12,
-                }}
+              <ScrollView
+                style={Estilos.rolagemTutoriais}
+                contentContainerStyle={Estilos.areaReproducaoTutorial}
+                showsVerticalScrollIndicator={false}
+                nestedScrollEnabled
               >
                 <Text style={Estilos.nomeTutorial}>
                   {tutorialSelecionado.titulo}
@@ -1417,10 +1422,11 @@ export default function TelaConfig() {
                 />
 
                 <TouchableOpacity
-                  style={Estilos.botaoFecharTutoriais}
-                  onPress={() => {
-                    setTutorialSelecionado(null);
-                  }}
+                  style={[
+                    Estilos.botaoFecharTutoriais,
+                    Estilos.botaoVoltarTutorial,
+                  ]}
+                  onPress={() => setTutorialSelecionado(null)}
                   accessibilityRole="button"
                   accessibilityLabel="Voltar à lista de tutoriais"
                 >
@@ -1428,7 +1434,7 @@ export default function TelaConfig() {
                     Voltar aos tutoriais
                   </Text>
                 </TouchableOpacity>
-              </View>
+              </ScrollView>
             ) : (
               /* LISTA DE TUTORIAIS */
 
