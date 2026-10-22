@@ -91,14 +91,14 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Calendário",
       descricao: "Consultar datas, eventos e avaliações.",
       icone: "calendar",
-      arquivo: "Calendario.mp4",
+      arquivo: "CalendarioNarrado.mp4",
     },
     {
       id: "tarefas",
       titulo: "Tarefas",
       descricao: "Criar, acompanhar e concluir tarefas.",
       icone: "check-square",
-      arquivo: "TarefasAluno.mp4",
+      arquivo: "TarefasAlunoNarrado.mp4",
     },
     {
       id: "chat",
@@ -106,14 +106,14 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       descricao:
         "Conversar com professoras/professores e tutoras/tutores.",
       icone: "message-circle",
-      arquivo: "ChatAluno.mp4",
+      arquivo: "ChatAlunoNarrado.mp4",
     },
     {
       id: "alerta",
       titulo: "Botão de alerta",
       descricao: "Aprender a solicitar ajuda.",
       icone: "alert-circle",
-      arquivo: "AlertaAluno.mp4",
+      arquivo: "AlertaAlunoNarrado.mp4",
     },
     {
       id: "configuracoes",
@@ -121,7 +121,7 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       descricao:
         "Personalizar aparência, notificações e conta.",
       icone: "settings",
-      arquivo: "ConfigAluno.mp4",
+      arquivo: "ConfigAlunoNarrado.mp4",
     },
   ],
 
@@ -131,14 +131,14 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Chat",
       descricao: "Conversar com estudantes e tutoras/tutores.",
       icone: "message-circle",
-      arquivo: "ChatProfessor.mp4",
+      arquivo: "ChatProfessorNarrado.mp4",
     },
     {
       id: "config-professor",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      arquivo: "ConfigProfessor.mp4",
+      arquivo: "ConfigProfessorNarrado.mp4",
     },
   ],
 
@@ -149,7 +149,7 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       descricao:
         "Conversar com estudantes e professoras/professores.",
       icone: "message-circle",
-      arquivo: "ChatTutor.mp4",
+      arquivo: "ChatTutorNarrado.mp4",
     },
     {
       id: "tarefas-tutor",
@@ -157,14 +157,14 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       descricao:
         "Cadastrar, editar e acompanhar tarefas dos estudantes.",
       icone: "clipboard",
-      arquivo: "TarefasTutor.mp4",
+      arquivo: "TarefasTutorNarrado.mp4",
     },
     {
       id: "config-tutor",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      arquivo: "ConfigTutor.mp4",
+      arquivo: "ConfigTutorNarrado.mp4",
     },
   ],
 
@@ -174,7 +174,7 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       titulo: "Chat",
       descricao: "Aprender a usar as conversas do aplicativo.",
       icone: "message-circle",
-      arquivo: "ChatTutor.mp4",
+      arquivo: "ChatTutorNarrado.mp4",
     },
     {
       id: "tarefas-napne",
@@ -182,14 +182,14 @@ const TUTORIAIS: Record<TipoUsuario, VideoTutorial[]> = {
       descricao:
         "Cadastrar, editar e acompanhar tarefas dos estudantes.",
       icone: "clipboard",
-      arquivo: "TarefasTutor.mp4",
+      arquivo: "TarefasTutorNarrado.mp4",
     },
     {
       id: "config-napne",
       titulo: "Configurações",
       descricao: "Ajustar perfil e preferências do aplicativo.",
       icone: "settings",
-      arquivo: "ConfigTutor.mp4",
+      arquivo: "ConfigTutorNarrado.mp4",
     },
   ],
 };
