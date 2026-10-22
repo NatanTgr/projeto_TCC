@@ -303,7 +303,7 @@ export default function criarEstilos(
     },
 
     botaoSair: {
-      backgroundColor: "#fe0505",
+      backgroundColor: "#fc4646",
       borderRadius: 15,
       padding: 20,
       justifyContent: "space-between",
@@ -888,6 +888,117 @@ export default function criarEstilos(
       fontFamily: "FredokaLight",
       lineHeight: 21 * escalaFonte,
       flexShrink: 1,
+    },
+
+    // EXCLUIR CONTA
+
+    botaoExcluirConta: {
+      backgroundColor: tema.modal,
+      borderColor: "#E53935",
+      borderWidth: 2,
+      borderRadius: 15,
+      padding: 16,
+      minHeight: 56,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      elevation: 3,
+    },
+
+    textoBotaoExcluirConta: {
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      flexShrink: 1,
+      textAlign: "center",
+    },
+
+    modalExcluirConta: {
+      width: "92%",
+      maxWidth: 520,
+      maxHeight: "85%",
+      flexGrow: 0,
+      backgroundColor: tema.modal,
+      borderRadius: 15,
+    },
+
+    conteudoModalExcluirConta: {
+      padding: 20,
+    },
+
+    cabecalhoExcluirConta: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: 10,
+      marginBottom: 16,
+    },
+
+    tituloExcluirConta: {
+      color: tema.text,
+      fontSize: 22 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      flexShrink: 1,
+    },
+
+    descricaoExcluirConta: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaLight",
+      marginBottom: 16,
+    },
+
+    avisoExcluirConta: {
+      backgroundColor: tema.card,
+      borderColor: "#E53935",
+      borderLeftWidth: 4,
+      borderRadius: 10,
+      padding: 15,
+      marginBottom: 20,
+    },
+
+    textoAvisoExcluirConta: {
+      color: tema.text,
+      fontSize: 14 * escalaFonte,
+      fontFamily: "FredokaLight",
+    },
+
+    labelExcluirConta: {
+      color: tema.text,
+      fontSize: 15 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      marginBottom: 10,
+    },
+
+    inputExcluirConta: {
+      backgroundColor: tema.card,
+      borderColor: tema.border,
+      borderWidth: 1,
+      borderRadius: 10,
+      color: tema.text,
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaLight",
+      paddingHorizontal: 15,
+      paddingVertical: 12,
+      minHeight: 48,
+      marginBottom: 18,
+    },
+
+    botaoConfirmarExclusao: {
+      backgroundColor: "#C62828",
+      borderRadius: 10,
+      padding: 14,
+      minHeight: 48,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    textoConfirmarExclusao: {
+      color: "#FFFFFF",
+      fontSize: 16 * escalaFonte,
+      fontFamily: "FredokaMedium",
+      textAlign: "center",
     },
   });
 }

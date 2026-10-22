@@ -205,29 +205,24 @@ const OPCOES_TAMANHO = [
 export default function TelaConfig() {
   const { tipoTema, selecionarTema, tema } = useTheme();
 
-  const {
-    tamanhoFonte,
-    escalaFonte,
-    selecionarTamanhoFonte,
-  } = useFontSize();
+  const { tamanhoFonte, escalaFonte, selecionarTamanhoFonte } = useFontSize();
 
   const { width, fontScale } = useWindowDimensions();
 
   const Estilos = criarEstilos(tema, escalaFonte);
 
-  const perfilEmColuna =
-    width < 380 || escalaFonte * fontScale >= 1.2;
+  const perfilEmColuna = width < 380 || escalaFonte * fontScale >= 1.2;
 
   // PERFIL
 
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [dadosAluno, setDadosAluno] = useState<DadosAluno | null>(null);
 
-  const [dadosProfessor, setDadosProfessor] =
-    useState<DadosProfessor | null>(null);
+  const [dadosProfessor, setDadosProfessor] = useState<DadosProfessor | null>(
+    null,
+  );
 
-  const [dadosTutor, setDadosTutor] =
-    useState<DadosTutor | null>(null);
+  const [dadosTutor, setDadosTutor] = useState<DadosTutor | null>(null);
 
   const [carregandoPerfil, setCarregandoPerfil] = useState(true);
 
@@ -246,8 +241,7 @@ export default function TelaConfig() {
 
   // LIMPEZA DE TAREFAS
 
-  const [prazoLimpeza, setPrazoLimpeza] =
-    useState<PrazoLimpeza | null>(null);
+  const [prazoLimpeza, setPrazoLimpeza] = useState<PrazoLimpeza | null>(null);
 
   const [modalLimpeza, setModalLimpeza] = useState(false);
   const [salvandoLimpeza, setSalvandoLimpeza] = useState(false);
@@ -258,11 +252,15 @@ export default function TelaConfig() {
 
   const [modalTamanhoFonte, setModalTamanhoFonte] = useState(false);
   const [modalAlterarSenha, setModalAlterarSenha] = useState(false);
+  const [modalExcluirConta, setModalExcluirConta] = useState(false);
+  const [senhaExclusao, setSenhaExclusao] = useState("");
+  const [excluindoConta, setExcluindoConta] = useState(false);
+  const [textoConfirmacaoExclusao, setTextoConfirmacaoExclusao] = useState("");
   const [modalAvatar, setModalAvatar] = useState(false);
   const [modalTutoriais, setModalTutoriais] = useState(false);
 
   const [tutorialSelecionado, setTutorialSelecionado] =
-  useState<VideoTutorial | null>(null);
+    useState<VideoTutorial | null>(null);
 
   // ALTERAR TURMA
 
@@ -272,11 +270,9 @@ export default function TelaConfig() {
 
   // ALTERAR ÁREA OU DEPARTAMENTO
 
-  const [modalDadosProfissionais, setModalDadosProfissionais] =
-    useState(false);
+  const [modalDadosProfissionais, setModalDadosProfissionais] = useState(false);
 
-  const [novoDadoProfissional, setNovoDadoProfissional] =
-    useState("");
+  const [novoDadoProfissional, setNovoDadoProfissional] = useState("");
 
   const [salvandoDadoProfissional, setSalvandoDadoProfissional] =
     useState(false);
@@ -291,12 +287,11 @@ export default function TelaConfig() {
 
   const eProfessor = usuario?.tipo === "professor";
 
-  const eTutorOuNapne =
-    usuario?.tipo === "tutor" || usuario?.tipo === "napne";
+  const eTutorOuNapne = usuario?.tipo === "tutor" || usuario?.tipo === "napne";
 
   const valorDadoProfissionalAtual = eProfessor
-    ? dadosProfessor?.area_atuacao ?? ""
-    : dadosTutor?.departamento ?? "";
+    ? (dadosProfessor?.area_atuacao ?? "")
+    : (dadosTutor?.departamento ?? "");
 
   // TUTORIAIS
 
@@ -327,9 +322,8 @@ export default function TelaConfig() {
   const avatarPerfil = buscarAvatar(usuario?.avatar);
 
   const labelPrazoLimpeza =
-    OPCOES_LIMPEZA.find(
-      (opcao) => opcao.meses === prazoLimpeza,
-    )?.label ?? "Não configurada";
+    OPCOES_LIMPEZA.find((opcao) => opcao.meses === prazoLimpeza)?.label ??
+    "Não configurada";
 
   // =====================================================
   // CARREGAR PREFERÊNCIA DE LIMPEZA
@@ -399,10 +393,7 @@ export default function TelaConfig() {
     } catch (erro) {
       console.error("Erro ao salvar limpeza de tarefas:", erro);
 
-      Alert.alert(
-        "Erro",
-        "Não foi possível salvar o prazo de limpeza.",
-      );
+      Alert.alert("Erro", "Não foi possível salvar o prazo de limpeza.");
     } finally {
       setSalvandoLimpeza(false);
     }
@@ -412,10 +403,7 @@ export default function TelaConfig() {
   // ALTERAR NOTIFICAÇÕES
   // =====================================================
 
-  async function alterarNotificacao(
-    tipo: "chat" | "tarefas",
-    ativa: boolean,
-  ) {
+  async function alterarNotificacao(tipo: "chat" | "tarefas", ativa: boolean) {
     if (!usuario || salvandoNotificacaoRef.current) return;
 
     salvandoNotificacaoRef.current = true;
@@ -427,14 +415,9 @@ export default function TelaConfig() {
 
     const novasPreferencias = {
       ...preferenciasAnteriores,
-      chat_ativo:
-        tipo === "chat"
-          ? ativa
-          : preferenciasAnteriores.chat_ativo,
+      chat_ativo: tipo === "chat" ? ativa : preferenciasAnteriores.chat_ativo,
       tarefas_ativas:
-        tipo === "tarefas"
-          ? ativa
-          : preferenciasAnteriores.tarefas_ativas,
+        tipo === "tarefas" ? ativa : preferenciasAnteriores.tarefas_ativas,
     };
 
     preferenciasNotificacoesRef.current = novasPreferencias;
@@ -462,29 +445,115 @@ export default function TelaConfig() {
         tarefas_ativas: data.tarefas_ativas,
       };
 
-      preferenciasNotificacoesRef.current =
-        preferenciasConfirmadas;
+      preferenciasNotificacoesRef.current = preferenciasConfirmadas;
 
       setChatAtivo(preferenciasConfirmadas.chat_ativo);
       setTarefasAtivas(preferenciasConfirmadas.tarefas_ativas);
     } catch (erro) {
       console.error("Erro ao alterar notificações:", erro);
 
-      preferenciasNotificacoesRef.current =
-        preferenciasAnteriores;
+      preferenciasNotificacoesRef.current = preferenciasAnteriores;
 
       setChatAtivo(preferenciasAnteriores.chat_ativo);
       setTarefasAtivas(preferenciasAnteriores.tarefas_ativas);
 
-      Alert.alert(
-        "Erro",
-        "Não foi possível salvar esta configuração.",
-      );
+      Alert.alert("Erro", "Não foi possível salvar esta configuração.");
     } finally {
       salvandoNotificacaoRef.current = false;
       setSalvandoNotificacao(false);
     }
   }
+
+  // =====================================================
+  // EXCLUIR CONTA - CONFIRMAÇÃO
+  // =====================================================
+
+  const abrirModalExcluirConta = () => {
+    setTextoConfirmacaoExclusao("");
+    setSenhaExclusao("");
+    setModalExcluirConta(true);
+  };
+
+  const fecharModalExcluirConta = () => {
+    setTextoConfirmacaoExclusao("");
+    setSenhaExclusao("");
+    setModalExcluirConta(false);
+  };
+
+  const confirmarExclusaoConta = async () => {
+    if (excluindoConta) return;
+
+    if (textoConfirmacaoExclusao.trim().toUpperCase() !== "EXCLUIR") {
+      Alert.alert("Confirmação necessária", "Digite EXCLUIR para continuar.");
+      return;
+    }
+
+    if (!senhaExclusao) {
+      Alert.alert(
+        "Senha necessária",
+        "Informe sua senha atual para confirmar a exclusão.",
+      );
+      return;
+    }
+
+    try {
+      setExcluindoConta(true);
+
+      const { data, error } = await supabase.functions.invoke("excluir-conta", {
+        body: {
+          confirmacao: "EXCLUIR",
+          senha: senhaExclusao,
+        },
+      });
+
+      if (error || !data?.ok) {
+        let mensagem = data?.erro || "Não foi possível excluir sua conta.";
+
+        // Recupera a mensagem retornada pela Edge Function.
+        if (error && "context" in error && error.context) {
+          try {
+            const resposta = await error.context.json();
+
+            if (typeof resposta?.erro === "string") {
+              mensagem = resposta.erro;
+            }
+          } catch {
+            // Mantém a mensagem padrão.
+          }
+        }
+
+        throw new Error(mensagem);
+      }
+
+      // A exclusão já foi confirmada pelo servidor.
+      setSenhaExclusao("");
+      setTextoConfirmacaoExclusao("");
+      setModalExcluirConta(false);
+
+      // Encerra a sessão local do dispositivo.
+      const { error: erroSaida } = await supabase.auth.signOut({
+        scope: "local",
+      });
+
+      if (erroSaida) {
+        console.warn(
+          "Conta excluída, mas houve erro ao limpar a sessão local:",
+          erroSaida,
+        );
+      }
+
+      router.replace("/login");
+    } catch (erro) {
+      console.error("Erro ao excluir conta:", erro);
+
+      Alert.alert(
+        "Não foi possível excluir a conta",
+        erro instanceof Error ? erro.message : "Tente novamente.",
+      );
+    } finally {
+      setExcluindoConta(false);
+    }
+  };
 
   // =====================================================
   // SAIR DA CONTA
@@ -514,9 +583,7 @@ export default function TelaConfig() {
       console.error("Erro ao sair da conta:", erro);
 
       const detalhe =
-        typeof erro === "object" &&
-        erro !== null &&
-        "message" in erro
+        typeof erro === "object" && erro !== null && "message" in erro
           ? String(erro.message)
           : "Erro sem detalhes disponíveis.";
 
@@ -536,10 +603,7 @@ export default function TelaConfig() {
       throw new Error("Perfil inválido.");
     }
 
-    if (
-      url !== null &&
-      !AVATARES.some((avatar) => avatar.url === url)
-    ) {
+    if (url !== null && !AVATARES.some((avatar) => avatar.url === url)) {
       throw new Error("Avatar inválido.");
     }
 
@@ -559,12 +623,7 @@ export default function TelaConfig() {
       .select("id, avatar")
       .single();
 
-    if (
-      error ||
-      !data ||
-      data.id !== user.id ||
-      data.avatar !== url
-    ) {
+    if (error || !data || data.id !== user.id || data.avatar !== url) {
       console.log("Erro ao salvar avatar:", error);
 
       throw error ?? new Error("O banco não confirmou a alteração.");
@@ -603,12 +662,11 @@ export default function TelaConfig() {
         return;
       }
 
-      const { data: dadosUsuario, error: erroUsuario } =
-        await supabase
-          .from("usuarios")
-          .select("id, nome, email, campus, tipo, estado, avatar")
-          .eq("id", user.id)
-          .single();
+      const { data: dadosUsuario, error: erroUsuario } = await supabase
+        .from("usuarios")
+        .select("id, nome, email, campus, tipo, estado, avatar")
+        .eq("id", user.id)
+        .single();
 
       if (erroUsuario) {
         console.log("Erro ao buscar usuário:", erroUsuario);
@@ -621,10 +679,7 @@ export default function TelaConfig() {
         await carregarPreferenciaLimpeza(user.id);
       }
 
-      const {
-        data: preferencias,
-        error: erroPreferencias,
-      } = await supabase
+      const { data: preferencias, error: erroPreferencias } = await supabase
         .from("preferencias_notificacoes")
         .select("chat_ativo, tarefas_ativas")
         .eq("usuario_id", user.id)
@@ -637,8 +692,7 @@ export default function TelaConfig() {
         tarefas_ativas: preferencias?.tarefas_ativas ?? true,
       };
 
-      preferenciasNotificacoesRef.current =
-        preferenciasCarregadas;
+      preferenciasNotificacoesRef.current = preferenciasCarregadas;
 
       setChatAtivo(preferenciasCarregadas.chat_ativo);
       setTarefasAtivas(preferenciasCarregadas.tarefas_ativas);
@@ -673,10 +727,7 @@ export default function TelaConfig() {
         setDadosProfessor(data);
       }
 
-      if (
-        dadosUsuario.tipo === "tutor" ||
-        dadosUsuario.tipo === "napne"
-      ) {
+      if (dadosUsuario.tipo === "tutor" || dadosUsuario.tipo === "napne") {
         const { data, error } = await supabase
           .from("tutores")
           .select("departamento")
@@ -684,10 +735,7 @@ export default function TelaConfig() {
           .single();
 
         if (error) {
-          console.log(
-            "Erro ao buscar departamento do tutor/NAPNE:",
-            error,
-          );
+          console.log("Erro ao buscar departamento do tutor/NAPNE:", error);
           return;
         }
 
@@ -705,11 +753,7 @@ export default function TelaConfig() {
   // =====================================================
 
   async function alterarTurma() {
-    if (
-      usuario?.tipo !== "estudante" ||
-      !dadosAluno ||
-      salvandoTurma
-    ) {
+    if (usuario?.tipo !== "estudante" || !dadosAluno || salvandoTurma) {
       return;
     }
 
@@ -751,18 +795,13 @@ export default function TelaConfig() {
       }
 
       setDadosAluno((dadosAtuais) =>
-        dadosAtuais
-          ? { ...dadosAtuais, turma: data.turma }
-          : dadosAtuais,
+        dadosAtuais ? { ...dadosAtuais, turma: data.turma } : dadosAtuais,
       );
 
       setModalAlterarTurma(false);
       setNovaTurma("");
 
-      Alert.alert(
-        "Sucesso",
-        "Sua turma foi alterada com sucesso!",
-      );
+      Alert.alert("Sucesso", "Sua turma foi alterada com sucesso!");
     } catch (erro) {
       console.error("Erro ao alterar turma:", erro);
 
@@ -782,10 +821,7 @@ export default function TelaConfig() {
   async function alterarDadoProfissional() {
     if (
       !usuario ||
-      !(
-        (eProfessor && dadosProfessor) ||
-        (eTutorOuNapne && dadosTutor)
-      ) ||
+      !((eProfessor && dadosProfessor) || (eTutorOuNapne && dadosTutor)) ||
       salvandoDadoProfissional
     ) {
       return;
@@ -805,10 +841,7 @@ export default function TelaConfig() {
     }
 
     if (valorNovo === valorAtual) {
-      Alert.alert(
-        "Atenção",
-        "O valor informado é igual ao atual.",
-      );
+      Alert.alert("Atenção", "O valor informado é igual ao atual.");
       return;
     }
 
@@ -835,9 +868,7 @@ export default function TelaConfig() {
         if (error) throw error;
 
         if (data?.area_atuacao !== valorNovo) {
-          throw new Error(
-            "O banco não confirmou a alteração da área.",
-          );
+          throw new Error("O banco não confirmou a alteração da área.");
         }
 
         setDadosProfessor((atual) =>
@@ -859,9 +890,7 @@ export default function TelaConfig() {
         if (error) throw error;
 
         if (data?.departamento !== valorNovo) {
-          throw new Error(
-            "O banco não confirmou a alteração do departamento.",
-          );
+          throw new Error("O banco não confirmou a alteração do departamento.");
         }
 
         setDadosTutor((atual) =>
@@ -886,10 +915,7 @@ export default function TelaConfig() {
           : "Seu departamento foi atualizado com sucesso!",
       );
     } catch (erro) {
-      console.error(
-        "Erro ao atualizar dado profissional:",
-        erro,
-      );
+      console.error("Erro ao atualizar dado profissional:", erro);
 
       Alert.alert(
         "Erro ao salvar",
@@ -913,10 +939,7 @@ export default function TelaConfig() {
     }
 
     if (novaSenha.length < 6) {
-      Alert.alert(
-        "Atenção",
-        "A senha deve ter pelo menos 6 caracteres.",
-      );
+      Alert.alert("Atenção", "A senha deve ter pelo menos 6 caracteres.");
       return;
     }
 
@@ -962,10 +985,7 @@ export default function TelaConfig() {
     }
 
     void iniciarTela().catch((erro) => {
-      console.error(
-        "Erro ao iniciar a tela de configurações:",
-        erro,
-      );
+      console.error("Erro ao iniciar a tela de configurações:", erro);
     });
   }, []);
 
@@ -1349,8 +1369,27 @@ export default function TelaConfig() {
 
           {/* SAIR DA CONTA */}
 
-          <TouchableOpacity style={Estilos.botaoSair} onPress={sairDaConta}>
+          <TouchableOpacity
+            style={Estilos.botaoSair}
+            onPress={sairDaConta}
+            accessibilityRole="button"
+          >
             <Text style={Estilos.textoBotaoSair}>Sair da conta</Text>
+          </TouchableOpacity>
+
+          {/* EXCLUIR CONTA */}
+
+          <TouchableOpacity
+            style={Estilos.botaoExcluirConta}
+            onPress={abrirModalExcluirConta}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Excluir minha conta"
+            accessibilityHint="Abre a confirmação de exclusão da conta"
+          >
+            <Feather name="trash-2" size={21 * escalaFonte} color={tema.text} />
+
+            <Text style={Estilos.textoBotaoExcluirConta}>Excluir conta</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -1880,6 +1919,114 @@ export default function TelaConfig() {
                 setModalDadosProfissionais(false);
               }}
               disabled={salvandoDadoProfissional}
+              accessibilityRole="button"
+            >
+              <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* MODAL DE EXCLUSÃO DA CONTA */}
+
+      <Modal
+        visible={modalExcluirConta}
+        transparent
+        animationType="fade"
+        onRequestClose={fecharModalExcluirConta}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={Estilos.fundoModal}
+        >
+          <ScrollView
+            style={Estilos.modalExcluirConta}
+            contentContainerStyle={Estilos.conteudoModalExcluirConta}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={Estilos.cabecalhoExcluirConta}>
+              <Feather
+                name="alert-triangle"
+                size={28 * escalaFonte}
+                color="#E53935"
+              />
+
+              <Text style={Estilos.tituloExcluirConta}>Excluir conta?</Text>
+            </View>
+
+            <Text style={Estilos.descricaoExcluirConta}>
+              Você está prestes a solicitar a exclusão permanente da sua conta
+              no PAED.
+            </Text>
+
+            <View style={Estilos.avisoExcluirConta}>
+              <Text style={Estilos.textoAvisoExcluirConta}>
+                Ao excluir sua conta, você perderá o acesso ao aplicativo. Seus
+                dados associados serão tratados conforme a política de exclusão.
+                Esta ação não poderá ser desfeita.
+              </Text>
+            </View>
+
+            <Text style={Estilos.labelExcluirConta}>
+              Para confirmar, digite EXCLUIR:
+            </Text>
+
+            <TextInput
+              style={Estilos.inputExcluirConta}
+              placeholder="Digite EXCLUIR"
+              placeholderTextColor={tema.secondaryText}
+              value={textoConfirmacaoExclusao}
+              onChangeText={setTextoConfirmacaoExclusao}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={7}
+              editable
+              accessibilityLabel="Digite EXCLUIR para confirmar"
+            />
+
+            <Text style={Estilos.labelExcluirConta}>
+              Confirme sua senha atual:
+            </Text>
+
+            <TextInput
+              style={Estilos.inputExcluirConta}
+              placeholder="Digite sua senha"
+              placeholderTextColor={tema.secondaryText}
+              value={senhaExclusao}
+              onChangeText={setSenhaExclusao}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!excluindoConta}
+              accessibilityLabel="Senha atual da conta"
+            />
+
+            <TouchableOpacity
+              style={[
+                Estilos.botaoConfirmarExclusao,
+                textoConfirmacaoExclusao.trim() !== "EXCLUIR" &&
+                  Estilos.desabilitado,
+              ]}
+              onPress={confirmarExclusaoConta}
+              disabled={
+                excluindoConta ||
+                textoConfirmacaoExclusao.trim().toUpperCase() !== "EXCLUIR" ||
+                !senhaExclusao
+              }
+              accessibilityRole="button"
+              accessibilityState={{
+                disabled: textoConfirmacaoExclusao.trim() !== "EXCLUIR",
+              }}
+            >
+              <Text style={Estilos.textoConfirmarExclusao}>
+                {excluindoConta ? "Excluindo conta..." : "Excluir minha conta"}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={Estilos.botaoCancelarSenha}
+              onPress={fecharModalExcluirConta}
               accessibilityRole="button"
             >
               <Text style={Estilos.textoCancelarSenha}>Cancelar</Text>

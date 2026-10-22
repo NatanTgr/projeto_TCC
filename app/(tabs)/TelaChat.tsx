@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   ActivityIndicator,
@@ -35,7 +35,40 @@ type Usuario = {
   fixado?: boolean;
   mensagemNaoLida?: boolean;
   ultimaMensagemData?: string | null;
+  ultimaMensagemTexto?: string | null;
 };
+
+
+type MensagemPrevia = {
+  remetente: string;
+  destinatario: string;
+  conteudo: string | null;
+  tipo: string | null;
+  arquivo_url: string | null;
+  data_envio: string;
+};
+
+const formatarPreviaMensagem = (
+  mensagem: MensagemPrevia,
+  meuId: string
+): string => {
+  let previa = (mensagem.conteudo ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (mensagem.tipo === "imagem") {
+    previa = "📷 Imagem";
+  } else if (mensagem.arquivo_url && !previa) {
+    previa = "📎 Arquivo";
+  } else if (!previa) {
+    previa = "Mensagem";
+  }
+
+  return mensagem.remetente === meuId
+    ? `Você: ${previa}`
+    : previa;
+};
+
 
 export default function Chat() {
   const router = useRouter();
@@ -62,6 +95,10 @@ export default function Chat() {
     useState<string | null>(null);
 
   const [idsSelecionados, setIdsSelecionados] = useState<string[]>([]);
+
+  const [salvandoFiltro, setSalvandoFiltro] = useState(false);
+
+  const salvandoFiltroRef = useRef(false);
 
   const [usuarioLogadoId, setUsuarioLogadoId] =
     useState<string | null>(null);
@@ -131,26 +168,48 @@ useEffect(() => {
         (payload) => {
           if (!ativo) return;
 
-          const novaMensagem = payload.new as {
-            remetente: string;
-            destinatario: string;
-            data_envio: string;
+          const novaMensagem = payload.new as MensagemPrevia & {
             lida?: boolean;
           };
 
-          if (novaMensagem.destinatario !== usuarioId) return;
-          if (novaMensagem.lida === true) return;
+          if (novaMensagem.destinatario !== usuarioId) {
+            return;
+          }
 
           setUsuarios((atual) =>
-            atual.map((usuario) =>
-              usuario.id === novaMensagem.remetente
-                ? {
-                    ...usuario,
-                    mensagemNaoLida: true,
-                    ultimaMensagemData: novaMensagem.data_envio,
-                  }
-                : usuario,
-            ),
+            atual.map((usuario) => {
+              if (usuario.id !== novaMensagem.remetente) {
+                return usuario;
+              }
+
+              const novaNaoLida =
+                usuario.mensagemNaoLida || novaMensagem.lida !== true;
+
+              // Não deixa uma mensagem antiga substituir
+              // a prévia de uma mensagem mais recente.
+              const dataAnterior = usuario.ultimaMensagemData
+                ? new Date(usuario.ultimaMensagemData).getTime()
+                : 0;
+
+              const dataNova = new Date(novaMensagem.data_envio).getTime();
+
+              if (dataNova < dataAnterior) {
+                return {
+                  ...usuario,
+                  mensagemNaoLida: novaNaoLida,
+                };
+              }
+
+              return {
+                ...usuario,
+                mensagemNaoLida: novaNaoLida,
+                ultimaMensagemTexto: formatarPreviaMensagem(
+                  novaMensagem,
+                  usuarioId,
+                ),
+                ultimaMensagemData: novaMensagem.data_envio,
+              };
+            }),
           );
         },
       )
@@ -266,22 +325,16 @@ useEffect(() => {
         .eq("usuario_id", user.id);
 
       if (fixadosError) {
-        console.error(
-          "Erro ao carregar usuários fixados:",
-          fixadosError
-        );
+        console.error("Erro ao carregar usuários fixados:", fixadosError);
       }
 
       const idsFixados = new Set(
-        (fixados || []).map((item) => item.usuario_fixado_id)
+        (fixados || []).map((item) => item.usuario_fixado_id),
       );
 
       // MENSAGENS NÃO LIDAS
 
-      const {
-        data: mensagensNaoLidas,
-        error: naoLidasError,
-      } = await supabase
+      const { data: mensagensNaoLidas, error: naoLidasError } = await supabase
         .from("mensagens")
         .select("remetente, data_envio")
         .eq("destinatario", user.id)
@@ -289,20 +342,60 @@ useEffect(() => {
         .order("data_envio", { ascending: false });
 
       if (naoLidasError) {
-        console.error(
-          "Erro ao carregar mensagens não lidas:",
-          naoLidasError
-        );
+        console.error("Erro ao carregar mensagens não lidas:", naoLidasError);
       }
 
       const naoLidasPorRemetente = new Map<string, string>();
 
       (mensagensNaoLidas || []).forEach((mensagem) => {
         if (!naoLidasPorRemetente.has(mensagem.remetente)) {
-          naoLidasPorRemetente.set(
-            mensagem.remetente,
-            mensagem.data_envio
-          );
+          naoLidasPorRemetente.set(mensagem.remetente, mensagem.data_envio);
+        }
+      });
+
+      // =====================================================
+      // ÚLTIMA MENSAGEM DE CADA CONVERSA
+      // =====================================================
+
+      const { data: mensagensRecentes, error: erroMensagensRecentes } =
+        await supabase
+          .from("mensagens")
+          .select(
+            "remetente, destinatario, conteudo, tipo, arquivo_url, data_envio",
+          )
+          .or(`remetente.eq.${user.id},destinatario.eq.${user.id}`)
+          .order("data_envio", { ascending: false })
+          .limit(1000);
+
+      if (erroMensagensRecentes) {
+        console.error(
+          "Erro ao carregar últimas mensagens:",
+          erroMensagensRecentes,
+        );
+      }
+
+      const ultimasMensagensPorContato = new Map<
+        string,
+        {
+          texto: string;
+          data: string;
+        }
+      >();
+
+      (mensagensRecentes || []).forEach((mensagem) => {
+        const contatoId =
+          mensagem.remetente === user.id
+            ? mensagem.destinatario
+            : mensagem.remetente;
+
+        // Como as mensagens estão ordenadas da mais
+        // recente para a mais antiga, guarda somente
+        // a primeira mensagem encontrada de cada contato.
+        if (!ultimasMensagensPorContato.has(contatoId)) {
+          ultimasMensagensPorContato.set(contatoId, {
+            texto: formatarPreviaMensagem(mensagem, user.id),
+            data: mensagem.data_envio,
+          });
         }
       });
 
@@ -316,9 +409,8 @@ useEffect(() => {
 
       const meuCampus = dadosUsuarioLogado?.campus || null;
 
-      const meuTipo = (
-        dadosUsuarioLogado?.tipo || "estudante"
-      ) as Usuario["tipo"];
+      const meuTipo = (dadosUsuarioLogado?.tipo ||
+        "estudante") as Usuario["tipo"];
 
       setCampusLogado(meuCampus);
       setTipoLogado(meuTipo);
@@ -343,13 +435,19 @@ useEffect(() => {
         return;
       }
 
-      const listaUsuarios = (data || []).map((usuario) => ({
-        ...usuario,
-        fixado: idsFixados.has(usuario.id),
-        mensagemNaoLida: naoLidasPorRemetente.has(usuario.id),
-        ultimaMensagemData:
-          naoLidasPorRemetente.get(usuario.id) || null,
-      })) as Usuario[];
+      const listaUsuarios = (data || []).map((usuario) => {
+        const ultimaMensagem = ultimasMensagensPorContato.get(usuario.id);
+
+        return {
+          ...usuario,
+          fixado: idsFixados.has(usuario.id),
+          mensagemNaoLida: naoLidasPorRemetente.has(usuario.id),
+          ultimaMensagemTexto:
+            ultimaMensagem?.texto ??
+            (erroMensagensRecentes ? "Prévia indisponível" : null),
+          ultimaMensagemData: ultimaMensagem?.data || null,
+        };
+      }) as Usuario[];
 
       setUsuarios(listaUsuarios);
 
@@ -463,175 +561,164 @@ useEffect(() => {
           .eq("usuario_fixado_id", id);
 
         if (error) {
-          console.error(
-            "Erro ao remover usuário dos fixados:",
-            error
-          );
+          console.error("Erro ao remover usuário dos fixados:", error);
 
-          Alert.alert(
-            "Erro",
-            "Não foi possível desfixar este usuário."
-          );
+          Alert.alert("Erro", "Não foi possível desfixar este usuário.");
 
           return;
         }
 
         setUsuarios((prev) =>
-          prev.map((u) =>
-            u.id === id ? { ...u, fixado: false } : u
-          )
+          prev.map((u) => (u.id === id ? { ...u, fixado: false } : u)),
         );
       } else {
-        const { error } = await supabase
-          .from("usuarios_fixados")
-          .upsert(
-            {
-              usuario_id: user.id,
-              usuario_fixado_id: id,
-            },
-            {
-              onConflict: "usuario_id,usuario_fixado_id",
-              ignoreDuplicates: true,
-            }
-          );
+        const { error } = await supabase.from("usuarios_fixados").upsert(
+          {
+            usuario_id: user.id,
+            usuario_fixado_id: id,
+          },
+          {
+            onConflict: "usuario_id,usuario_fixado_id",
+            ignoreDuplicates: true,
+          },
+        );
 
         if (error) {
-          console.error(
-            "Erro ao adicionar usuário aos fixados:",
-            error
-          );
+          console.error("Erro ao adicionar usuário aos fixados:", error);
 
-          Alert.alert(
-            "Erro",
-            "Não foi possível fixar este usuário."
-          );
+          Alert.alert("Erro", "Não foi possível fixar este usuário.");
 
           return;
         }
 
         setUsuarios((prev) =>
-          prev.map((u) =>
-            u.id === id ? { ...u, fixado: true } : u
-          )
+          prev.map((u) => (u.id === id ? { ...u, fixado: true } : u)),
         );
       }
     } catch (error) {
       console.error("Erro ao alterar usuário fixado:", error);
 
-      Alert.alert(
-        "Erro",
-        "Ocorreu um erro ao alterar a fixação do usuário."
-      );
+      Alert.alert("Erro", "Ocorreu um erro ao alterar a fixação do usuário.");
     }
   };
 
   // =====================================================
-  // FILTRO
+  // FILTRO - ATUALIZAÇÃO INSTANTÂNEA
   // =====================================================
 
-  const toggleSelecionFiltro = async (id: string) => {
-    if (!usuarioLogadoId) return;
+  const atualizarSelecaoFiltro = async (ids: string[], ocultar: boolean) => {
+    if (!usuarioLogadoId || salvandoFiltroRef.current || ids.length === 0) {
+      return;
+    }
 
-    const estaSelecionado = idsSelecionados.includes(id);
+    salvandoFiltroRef.current = true;
+    setSalvandoFiltro(true);
 
-    if (estaSelecionado) {
-      const { error } = await supabase
-        .from("usuarios_filtros")
-        .upsert(
-          {
-            usuario_id: usuarioLogadoId,
-            usuario_oculto_id: id,
-          },
-          {
+    // Guarda o estado anterior para restaurar se houver erro.
+    const selecionadosAnteriores = [...idsSelecionados];
+    const ocultosAnteriores = [...usuariosOcultos];
+
+    const idsAlterados = new Set(ids);
+
+    // 1. ATUALIZAÇÃO IMEDIATA NA INTERFACE
+
+    if (ocultar) {
+      // Desmarca os usuários escolhidos.
+      setIdsSelecionados((anteriores) =>
+        anteriores.filter((id) => !idsAlterados.has(id)),
+      );
+
+      setUsuariosOcultos((anteriores) =>
+        Array.from(new Set([...anteriores, ...ids])),
+      );
+    } else {
+      // Marca os usuários escolhidos.
+      setIdsSelecionados((anteriores) =>
+        Array.from(new Set([...anteriores, ...ids])),
+      );
+
+      setUsuariosOcultos((anteriores) =>
+        anteriores.filter((id) => !idsAlterados.has(id)),
+      );
+    }
+
+    // 2. SALVAMENTO NO SUPABASE
+
+    try {
+      if (ocultar) {
+        // Salva todos os usuários ocultos em uma requisição.
+        const registros = ids.map((id) => ({
+          usuario_id: usuarioLogadoId,
+          usuario_oculto_id: id,
+        }));
+
+        const { error } = await supabase
+          .from("usuarios_filtros")
+          .upsert(registros, {
             onConflict: "usuario_id,usuario_oculto_id",
             ignoreDuplicates: true,
-          }
-        );
+          });
 
-      if (error) {
-        console.error("Erro ao salvar filtro no banco:", error);
-      }
-
-      setIdsSelecionados((prev) =>
-        prev.filter((i) => i !== id)
-      );
-
-      setUsuariosOcultos((prev) => [...prev, id]);
-    } else {
-      const { error } = await supabase
-        .from("usuarios_filtros")
-        .delete()
-        .eq("usuario_id", usuarioLogadoId)
-        .eq("usuario_oculto_id", id);
-
-      if (error) {
-        console.error("Erro ao remover filtro do banco:", error);
-      }
-
-      setIdsSelecionados((prev) => [...prev, id]);
-
-      setUsuariosOcultos((prev) =>
-        prev.filter((i) => i !== id)
-      );
-    }
-  };
-
-  const selecionarTodosNaAba = async () => {
-    if (!usuarioLogadoId) return;
-
-    const idsDaAba = usuariosParaFiltrarNaAba.map(
-      (usuario) => usuario.id
-    );
-
-    const todosSelecionados = idsDaAba.every((id) =>
-      idsSelecionados.includes(id)
-    );
-
-    if (todosSelecionados) {
-      const novosOcultos = Array.from(
-        new Set([...usuariosOcultos, ...idsDaAba])
-      );
-
-      for (const id of idsDaAba) {
-        await supabase
-          .from("usuarios_filtros")
-          .upsert(
-            {
-              usuario_id: usuarioLogadoId,
-              usuario_oculto_id: id,
-            },
-            {
-              onConflict: "usuario_id,usuario_oculto_id",
-              ignoreDuplicates: true,
-            }
-          );
-      }
-
-      setUsuariosOcultos(novosOcultos);
-
-      setIdsSelecionados((prev) =>
-        prev.filter((id) => !idsDaAba.includes(id))
-      );
-    } else {
-      const novosOcultos = usuariosOcultos.filter(
-        (id) => !idsDaAba.includes(id)
-      );
-
-      for (const id of idsDaAba) {
-        await supabase
+        if (error) {
+          throw error;
+        }
+      } else {
+        // Remove todos os filtros de uma só vez.
+        const { error } = await supabase
           .from("usuarios_filtros")
           .delete()
           .eq("usuario_id", usuarioLogadoId)
-          .eq("usuario_oculto_id", id);
+          .in("usuario_oculto_id", ids);
+
+        if (error) {
+          throw error;
+        }
       }
+    } catch (error) {
+      console.error("Erro ao salvar filtros:", error);
 
-      setUsuariosOcultos(novosOcultos);
+      // Restaura a seleção anterior se a gravação falhar.
+      setIdsSelecionados(selecionadosAnteriores);
+      setUsuariosOcultos(ocultosAnteriores);
 
-      setIdsSelecionados((prev) =>
-        Array.from(new Set([...prev, ...idsDaAba]))
+      Alert.alert(
+        "Erro",
+        "Não foi possível salvar o filtro. A seleção anterior foi restaurada.",
       );
+    } finally {
+      salvandoFiltroRef.current = false;
+      setSalvandoFiltro(false);
     }
   };
+
+  // =====================================================
+  // MARCAR OU DESMARCAR UM USUÁRIO
+  // =====================================================
+
+  const toggleSelecionFiltro = async (id: string) => {
+    const estaSelecionado = idsSelecionados.includes(id);
+
+    await atualizarSelecaoFiltro([id], estaSelecionado);
+  };
+
+  // =====================================================
+  // SELECIONAR OU DESMARCAR TODOS DA ABA
+  // =====================================================
+
+  const selecionarTodosNaAba = async () => {
+    const idsDaAba = usuariosParaFiltrarNaAba.map((usuario) => usuario.id);
+
+    if (idsDaAba.length === 0) {
+      return;
+    }
+
+    const todosSelecionados = idsDaAba.every((id) =>
+      idsSelecionados.includes(id),
+    );
+
+    await atualizarSelecaoFiltro(idsDaAba, todosSelecionados);
+  };
+
 
   // =====================================================
   // CORES POR TIPO
@@ -742,29 +829,17 @@ useEffect(() => {
           ]}
         >
           {avatarEscolhido ? (
-            <AvatarImagem
-              uri={avatarEscolhido.url}
-              tamanho={50}
-            />
+            <AvatarImagem uri={avatarEscolhido.url} tamanho={50} />
           ) : (
             <Ionicons
-              name={
-                item.tipo === "professor"
-                  ? "person"
-                  : "people"
-              }
+              name={item.tipo === "professor" ? "person" : "people"}
               size={25}
               color={colors.white}
             />
           )}
         </View>
 
-        <View
-          style={[
-            styles.chatUserInfo,
-            { flex: 1, minWidth: 0 },
-          ]}
-        >
+        <View style={[styles.chatUserInfo, { flex: 1, minWidth: 0 }]}>
           <View
             style={{
               flexDirection: "row",
@@ -802,26 +877,25 @@ useEffect(() => {
           </View>
 
           <Text
+            numberOfLines={1}
+            ellipsizeMode="tail"
             style={[
               styles.chatUserType,
               {
                 color: tema.text,
                 fontSize: 13 * escalaFonte,
+                flexShrink: 1,
               },
             ]}
           >
-            {item.mensagemNaoLida
-              ? "Nova mensagem"
-              : "Última mensagem..."}
+            {item.ultimaMensagemTexto || "Nenhuma mensagem ainda"}
           </Text>
         </View>
 
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={
-            item.fixado
-              ? `Desfixar ${item.nome}`
-              : `Fixar ${item.nome}`
+            item.fixado ? `Desfixar ${item.nome}` : `Fixar ${item.nome}`
           }
           style={{
             minWidth: 44,
@@ -838,17 +912,9 @@ useEffect(() => {
           }}
         >
           <Ionicons
-            name={
-              item.fixado
-                ? "bookmark"
-                : "bookmark-outline"
-            }
+            name={item.fixado ? "bookmark" : "bookmark-outline"}
             size={25}
-            color={
-              item.fixado
-                ? colors.primary
-                : colors.placeholder
-            }
+            color={item.fixado ? colors.primary : colors.placeholder}
           />
         </Pressable>
       </Pressable>
@@ -870,10 +936,7 @@ useEffect(() => {
         },
       ]}
     >
-      <StatusBar
-        barStyle={tipoBarraStatus}
-        backgroundColor={tema.background}
-      />
+      <StatusBar barStyle={tipoBarraStatus} backgroundColor={tema.background} />
 
       {/* CABEÇALHO */}
 
@@ -900,10 +963,7 @@ useEffect(() => {
       {/* ABAS COM ROLAGEM HORIZONTAL */}
 
       <View
-        style={[
-          styles.chatAbasContainer,
-          { backgroundColor: tema.background },
-        ]}
+        style={[styles.chatAbasContainer, { backgroundColor: tema.background }]}
       >
         <ScrollView
           horizontal
@@ -936,9 +996,7 @@ useEffect(() => {
                     styles.chatAbaTexto,
                     {
                       fontSize: 15 * escalaFonte,
-                      color: selecionada
-                        ? "#222222"
-                        : tema.text,
+                      color: selecionada ? "#222222" : tema.text,
                     },
                   ]}
                 >
@@ -1001,10 +1059,7 @@ useEffect(() => {
 
       {loading || carregandoTema ? (
         <View style={styles.chatLoadingContainer}>
-          <ActivityIndicator
-            size="large"
-            color={colors.primary}
-          />
+          <ActivityIndicator size="large" color={colors.primary} />
 
           <Text
             style={[
@@ -1125,9 +1180,8 @@ useEffect(() => {
                   }}
                 >
                   Filtrar{" "}
-                  {abasPermitidas.find(
-                    (aba) => aba.key === abaAtiva
-                  )?.label || ""}
+                  {abasPermitidas.find((aba) => aba.key === abaAtiva)?.label ||
+                    ""}
                 </Text>
 
                 <Pressable
@@ -1136,17 +1190,17 @@ useEffect(() => {
                     checked:
                       usuariosParaFiltrarNaAba.length > 0 &&
                       usuariosParaFiltrarNaAba.every((u) =>
-                        idsSelecionados.includes(u.id)
+                        idsSelecionados.includes(u.id),
                       ),
                   }}
                   disabled={
-                    usuariosParaFiltrarNaAba.length === 0
+                    salvandoFiltro || usuariosParaFiltrarNaAba.length === 0
                   }
                   onPress={() => {
                     void selecionarTodosNaAba().catch((error) => {
                       console.error(
                         "Erro ao selecionar usuários da aba:",
-                        error
+                        error,
                       );
                     });
                   }}
@@ -1164,7 +1218,7 @@ useEffect(() => {
                     name={
                       usuariosParaFiltrarNaAba.length > 0 &&
                       usuariosParaFiltrarNaAba.every((u) =>
-                        idsSelecionados.includes(u.id)
+                        idsSelecionados.includes(u.id),
                       )
                         ? "checkbox"
                         : "square-outline"
@@ -1173,7 +1227,7 @@ useEffect(() => {
                     color={
                       usuariosParaFiltrarNaAba.length > 0 &&
                       usuariosParaFiltrarNaAba.every((u) =>
-                        idsSelecionados.includes(u.id)
+                        idsSelecionados.includes(u.id),
                       )
                         ? colors.primary
                         : tema.text
@@ -1192,7 +1246,7 @@ useEffect(() => {
                   >
                     {usuariosParaFiltrarNaAba.length > 0 &&
                     usuariosParaFiltrarNaAba.every((u) =>
-                      idsSelecionados.includes(u.id)
+                      idsSelecionados.includes(u.id),
                     )
                       ? "Desmarcar todos"
                       : "Selecionar todos"}
@@ -1228,13 +1282,12 @@ useEffect(() => {
               showsVerticalScrollIndicator={false}
             >
               {usuariosParaFiltrarNaAba.map((item) => {
-                const selecionado = idsSelecionados.includes(
-                  item.id
-                );
+                const selecionado = idsSelecionados.includes(item.id);
 
                 return (
                   <Pressable
                     key={item.id}
+                    disabled={salvandoFiltro}
                     accessibilityRole="checkbox"
                     accessibilityState={{
                       checked: selecionado,
@@ -1242,7 +1295,7 @@ useEffect(() => {
                     accessibilityLabel={formatarNome(
                       item.nome,
                       item.email,
-                      item.tipo
+                      item.tipo,
                     )}
                     style={{
                       flexDirection: "row",
@@ -1253,28 +1306,15 @@ useEffect(() => {
                       borderBottomColor: tema.border,
                     }}
                     onPress={() => {
-                      void toggleSelecionFiltro(item.id).catch(
-                        (error) => {
-                          console.error(
-                            "Erro ao atualizar filtro:",
-                            error
-                          );
-                        }
-                      );
+                      void toggleSelecionFiltro(item.id).catch((error) => {
+                        console.error("Erro ao atualizar filtro:", error);
+                      });
                     }}
                   >
                     <Ionicons
-                      name={
-                        selecionado
-                          ? "checkbox"
-                          : "square-outline"
-                      }
+                      name={selecionado ? "checkbox" : "square-outline"}
                       size={22}
-                      color={
-                        selecionado
-                          ? colors.primary
-                          : tema.text
-                      }
+                      color={selecionado ? colors.primary : tema.text}
                       style={{
                         marginRight: 10,
                         flexShrink: 0,
@@ -1295,11 +1335,7 @@ useEffect(() => {
                           color: tema.text,
                         }}
                       >
-                        {formatarNome(
-                          item.nome,
-                          item.email,
-                          item.tipo
-                        )}
+                        {formatarNome(item.nome, item.email, item.tipo)}
                       </Text>
 
                       <Text
