@@ -1221,6 +1221,25 @@ export const signUpStyles = StyleSheet.create({
   modalItemSelecionado: {
     backgroundColor: "#F3EDF8",
   },
+
+  campoSenhaContainer: {
+    width: "100%",
+    position: "relative",
+  },
+
+  inputSenhaComIcone: {
+    paddingRight: 52,
+  },
+
+  botaoMostrarSenha: {
+    position: "absolute",
+    right: 6,
+    top: 0,
+    bottom: 0,
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
 export const esqueciSenhaStyles = StyleSheet.create({
   keyboard: {
@@ -1561,5 +1580,24 @@ export const loginStyles = StyleSheet.create({
 
   desativado: {
     opacity: 0.5,
+  },
+
+  campoSenhaContainer: {
+    width: "100%",
+    position: "relative",
+  },
+
+  inputSenhaComIcone: {
+    paddingRight: 52,
+  },
+
+  botaoMostrarSenha: {
+    position: "absolute",
+    right: 6,
+    top: 0,
+    bottom: 0,
+    width: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

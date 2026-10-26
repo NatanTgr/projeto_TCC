@@ -15,6 +15,7 @@ import { router } from "expo-router";
 import { colors } from "../style";
 
 const VERSAO_TERMO = "1.0";
+const TERMO_STORAGE_KEY = "@paed:termo_autorizacao";
 
 export default function TermoAutorizacao() {
   const [aceitou, setAceitou] = useState(false);
@@ -31,7 +32,7 @@ export default function TermoAutorizacao() {
     if (!aceitou) {
       Alert.alert(
         "Aceite necessário",
-        "Marque a opção indicando que você leu e concorda com o termo para continuar."
+        "Marque a opção indicando que você leu e concorda com o termo para continuar.",
       );
       return;
     }
@@ -40,11 +41,11 @@ export default function TermoAutorizacao() {
       setCarregando(true);
 
       await AsyncStorage.setItem(
-        "@paed/termo_autorizacao",
+        TERMO_STORAGE_KEY,
         JSON.stringify({
           aceito: true,
           versao: VERSAO_TERMO,
-        })
+        }),
       );
 
       router.replace("/welcome");
@@ -53,7 +54,7 @@ export default function TermoAutorizacao() {
 
       Alert.alert(
         "Erro",
-        "Não foi possível salvar sua autorização. Tente novamente."
+        "Não foi possível salvar sua autorização. Tente novamente.",
       );
     } finally {
       setCarregando(false);

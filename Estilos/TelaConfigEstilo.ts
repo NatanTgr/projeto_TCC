@@ -1000,5 +1000,38 @@ export default function criarEstilos(
       fontFamily: "FredokaMedium",
       textAlign: "center",
     },
+
+    campoSenhaContainer: {
+      width: "100%",
+      position: "relative",
+    },
+
+    inputSenhaComIcone: {
+      paddingRight: 52,
+    },
+
+    botaoMostrarSenha: {
+      position: "absolute",
+      right: 6,
+      top: 0,
+      bottom: 12,
+      width: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+
+    inputExcluirContaComIcone: {
+      paddingRight: 52,
+    },
+
+    botaoMostrarSenhaExclusao: {
+      position: "absolute",
+      right: 6,
+      top: 0,
+      bottom: 18,
+      width: 44,
+      alignItems: "center",
+      justifyContent: "center",
+    },
   });
 }

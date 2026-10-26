@@ -20,6 +20,8 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { Feather } from "@expo/vector-icons";
+
 import { supabase } from "../lib/supabase";
 import { styles, colors, signUpStyles as cadastro } from "../style";
 
@@ -864,6 +866,8 @@ export default function SignUp() {
   const scrollCadastroRef = useRef<ScrollView>(null);
   const turmaEmFocoRef = useRef(false);
 
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+
   useEffect(() => {
     const assinatura = Keyboard.addListener("keyboardDidShow", () => {
       if (turmaEmFocoRef.current) {
@@ -1149,19 +1153,36 @@ const tituloPerfil =
               </Text>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Senha</Text>
+            <View style={cadastro.campoSenhaContainer}>
               <TextInput
-                style={estiloInput}
+                style={[...estiloInput, cadastro.inputSenhaComIcone]}
                 placeholder="••••••••"
                 placeholderTextColor={colors.placeholder}
-                secureTextEntry
+                secureTextEntry={!mostrarSenha}
                 autoCapitalize="none"
                 autoCorrect={false}
                 value={password}
                 onChangeText={setPassword}
                 editable={!loading}
+                accessibilityLabel="Senha"
               />
+
+              <Pressable
+                style={cadastro.botaoMostrarSenha}
+                onPress={() => setMostrarSenha((visivel) => !visivel)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  mostrarSenha ? "Ocultar senha" : "Mostrar senha"
+                }
+                disabled={loading}
+                hitSlop={8}
+              >
+                <Feather
+                  name={mostrarSenha ? "eye-off" : "eye"}
+                  size={22}
+                  color={colors.text}
+                />
+              </Pressable>
             </View>
 
             <View style={styles.inputGroup}>

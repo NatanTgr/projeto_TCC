@@ -34,6 +34,7 @@ import { FontSizeProvider } from "../context/FontSizeContext";
 
 const VERSAO_TERMO = "1.0";
 const TERMO_STORAGE_KEY = "@paed:termo_autorizacao";
+const TERMO_STORAGE_KEY_ANTIGA = "@paed/termo_autorizacao";
 
 // =====================================================
 // NAVEGAÇÃO COM TEMA
@@ -73,20 +74,44 @@ function NavegacaoComTema() {
 
 async function verificarTermoLocal(): Promise<boolean> {
   try {
+    // Primeiro, verifica a chave padrão.
     const termoSalvo = await AsyncStorage.getItem(
       TERMO_STORAGE_KEY
     );
 
-    if (!termoSalvo) {
+    if (termoSalvo) {
+      const termo = JSON.parse(termoSalvo);
+
+      return (
+        termo?.aceito === true &&
+        termo?.versao === VERSAO_TERMO
+      );
+    }
+
+    // Compatibilidade com aceites salvos pela chave antiga.
+    const termoAntigoSalvo = await AsyncStorage.getItem(
+      TERMO_STORAGE_KEY_ANTIGA
+    );
+
+    if (!termoAntigoSalvo) {
       return false;
     }
 
-    const termo = JSON.parse(termoSalvo);
+    const termoAntigo = JSON.parse(termoAntigoSalvo);
 
-    return (
-      termo?.aceito === true &&
-      termo?.versao === VERSAO_TERMO
-    );
+    const aceiteValido =
+      termoAntigo?.aceito === true &&
+      termoAntigo?.versao === VERSAO_TERMO;
+
+    if (aceiteValido) {
+      // Migra o aceite antigo para a chave padrão.
+      await AsyncStorage.setItem(
+        TERMO_STORAGE_KEY,
+        termoAntigoSalvo
+      );
+    }
+
+    return aceiteValido;
   } catch (error) {
     console.error(
       "Erro ao verificar aceite do termo:",

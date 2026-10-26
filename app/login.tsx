@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { Feather } from "@expo/vector-icons";
 
 import { supabase } from "../lib/supabase";
 import {
@@ -51,6 +52,7 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
   const [tecladoAberto, setTecladoAberto] = useState(false);
 
@@ -154,17 +156,11 @@ export default function LoginScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={login.keyboard}
       >
-        <View
-          style={[
-            login.conteudo,
-            modoCompacto && login.conteudoCompacto,
-          ]}
-        >
+        <View style={[login.conteudo, modoCompacto && login.conteudoCompacto]}>
           <View
             style={[
               login.logoContainer,
@@ -196,10 +192,7 @@ export default function LoginScreen() {
               showsVerticalScrollIndicator
             >
               <Text
-                style={[
-                  styles.cardTitle,
-                  modoCompacto && login.tituloCompacto,
-                ]}
+                style={[styles.cardTitle, modoCompacto && login.tituloCompacto]}
               >
                 Bem-vindo de volta!
               </Text>
@@ -227,21 +220,40 @@ export default function LoginScreen() {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Senha</Text>
 
-                <TextInput
-                  ref={senhaRef}
-                  style={estiloInput}
-                  accessibilityLabel="Senha"
-                  placeholder="••••••••"
-                  placeholderTextColor={colors.placeholder}
-                  secureTextEntry
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  value={password}
-                  onChangeText={setPassword}
-                  editable={!loading}
-                  returnKeyType="done"
-                  onSubmitEditing={handleLogin}
-                />
+                <View style={login.campoSenhaContainer}>
+                  <TextInput
+                    ref={senhaRef}
+                    style={[estiloInput, login.inputSenhaComIcone]}
+                    accessibilityLabel="Senha"
+                    placeholder="••••••••"
+                    placeholderTextColor={colors.placeholder}
+                    secureTextEntry={!mostrarSenha}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    value={password}
+                    onChangeText={setPassword}
+                    editable={!loading}
+                    returnKeyType="done"
+                    onSubmitEditing={handleLogin}
+                  />
+
+                  <Pressable
+                    style={login.botaoMostrarSenha}
+                    onPress={() => setMostrarSenha((visivel) => !visivel)}
+                    accessibilityRole="button"
+                    accessibilityLabel={
+                      mostrarSenha ? "Ocultar senha" : "Mostrar senha"
+                    }
+                    disabled={loading}
+                    hitSlop={8}
+                  >
+                    <Feather
+                      name={mostrarSenha ? "eye-off" : "eye"}
+                      size={22}
+                      color={colors.text}
+                    />
+                  </Pressable>
+                </View>
               </View>
 
               <Pressable
@@ -262,12 +274,7 @@ export default function LoginScreen() {
                 {loading ? (
                   <ActivityIndicator color={colors.white} />
                 ) : (
-                  <Text
-                    style={[
-                      styles.buttonText,
-                      login.textoCentralizado,
-                    ]}
-                  >
+                  <Text style={[styles.buttonText, login.textoCentralizado]}>
                     Entrar
                   </Text>
                 )}
@@ -276,10 +283,7 @@ export default function LoginScreen() {
               <View style={login.rodape}>
                 <View style={login.linhaLinks}>
                   <Text
-                    style={[
-                      styles.cardFooterText,
-                      login.textoCentralizado,
-                    ]}
+                    style={[styles.cardFooterText, login.textoCentralizado]}
                   >
                     Não tem uma conta?
                   </Text>
@@ -297,12 +301,7 @@ export default function LoginScreen() {
                       router.push("/welcome");
                     }}
                   >
-                    <Text
-                      style={[
-                        styles.signUpLink,
-                        login.textoCentralizado,
-                      ]}
-                    >
+                    <Text style={[styles.signUpLink, login.textoCentralizado]}>
                       Criar conta
                     </Text>
                   </Pressable>
@@ -310,10 +309,7 @@ export default function LoginScreen() {
 
                 <View style={login.linhaLinks}>
                   <Text
-                    style={[
-                      styles.cardFooterText,
-                      login.textoCentralizado,
-                    ]}
+                    style={[styles.cardFooterText, login.textoCentralizado]}
                   >
                     Esqueceu a senha?
                   </Text>
@@ -331,12 +327,7 @@ export default function LoginScreen() {
                       router.push("/esqueciSenha");
                     }}
                   >
-                    <Text
-                      style={[
-                        styles.signUpLink,
-                        login.textoCentralizado,
-                      ]}
-                    >
+                    <Text style={[styles.signUpLink, login.textoCentralizado]}>
                       Redefinir senha
                     </Text>
                   </Pressable>

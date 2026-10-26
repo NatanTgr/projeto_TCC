@@ -283,6 +283,10 @@ export default function TelaConfig() {
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [alterandoSenha, setAlterandoSenha] = useState(false);
 
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
+  const [mostrarSenhaExclusao, setMostrarSenhaExclusao] = useState(false);
+
   // PERFIS PROFISSIONAIS
 
   const eProfessor = usuario?.tipo === "professor";
@@ -1602,23 +1606,67 @@ export default function TelaConfig() {
               Digite e confirme sua nova senha.
             </Text>
 
-            <TextInput
-              placeholder="Nova senha"
-              placeholderTextColor="#888"
-              secureTextEntry
-              value={novaSenha}
-              onChangeText={setNovaSenha}
-              style={Estilos.inputSenha}
-            />
+            <View style={Estilos.campoSenhaContainer}>
+              <TextInput
+                placeholder="Nova senha"
+                placeholderTextColor="#888"
+                secureTextEntry={!mostrarNovaSenha}
+                value={novaSenha}
+                onChangeText={setNovaSenha}
+                style={[Estilos.inputSenha, Estilos.inputSenhaComIcone]}
+                autoCapitalize="none"
+                autoCorrect={false}
+                accessibilityLabel="Nova senha"
+              />
 
-            <TextInput
-              placeholder="Confirmar nova senha"
-              placeholderTextColor="#888"
-              secureTextEntry
-              value={confirmarSenha}
-              onChangeText={setConfirmarSenha}
-              style={Estilos.inputSenha}
-            />
+              <TouchableOpacity
+                style={Estilos.botaoMostrarSenha}
+                onPress={() => setMostrarNovaSenha((visivel) => !visivel)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  mostrarNovaSenha ? "Ocultar nova senha" : "Mostrar nova senha"
+                }
+                hitSlop={8}
+              >
+                <Feather
+                  name={mostrarNovaSenha ? "eye-off" : "eye"}
+                  size={22}
+                  color={tema.text}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <View style={Estilos.campoSenhaContainer}>
+              <TextInput
+                placeholder="Confirmar nova senha"
+                placeholderTextColor="#888"
+                secureTextEntry={!mostrarConfirmarSenha}
+                value={confirmarSenha}
+                onChangeText={setConfirmarSenha}
+                style={[Estilos.inputSenha, Estilos.inputSenhaComIcone]}
+                autoCapitalize="none"
+                autoCorrect={false}
+                accessibilityLabel="Confirmar nova senha"
+              />
+
+              <TouchableOpacity
+                style={Estilos.botaoMostrarSenha}
+                onPress={() => setMostrarConfirmarSenha((visivel) => !visivel)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  mostrarConfirmarSenha
+                    ? "Ocultar confirmação da senha"
+                    : "Mostrar confirmação da senha"
+                }
+                hitSlop={8}
+              >
+                <Feather
+                  name={mostrarConfirmarSenha ? "eye-off" : "eye"}
+                  size={22}
+                  color={tema.text}
+                />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={Estilos.botaoConfirmarSenha}
@@ -1989,18 +2037,42 @@ export default function TelaConfig() {
               Confirme sua senha atual:
             </Text>
 
-            <TextInput
-              style={Estilos.inputExcluirConta}
-              placeholder="Digite sua senha"
-              placeholderTextColor={tema.secondaryText}
-              value={senhaExclusao}
-              onChangeText={setSenhaExclusao}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!excluindoConta}
-              accessibilityLabel="Senha atual da conta"
-            />
+            <View style={Estilos.campoSenhaContainer}>
+              <TextInput
+                style={[
+                  Estilos.inputExcluirConta,
+                  Estilos.inputExcluirContaComIcone,
+                ]}
+                placeholder="Digite sua senha"
+                placeholderTextColor={tema.secondaryText}
+                value={senhaExclusao}
+                onChangeText={setSenhaExclusao}
+                secureTextEntry={!mostrarSenhaExclusao}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={!excluindoConta}
+                accessibilityLabel="Senha atual da conta"
+              />
+
+              <TouchableOpacity
+                style={Estilos.botaoMostrarSenhaExclusao}
+                onPress={() => setMostrarSenhaExclusao((visivel) => !visivel)}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  mostrarSenhaExclusao
+                    ? "Ocultar senha atual"
+                    : "Mostrar senha atual"
+                }
+                disabled={excluindoConta}
+                hitSlop={8}
+              >
+                <Feather
+                  name={mostrarSenhaExclusao ? "eye-off" : "eye"}
+                  size={22}
+                  color={tema.text}
+                />
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={[
