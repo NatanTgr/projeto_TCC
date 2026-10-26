@@ -67,3 +67,6 @@ node_modules/
 .expo/
 # Necessario para Firebase no EAS Build
 !google-services.json
+
+# Tutoriais carregados do Supabase Storage
+/assets/videos/

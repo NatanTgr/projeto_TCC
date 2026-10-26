@@ -50,6 +50,7 @@ export default function TelaTarefasTutor() {
   const [idsSelecionados, setIdsSelecionados] = useState<string[]>([]);
   const [modalFiltroVisivel, setModalFiltroVisivel] = useState(false);
   const [carregando, setCarregando] = useState(true);
+  const [campusLogado, setCampusLogado] = useState<string | null>(null);
 
   // =====================================================
   // CARREGAR ALUNOS
@@ -69,19 +70,62 @@ export default function TelaTarefasTutor() {
         return;
       }
 
-      const { data: alunosSalvos, error: erroAlunos } = await supabase.from(
-        "alunos",
-      ).select(`
-  id,
-  curso,
-  turno,
-  turma,
-  escolaridade,
-  usuarios (
-    nome,
-    avatar
-  )
-`);
+      // DADOS DO USUÁRIO LOGADO
+      const { data: dadosUsuario, error: erroUsuario } = await supabase
+        .from("usuarios")
+        .select("estado, campus")
+        .eq("id", user.id)
+        .single();
+
+      if (erroUsuario || !dadosUsuario) {
+        console.error("Erro ao carregar dados do usuário:", erroUsuario);
+        Alert.alert("Erro", "Não foi possível identificar seu cadastro.");
+        return;
+      }
+
+      const estadoLogado = dadosUsuario.estado?.trim();
+      const campusUsuario = dadosUsuario.campus?.trim() || null;
+
+      setCampusLogado(campusUsuario);
+
+      // Impede exibir alunos de outros campi quando
+      // o cadastro do usuário não possui os dados necessários.
+      if (!estadoLogado || !campusUsuario) {
+        setAlunos([]);
+        setIdsSelecionados([]);
+        Alert.alert(
+          "Cadastro incompleto",
+          "Seu estado ou campus não está informado no cadastro. Verifique seus dados para visualizar as alunas e os alunos.",
+        );
+        return;
+      }
+
+      // ALUNOS DO MESMO ESTADO E CAMPUS
+      const { data: alunosSalvos, error: erroAlunos } = await supabase
+        .from("alunos")
+        .select(
+          `
+          id,
+          curso,
+          turno,
+          turma,
+          escolaridade,
+          usuarios!inner (
+            nome,
+            avatar,
+            estado,
+            campus
+          )
+        `,
+        )
+        .eq("usuarios.estado", estadoLogado)
+        .eq("usuarios.campus", campusUsuario);
+
+      if (erroAlunos) {
+        console.error("Erro ao carregar alunos:", erroAlunos);
+        Alert.alert("Erro", "Não foi possível carregar os alunos.");
+        return;
+      }
 
       if (erroAlunos) {
         console.log("Erro ao carregar alunos:", erroAlunos);
@@ -109,7 +153,7 @@ export default function TelaTarefasTutor() {
       }
 
       const idsFixados = new Set(
-        (fixados || []).map((item) => item.usuario_fixado_id)
+        (fixados || []).map((item) => item.usuario_fixado_id),
       );
 
       const pendentesPorAluno = new Map<string, number>();
@@ -145,7 +189,7 @@ export default function TelaTarefasTutor() {
 
       setIdsSelecionados((selecionadosAtuais) => {
         const selecoesMantidas = selecionadosAtuais.filter((id) =>
-          idsAtuais.has(id)
+          idsAtuais.has(id),
         );
 
         const novosAlunos = listaAlunos
@@ -277,10 +321,7 @@ export default function TelaTarefasTutor() {
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      style={[
-        Estilos.container,
-        { backgroundColor: tema.background },
-      ]}
+      style={[Estilos.container, { backgroundColor: tema.background }]}
     >
       {/* CABEÇALHO */}
 
@@ -295,7 +336,7 @@ export default function TelaTarefasTutor() {
               },
             ]}
           >
-            Tarefas das Alunas e dos Alunos
+            Tarefas ({campusLogado || "Geral"})
           </Text>
 
           <BotaoAlerta />
@@ -317,12 +358,7 @@ export default function TelaTarefasTutor() {
 
       {/* BOTÃO FILTRAR */}
 
-      <View
-        style={[
-          Estilos.linhaFiltro,
-          { backgroundColor: tema.background },
-        ]}
-      >
+      <View style={[Estilos.linhaFiltro, { backgroundColor: tema.background }]}>
         <Pressable
           style={[
             Estilos.botaoFiltro,
@@ -330,18 +366,9 @@ export default function TelaTarefasTutor() {
           ]}
           onPress={() => setModalFiltroVisivel(true)}
         >
-          <Ionicons
-            name="filter"
-            size={16}
-            color={tema.secondaryText}
-          />
+          <Ionicons name="filter" size={16} color={tema.secondaryText} />
 
-          <Text
-            style={[
-              Estilos.textoFiltro,
-              { color: tema.text },
-            ]}
-          >
+          <Text style={[Estilos.textoFiltro, { color: tema.text }]}>
             Filtrar
           </Text>
         </Pressable>
@@ -491,11 +518,7 @@ export default function TelaTarefasTutor() {
 
         {!carregando && alunosOrdenados.length === 0 && (
           <View style={Estilos.semAlunos}>
-            <Ionicons
-              name="people-outline"
-              size={64}
-              color="#e0e0e0"
-            />
+            <Ionicons name="people-outline" size={64} color="#e0e0e0" />
 
             <Text
               style={[
@@ -528,10 +551,7 @@ export default function TelaTarefasTutor() {
         >
           <View
             accessibilityViewIsModal
-            style={[
-              Estilos.modalFiltro,
-              { backgroundColor: tema.modal },
-            ]}
+            style={[Estilos.modalFiltro, { backgroundColor: tema.modal }]}
           >
             {/* CABEÇALHO FIXO */}
 
@@ -561,17 +581,9 @@ export default function TelaTarefasTutor() {
                   style={Estilos.botaoSelecionarTodos}
                 >
                   <Ionicons
-                    name={
-                      todosSelecionados
-                        ? "checkbox"
-                        : "square-outline"
-                    }
+                    name={todosSelecionados ? "checkbox" : "square-outline"}
                     size={22}
-                    color={
-                      todosSelecionados
-                        ? colors.primary
-                        : tema.text
-                    }
+                    color={todosSelecionados ? colors.primary : tema.text}
                     style={Estilos.iconeSelecionarTodos}
                   />
 
@@ -584,9 +596,7 @@ export default function TelaTarefasTutor() {
                       },
                     ]}
                   >
-                    {todosSelecionados
-                      ? "Desmarcar todos"
-                      : "Selecionar todos"}
+                    {todosSelecionados ? "Desmarcar todos" : "Selecionar todos"}
                   </Text>
                 </Pressable>
               </View>
@@ -608,17 +618,13 @@ export default function TelaTarefasTutor() {
 
             <FlatList
               style={Estilos.listaFiltro}
-              contentContainerStyle={
-                Estilos.listaFiltroConteudo
-              }
+              contentContainerStyle={Estilos.listaFiltroConteudo}
               data={alunos}
               extraData={idsSelecionados}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
-                const selecionado = idsSelecionados.includes(
-                  item.id
-                );
+                const selecionado = idsSelecionados.includes(item.id);
 
                 return (
                   <Pressable
@@ -631,22 +637,12 @@ export default function TelaTarefasTutor() {
                       Estilos.itemFiltro,
                       { borderBottomColor: tema.border },
                     ]}
-                    onPress={() =>
-                      alternarSelecaoFiltro(item.id)
-                    }
+                    onPress={() => alternarSelecaoFiltro(item.id)}
                   >
                     <Ionicons
-                      name={
-                        selecionado
-                          ? "checkbox"
-                          : "square-outline"
-                      }
+                      name={selecionado ? "checkbox" : "square-outline"}
                       size={22}
-                      color={
-                        selecionado
-                          ? colors.primary
-                          : tema.text
-                      }
+                      color={selecionado ? colors.primary : tema.text}
                       style={Estilos.iconeFiltro}
                     />
 
@@ -675,15 +671,10 @@ export default function TelaTarefasTutor() {
                   Estilos.botaoAplicar,
                   { backgroundColor: colors.primary },
                 ]}
-                onPress={() =>
-                  setModalFiltroVisivel(false)
-                }
+                onPress={() => setModalFiltroVisivel(false)}
               >
                 <Text
-                  style={[
-                    Estilos.textoAplicar,
-                    { fontSize: 16 * escalaFonte },
-                  ]}
+                  style={[Estilos.textoAplicar, { fontSize: 16 * escalaFonte }]}
                 >
                   Aplicar Filtro
                 </Text>
