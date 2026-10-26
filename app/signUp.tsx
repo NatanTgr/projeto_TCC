@@ -1153,35 +1153,38 @@ export default function SignUp() {
 
             <View style={cadastro.campoSenhaContainer}>
               <Text style={styles.label}>Senha</Text>
-              <TextInput
-                style={[...estiloInput, cadastro.inputSenhaComIcone]}
-                placeholder="••••••••"
-                placeholderTextColor={colors.placeholder}
-                secureTextEntry={!mostrarSenha}
-                autoCapitalize="none"
-                autoCorrect={false}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-                accessibilityLabel="Senha"
-              />
 
-              <Pressable
-                style={cadastro.botaoMostrarSenha}
-                onPress={() => setMostrarSenha((visivel) => !visivel)}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  mostrarSenha ? "Ocultar senha" : "Mostrar senha"
-                }
-                disabled={loading}
-                hitSlop={8}
-              >
-                <Feather
-                  name={mostrarSenha ? "eye-off" : "eye"}
-                  size={22}
-                  color={colors.text}
+              <View style={cadastro.inputSenhaContainer}>
+                <TextInput
+                  style={[estiloInput, cadastro.inputSenhaComIcone]}
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.placeholder}
+                  secureTextEntry={!mostrarSenha}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                  accessibilityLabel="Senha"
                 />
-              </Pressable>
+
+                <Pressable
+                  style={cadastro.botaoMostrarSenha}
+                  onPress={() => setMostrarSenha((visivel) => !visivel)}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    mostrarSenha ? "Ocultar senha" : "Mostrar senha"
+                  }
+                  disabled={loading}
+                  hitSlop={8}
+                >
+                  <Feather
+                    name={mostrarSenha ? "eye-off" : "eye"}
+                    size={22}
+                    color={colors.text}
+                  />
+                </Pressable>
+              </View>
             </View>
 
             <View style={styles.inputGroup}>
