@@ -1225,6 +1225,7 @@ export const signUpStyles = StyleSheet.create({
   campoSenhaContainer: {
     width: "100%",
     position: "relative",
+    marginBottom: 16,
   },
 
   inputSenhaComIcone: {

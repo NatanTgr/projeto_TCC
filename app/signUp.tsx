@@ -886,17 +886,15 @@ export default function SignUp() {
   const telaBaixa = height < 500;
   const botoesEmColuna = width < 360 || fontScale >= 1.3;
 
-  const selectedRole =
-    (Array.isArray(role) ? role[0] : role) || "Estudante";
+  const selectedRole = (Array.isArray(role) ? role[0] : role) || "Estudante";
 
-  
-const tituloPerfil =
-  selectedRole === "Professor"
-    ? "Professora/Professor"
-    : selectedRole === "Tutor"
-      ? "Tutora/Tutor"
-      : selectedRole;
-  
+  const tituloPerfil =
+    selectedRole === "Professor"
+      ? "Professora/Professor"
+      : selectedRole === "Tutor"
+        ? "Tutora/Tutor"
+        : selectedRole;
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -1054,7 +1052,7 @@ const tituloPerfil =
 
       Alert.alert(
         "Cadastro realizado!",
-        "Sua conta foi criada. Enviamos um e-mail de confirmação para o endereço informado. Confirme seu e-mail antes de fazer login.",
+        "Sua conta foi criada. Realize seu Login",
         [
           {
             text: "OK",
@@ -1154,6 +1152,7 @@ const tituloPerfil =
             </View>
 
             <View style={cadastro.campoSenhaContainer}>
+              <Text style={styles.label}>Senha</Text>
               <TextInput
                 style={[...estiloInput, cadastro.inputSenhaComIcone]}
                 placeholder="••••••••"
