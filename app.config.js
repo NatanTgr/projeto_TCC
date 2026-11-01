@@ -1,14 +1,17 @@
 module.exports = ({ config }) => {
   const desenvolvimento = process.env.APP_VARIANT === "development";
 
+  const android = config.android ?? {};
+  const packageName = android.package ?? "com.natanrodrigues.paed";
+
   return {
     ...config,
     name: desenvolvimento ? "PAED Dev" : config.name,
     android: {
-      ...config.android,
+      ...android,
       package: desenvolvimento
-        ? `${config.android.package}.dev`
-        : config.android.package,
+        ? `${packageName}.dev`
+        : packageName,
       googleServicesFile: desenvolvimento
         ? "./google-services-dev.json"
         : "./google-services.json",
